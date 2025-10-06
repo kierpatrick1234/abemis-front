@@ -390,8 +390,10 @@ export default function LoginPage() {
         <div className={`w-full space-y-8 ${isSignUp ? 'max-w-4xl' : 'max-w-md'}`}>
 
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-primary rounded-full flex items-center justify-center mb-4">
-            <LogIn className="h-8 w-8 text-primary-foreground" />
+          <div className="mx-auto mb-6 flex justify-center pb-10">
+            <div className="scale-[5]">
+              <AbemisLogo size="lg" showText={false} />
+            </div>
           </div>
           <h2 className="text-4xl font-bold text-foreground">
             ABEMIS 3.0

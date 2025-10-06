@@ -5,9 +5,9 @@ export function middleware(request: NextRequest) {
   // Get the pathname of the request
   const pathname = request.nextUrl.pathname
 
-  // If the user is trying to access the root path, redirect to login
+  // If the user is trying to access the root path, redirect to landing
   if (pathname === '/') {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/landing', request.url))
   }
 
   return NextResponse.next()
