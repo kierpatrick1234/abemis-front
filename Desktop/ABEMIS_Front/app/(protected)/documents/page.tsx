@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { mockDocuments } from '@/lib/mock/data'
 import { formatDate } from '@/lib/utils'
 import { Search, Filter, Upload, FileText, Download } from 'lucide-react'
+import { Document } from '@/lib/types'
 
 export default function DocumentsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -42,7 +43,7 @@ export default function DocumentsPage() {
     {
       key: 'name',
       label: 'Document Name',
-      render: (value: string, row: unknown) => (
+      render: (value: string, row: Document) => (
         <div className="flex items-center space-x-2">
           <FileText className="h-4 w-4 text-muted-foreground" />
           <div>
@@ -86,7 +87,7 @@ export default function DocumentsPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: unknown, row: unknown) => (
+      render: (value: unknown, row: Document) => (
         <div className="flex space-x-1">
           <ActionButton onClick={() => handlePreviewDocument(row.id)}>
             <FileText className="h-4 w-4" />
