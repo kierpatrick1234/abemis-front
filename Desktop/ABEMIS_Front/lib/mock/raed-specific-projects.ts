@@ -170,7 +170,22 @@ function generateProjectsForRegion(region: string, startIndex: number = 1): Proj
       startDate: startDate,
       endDate: endDate,
       updatedAt: updatedAt,
-      assignedTo: getRAEDLabel(region)
+      assignedTo: getRAEDLabel(region),
+      // Add procurement fields for projects in Procurement, Implementation, or Completed status
+      ...(status === 'Procurement' || status === 'Implementation' || status === 'Completed' ? {
+        budgetYear: ['2023', '2024', '2025', '2026'][Math.floor(Math.random() * 4)],
+        bidOpeningDate: status === 'Implementation' || status === 'Completed' ? 
+          new Date(new Date(startDate).getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
+        noticeOfAwardDate: status === 'Implementation' || status === 'Completed' ? 
+          new Date(new Date(startDate).getTime() + (30 + Math.random() * 15) * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
+        noticeToProceedDate: status === 'Implementation' || status === 'Completed' ? 
+          new Date(new Date(startDate).getTime() + (45 + Math.random() * 10) * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
+        procurementDocuments: status === 'Implementation' || status === 'Completed' ? {
+          bidOpening: 'bid-opening-document.pdf',
+          noticeOfAward: 'notice-of-award-document.pdf',
+          noticeToProceed: 'notice-to-proceed-document.pdf'
+        } : undefined
+      } : {})
     }
     
     projects.push(project)

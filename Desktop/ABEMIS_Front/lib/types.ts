@@ -34,6 +34,16 @@ export interface Project {
   endDate?: string
   updatedAt: string
   assignedTo?: string
+  // Procurement fields
+  budgetYear?: string
+  bidOpeningDate?: string
+  noticeOfAwardDate?: string
+  noticeToProceedDate?: string
+  procurementDocuments?: {
+    bidOpening?: string
+    noticeOfAward?: string
+    noticeToProceed?: string
+  }
 }
 
 export interface Document {

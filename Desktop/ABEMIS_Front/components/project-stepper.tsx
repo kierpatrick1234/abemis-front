@@ -64,6 +64,7 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
   
   const mappedCurrentStatus = statusToStepMap[currentStatus] || 'proposal'
   const [activeStep, setActiveStep] = useState(mappedCurrentStatus)
+  const [currentStepStatus, setCurrentStepStatus] = useState(currentStatus || 'Proposal')
 
   const getStepIndex = (step: string) => {
     const mappedStep = statusToStepMap[step] || step
@@ -71,7 +72,7 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
     return index >= 0 ? index : 0
   }
 
-  const currentStepIndex = getStepIndex(currentStatus)
+  const currentStepIndex = getStepIndex(currentStepStatus)
   
 
   const isStepAccessible = (stepIndex: number) => {
@@ -86,7 +87,32 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
   const handleStepClick = (step: string, stepIndex: number) => {
     if (isStepAccessible(stepIndex)) {
       setActiveStep(step)
+      // Update the current step status when manually clicking
+      const stepToStatusMap: { [key: string]: string } = {
+        'proposal': 'Proposal',
+        'procurement': 'Procurement',
+        'implementation': 'Implementation',
+        'completed': 'Completed'
+      }
+      setCurrentStepStatus(stepToStatusMap[step] || step)
       onStepClick(step)
+    }
+  }
+
+  // Handle stage progression from procurement to implementation
+  const handleStageProgression = (nextStep: string) => {
+    const stepIndex = steps.findIndex(s => s.key === nextStep)
+    if (stepIndex >= 0) {
+      setActiveStep(nextStep)
+      // Update the current step status to reflect the progression
+      const stepToStatusMap: { [key: string]: string } = {
+        'proposal': 'Proposal',
+        'procurement': 'Procurement',
+        'implementation': 'Implementation',
+        'completed': 'Completed'
+      }
+      setCurrentStepStatus(stepToStatusMap[nextStep] || nextStep)
+      onStepClick(nextStep)
     }
   }
 
@@ -206,7 +232,7 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
             <ProposalStepContent projectType={projectType} currentStatus={currentStatus} project={project} />
           )}
           {activeStep === 'procurement' && (
-            <ProcurementStepContent currentStatus={currentStatus} />
+            <ProcurementStepContent currentStatus={currentStatus} project={project} onStepClick={onStepClick} onStageProgression={handleStageProgression} />
           )}
           {activeStep === 'implementation' && (
             <ImplementationStepContent />
@@ -1071,11 +1097,50 @@ function ProposalStepContent({ projectType, currentStatus, project }: { projectT
   )
 }
 
-function ProcurementStepContent({ currentStatus }: { currentStatus?: string }) {
+function ProcurementStepContent({ currentStatus, project, onStepClick, onStageProgression }: { currentStatus?: string, project?: Project, onStepClick?: (step: string) => void, onStageProgression?: (step: string) => void }) {
   const isBeyondProcurement = currentStatus && ['Implementation', 'Completed'].includes(currentStatus)
+  const [budgetYear, setBudgetYear] = useState<string>(() => (project?.budgetYear || '') as string)
+  const [bidOpeningDate, setBidOpeningDate] = useState<string>(() => (project?.bidOpeningDate || '') as string)
+  const [noticeOfAwardDate, setNoticeOfAwardDate] = useState<string>(() => (project?.noticeOfAwardDate || '') as string)
+  const [noticeToProceedDate, setNoticeToProceedDate] = useState<string>(() => (project?.noticeToProceedDate || '') as string)
+  const [uploadingDocuments, setUploadingDocuments] = useState<Set<string>>(new Set())
+  const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: File | null}>({
+    bidOpening: null,
+    noticeOfAward: null,
+    noticeToProceed: null
+  })
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: boolean}>({})
+  const [remarks, setRemarks] = useState<string>('')
+  const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false)
+  const [isProceeding, setIsProceeding] = useState<boolean>(false)
+
+  const handleFileUpload = (documentType: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setUploadingDocuments(prev => new Set(prev).add(documentType))
+      setUploadedFiles(prev => ({ ...prev, [documentType]: file }))
+      
+      // Clear validation error for this document type
+      const errorKey = `${documentType}Doc`
+      if (validationErrors[errorKey]) {
+        setValidationErrors(prev => ({ ...prev, [errorKey]: false }))
+      }
+      
+      // Simulate upload process
+      setTimeout(() => {
+        setUploadingDocuments(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(documentType)
+          return newSet
+        })
+      }, 2000)
+    }
+  }
+
+  const budgetYears = ['2026', '2025', '2024', '2023']
   
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <h4 className="font-medium mb-2">Procurement Method</h4>
@@ -1086,6 +1151,225 @@ function ProcurementStepContent({ currentStatus }: { currentStatus?: string }) {
           <Badge variant={isBeyondProcurement ? "default" : "secondary"}>
             {isBeyondProcurement ? "Completed" : "In Progress"}
           </Badge>
+        </div>
+      </div>
+
+      {/* Procurement Fields for RAED */}
+      <div className="space-y-4">
+        <h4 className="font-medium text-lg">Procurement Information</h4>
+        
+        {/* Budget Year Dropdown */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Budget Year</label>
+            <select
+              value={budgetYear || ''}
+              onChange={(e) => {
+                setBudgetYear(e.target.value)
+                if (validationErrors.budgetYear) {
+                  setValidationErrors(prev => ({ ...prev, budgetYear: false }))
+                }
+              }}
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                validationErrors.budgetYear ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              }`}
+            >
+              <option value="">Select Budget Year</option>
+              {budgetYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Bid Opening Conducted</label>
+            <input
+              type="date"
+              value={bidOpeningDate || ''}
+              onChange={(e) => {
+                setBidOpeningDate(e.target.value)
+                if (validationErrors.bidOpeningDate) {
+                  setValidationErrors(prev => ({ ...prev, bidOpeningDate: false }))
+                }
+              }}
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                validationErrors.bidOpeningDate ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              }`}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Issuance of Notice of Awards</label>
+            <input
+              type="date"
+              value={noticeOfAwardDate || ''}
+              onChange={(e) => {
+                setNoticeOfAwardDate(e.target.value)
+                if (validationErrors.noticeOfAwardDate) {
+                  setValidationErrors(prev => ({ ...prev, noticeOfAwardDate: false }))
+                }
+              }}
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                validationErrors.noticeOfAwardDate ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              }`}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Notice to Proceed Issue</label>
+            <input
+              type="date"
+              value={noticeToProceedDate || ''}
+              onChange={(e) => {
+                setNoticeToProceedDate(e.target.value)
+                if (validationErrors.noticeToProceedDate) {
+                  setValidationErrors(prev => ({ ...prev, noticeToProceedDate: false }))
+                }
+              }}
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                validationErrors.noticeToProceedDate ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              }`}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* File Upload Section */}
+      <div className="space-y-4">
+        <h4 className="font-medium text-lg">Procurement Documents</h4>
+        
+        <div className="space-y-4">
+          {/* Bid Opening Document */}
+          <div className={`flex items-center justify-between p-4 border rounded-lg ${
+            validationErrors.bidOpeningDoc ? 'border-red-500 bg-red-50' : 'border-gray-200'
+          }`}>
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-sm font-medium">Bid Opening Document</p>
+                <p className="text-xs text-muted-foreground">Upload document for bid opening conducted</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {uploadedFiles.bidOpening && (
+                <span className="text-sm text-green-600">✓ Uploaded</span>
+              )}
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => handleFileUpload('bidOpening', e)}
+                className="hidden"
+                id="bid-opening-upload"
+                disabled={uploadingDocuments.has('bidOpening')}
+              />
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => document.getElementById('bid-opening-upload')?.click()}
+                disabled={uploadingDocuments.has('bidOpening')}
+              >
+                {uploadingDocuments.has('bidOpening') ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-1"></div>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-1" />
+                    Upload
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Notice of Award Document */}
+          <div className={`flex items-center justify-between p-4 border rounded-lg ${
+            validationErrors.noticeOfAwardDoc ? 'border-red-500 bg-red-50' : 'border-gray-200'
+          }`}>
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-sm font-medium">Notice of Award Document</p>
+                <p className="text-xs text-muted-foreground">Upload document for notice of award issuance</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {uploadedFiles.noticeOfAward && (
+                <span className="text-sm text-green-600">✓ Uploaded</span>
+              )}
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => handleFileUpload('noticeOfAward', e)}
+                className="hidden"
+                id="notice-of-award-upload"
+                disabled={uploadingDocuments.has('noticeOfAward')}
+              />
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => document.getElementById('notice-of-award-upload')?.click()}
+                disabled={uploadingDocuments.has('noticeOfAward')}
+              >
+                {uploadingDocuments.has('noticeOfAward') ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-1"></div>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-1" />
+                    Upload
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Notice to Proceed Document */}
+          <div className={`flex items-center justify-between p-4 border rounded-lg ${
+            validationErrors.noticeToProceedDoc ? 'border-red-500 bg-red-50' : 'border-gray-200'
+          }`}>
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-sm font-medium">Notice to Proceed Document</p>
+                <p className="text-xs text-muted-foreground">Upload document for notice to proceed issuance</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {uploadedFiles.noticeToProceed && (
+                <span className="text-sm text-green-600">✓ Uploaded</span>
+              )}
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => handleFileUpload('noticeToProceed', e)}
+                className="hidden"
+                id="notice-to-proceed-upload"
+                disabled={uploadingDocuments.has('noticeToProceed')}
+              />
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => document.getElementById('notice-to-proceed-upload')?.click()}
+                disabled={uploadingDocuments.has('noticeToProceed')}
+              >
+                {uploadingDocuments.has('noticeToProceed') ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-1"></div>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-1" />
+                    Upload
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -1140,21 +1424,127 @@ function ProcurementStepContent({ currentStatus }: { currentStatus?: string }) {
           </div>
         </>
       )}
-      
-      {!isBeyondProcurement && (
-      <div>
-        <h4 className="font-medium mb-2">Procurement Timeline</h4>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Bid Opening</span>
-            <span className="text-muted-foreground">Dec 15, 2024</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span>Award Notice</span>
-            <span className="text-muted-foreground">Dec 20, 2024</span>
-          </div>
+
+      {/* Remarks Section */}
+      <div className="space-y-4">
+        <h4 className="font-medium text-lg">Remarks</h4>
+        <div>
+          <label className="block text-sm font-medium mb-2">Additional Notes</label>
+          <textarea
+            value={remarks}
+            onChange={(e) => setRemarks(e.target.value)}
+            placeholder="Enter any additional notes or remarks about the procurement process..."
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            rows={4}
+          />
         </div>
       </div>
+      
+      {/* Success Message */}
+      {showSuccessMessage && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4 animate-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center animate-pulse">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-green-800">Procurement Completed Successfully!</h4>
+              <p className="text-sm text-green-700 mt-1">All procurement requirements have been fulfilled. Proceeding to Implementation stage...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save and Proceed Buttons */}
+      {!isBeyondProcurement && (
+        <div className="flex justify-end gap-3 pt-4 border-t">
+          <Button variant="outline" onClick={() => {
+            // Save current data
+            console.log('Saving procurement data:', {
+              budgetYear,
+              bidOpeningDate,
+              noticeOfAwardDate,
+              noticeToProceedDate,
+              uploadedFiles,
+              remarks
+            })
+            // In a real app, this would save to the backend
+            alert('Procurement data saved successfully!')
+          }}>
+            Save
+          </Button>
+          <Button 
+            variant="default" 
+            onClick={() => {
+              // Validate all fields are filled
+              const isBudgetYearFilled = budgetYear !== ''
+              const isBidOpeningFilled = bidOpeningDate !== ''
+              const isNoticeOfAwardFilled = noticeOfAwardDate !== ''
+              const isNoticeToProceedFilled = noticeToProceedDate !== ''
+              const areDocumentsUploaded = uploadedFiles.bidOpening && uploadedFiles.noticeOfAward && uploadedFiles.noticeToProceed
+
+              const missingFields = []
+              if (!isBudgetYearFilled) missingFields.push('Budget Year')
+              if (!isBidOpeningFilled) missingFields.push('Bid Opening Date')
+              if (!isNoticeOfAwardFilled) missingFields.push('Notice of Award Date')
+              if (!isNoticeToProceedFilled) missingFields.push('Notice to Proceed Date')
+              if (!uploadedFiles.bidOpening) missingFields.push('Bid Opening Document')
+              if (!uploadedFiles.noticeOfAward) missingFields.push('Notice of Award Document')
+              if (!uploadedFiles.noticeToProceed) missingFields.push('Notice to Proceed Document')
+
+              if (missingFields.length > 0) {
+                // Set validation errors for missing fields
+                const errors: {[key: string]: boolean} = {}
+                if (!isBudgetYearFilled) errors.budgetYear = true
+                if (!isBidOpeningFilled) errors.bidOpeningDate = true
+                if (!isNoticeOfAwardFilled) errors.noticeOfAwardDate = true
+                if (!isNoticeToProceedFilled) errors.noticeToProceedDate = true
+                if (!uploadedFiles.bidOpening) errors.bidOpeningDoc = true
+                if (!uploadedFiles.noticeOfAward) errors.noticeOfAwardDoc = true
+                if (!uploadedFiles.noticeToProceed) errors.noticeToProceedDoc = true
+                
+                setValidationErrors(errors)
+                alert(`Please complete the following fields before proceeding:\n\n${missingFields.join('\n')}`)
+                return
+              }
+
+              // Clear validation errors if all fields are filled
+              setValidationErrors({})
+
+              // Show success message and proceed to next stage
+              setIsProceeding(true)
+              setShowSuccessMessage(true)
+              
+              // Hide success message after 2 seconds and proceed to implementation
+              setTimeout(() => {
+                setShowSuccessMessage(false)
+                setIsProceeding(false)
+                
+                // Update the project status and trigger stage progression
+                // In a real app, this would update the backend and project status
+                if (typeof onStageProgression === 'function') {
+                  onStageProgression('implementation')
+                } else if (typeof onStepClick === 'function') {
+                  onStepClick('implementation')
+                }
+              }, 2000)
+            }}
+            disabled={!budgetYear || !bidOpeningDate || !noticeOfAwardDate || !noticeToProceedDate || !uploadedFiles.bidOpening || !uploadedFiles.noticeOfAward || !uploadedFiles.noticeToProceed || isProceeding}
+          >
+            {isProceeding ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Processing...
+              </>
+            ) : (
+              'Proceed to Implementation'
+            )}
+          </Button>
+        </div>
       )}
     </div>
   )
