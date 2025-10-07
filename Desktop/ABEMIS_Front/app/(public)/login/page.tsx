@@ -356,6 +356,10 @@ export default function LoginPage() {
     { email: 'raed-11@abemis.com', password: 'raed123', role: 'RAED-11', description: 'Region 11 - Dashboard, Projects, Settings only' },
     { email: 'raed-12@abemis.com', password: 'raed123', role: 'RAED-12', description: 'Region 12 - Dashboard, Projects, Settings only' },
     { email: 'raed-13@abemis.com', password: 'raed123', role: 'RAED-13', description: 'Region 13 - Dashboard, Projects, Settings only' },
+    // Department Users
+    { email: 'epdsd@abemis.com', password: 'epdsd123', role: 'EPDSD', description: 'Engineering Planning & Design Services Division - Evaluate infra/machinery proposals' },
+    { email: 'sepd@abemis.com', password: 'sepd123', role: 'SEPD', description: 'Special Engineering Projects Division - Evaluate FMR proposals' },
+    { email: 'ppmd@abemis.com', password: 'ppmd123', role: 'PPMD', description: 'Project Planning & Monitoring Division - Monitor completed projects' },
   ]
 
   if (loading) {

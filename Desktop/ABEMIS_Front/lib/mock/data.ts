@@ -227,7 +227,25 @@ export const navigationItems: NavItem[] = [
     title: 'Projects',
     href: '/projects',
     icon: 'FolderOpen',
-    roles: ['admin', 'engineer', 'stakeholder', 'read', 'manager', 'supervisor', 'superadmin', 'RAED', 'EPDSD', 'PPMD', 'SEPD'],
+    roles: ['admin', 'engineer', 'stakeholder', 'read', 'manager', 'supervisor', 'superadmin', 'RAED'],
+  },
+  {
+    title: 'EPDSD Projects',
+    href: '/epdsd-projects',
+    icon: 'FolderOpen',
+    roles: ['EPDSD'],
+  },
+  {
+    title: 'SEPD Projects',
+    href: '/sepd-projects',
+    icon: 'FolderOpen',
+    roles: ['SEPD'],
+  },
+  {
+    title: 'PPMD Projects',
+    href: '/ppmd-projects',
+    icon: 'FolderOpen',
+    roles: ['PPMD'],
   },
   {
     title: 'Documents',
@@ -251,7 +269,7 @@ export const navigationItems: NavItem[] = [
     title: 'Settings',
     href: '/settings',
     icon: 'Settings',
-    roles: ['admin', 'superadmin', 'RAED'],
+    roles: ['admin', 'superadmin', 'RAED', 'EPDSD', 'PPMD', 'SEPD'],
   },
 ]
 

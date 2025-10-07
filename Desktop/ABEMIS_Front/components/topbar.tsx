@@ -53,7 +53,7 @@ export function Topbar({ className }: TopbarProps) {
         </div>
 
         {/* Notifications */}
-        <NotificationDropdown raedRegion={user?.regionAssigned || 'Region I'} />
+        <NotificationDropdown raedRegion={user?.regionAssigned || 'Region I'} userRole={user?.role} />
 
         {/* User Menu */}
         <DropdownMenu>

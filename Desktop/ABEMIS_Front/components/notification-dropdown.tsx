@@ -13,6 +13,7 @@ import { Bell, CheckCircle2 } from 'lucide-react'
 
 interface NotificationDropdownProps {
   raedRegion: string
+  userRole?: string
 }
 
 // Notification templates for different RAED regions
@@ -269,6 +270,28 @@ const notificationTemplates = {
   ]
 }
 
+// System Admin notifications
+const adminNotifications = [
+  {
+    id: 'admin-1',
+    message: 'A new user has been registered',
+    type: 'user_registration' as const,
+    timestamp: '3 mins ago'
+  },
+  {
+    id: 'admin-2',
+    message: 'System backup completed successfully',
+    type: 'system' as const,
+    timestamp: '1 hour ago'
+  },
+  {
+    id: 'admin-3',
+    message: 'Database maintenance scheduled for tonight',
+    type: 'maintenance' as const,
+    timestamp: '2 hours ago'
+  }
+]
+
 // Default notifications for regions not specified
 const defaultNotifications = [
   {
@@ -297,19 +320,26 @@ const defaultNotifications = [
   }
 ]
 
-export function NotificationDropdown({ raedRegion }: NotificationDropdownProps) {
+export function NotificationDropdown({ raedRegion, userRole }: NotificationDropdownProps) {
   const [notifications, setNotifications] = useState<any[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
-    // Get notifications for the specific region or use default
-    const regionNotifications = notificationTemplates[raedRegion as keyof typeof notificationTemplates] || defaultNotifications
+    let selectedNotifications = []
     
-    // Shuffle notifications to make them random for each RAED account
-    const shuffledNotifications = [...regionNotifications].sort(() => Math.random() - 0.5)
-    
-    // Take only 5 random notifications
-    const selectedNotifications = shuffledNotifications.slice(0, 5)
+    // Show admin notifications for superadmin users
+    if (userRole === 'superadmin' || userRole === 'admin') {
+      selectedNotifications = adminNotifications
+    } else {
+      // Get notifications for the specific region or use default
+      const regionNotifications = notificationTemplates[raedRegion as keyof typeof notificationTemplates] || defaultNotifications
+      
+      // Shuffle notifications to make them random for each RAED account
+      const shuffledNotifications = [...regionNotifications].sort(() => Math.random() - 0.5)
+      
+      // Take only 5 random notifications
+      selectedNotifications = shuffledNotifications.slice(0, 5)
+    }
     
     // Randomly assign read/unread status (2-4 unread notifications)
     const unreadCount = Math.floor(Math.random() * 3) + 2 // 2-4 unread
@@ -320,7 +350,7 @@ export function NotificationDropdown({ raedRegion }: NotificationDropdownProps) 
     
     setNotifications(initialNotifications)
     setUnreadCount(unreadCount)
-  }, [raedRegion])
+  }, [raedRegion, userRole])
 
   const handleNotificationClick = (notificationId: string) => {
     setNotifications(prev => 

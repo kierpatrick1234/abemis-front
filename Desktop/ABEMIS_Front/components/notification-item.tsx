@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Clock, CheckCircle, AlertCircle, Eye } from 'lucide-react'
+import { Clock, CheckCircle, AlertCircle, Eye, UserPlus, Database, Wrench } from 'lucide-react'
 
 interface NotificationItemProps {
   id: string
   message: string
   timestamp: string
-  type: 'approval' | 'remark' | 'monitoring' | 'update'
+  type: 'approval' | 'remark' | 'monitoring' | 'update' | 'user_registration' | 'system' | 'maintenance'
   isRead: boolean
   onClick: () => void
 }
@@ -18,14 +18,20 @@ const notificationIcons = {
   approval: CheckCircle,
   remark: AlertCircle,
   monitoring: Eye,
-  update: Clock
+  update: Clock,
+  user_registration: UserPlus,
+  system: Database,
+  maintenance: Wrench
 }
 
 const notificationColors = {
   approval: 'text-green-600',
   remark: 'text-orange-600',
   monitoring: 'text-blue-600',
-  update: 'text-purple-600'
+  update: 'text-purple-600',
+  user_registration: 'text-blue-600',
+  system: 'text-green-600',
+  maintenance: 'text-yellow-600'
 }
 
 export function NotificationItem({ 

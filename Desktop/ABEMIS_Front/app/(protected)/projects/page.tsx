@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { DataTable, StatusBadge, ActionButton } from '@/components/data-table'
+import { DataTable, StatusBadge, ActionButton, ActionMenu } from '@/components/data-table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { NewProjectModal } from '@/components/new-project-modal'
 import { SuccessToast } from '@/components/success-toast'
+import { ProjectDetailsModal } from '@/components/project-details-modal'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -21,10 +22,32 @@ export default function ProjectsPage() {
   const [newProjects, setNewProjects] = useState<any[]>([])
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [toastCountdown, setToastCountdown] = useState(10)
+  const [selectedProject, setSelectedProject] = useState<any>(null)
+  const [showProjectModal, setShowProjectModal] = useState(false)
   const { user } = useAuth()
 
   const handleViewProject = useCallback((projectId: string) => {
     console.log('View project', projectId)
+  }, [])
+
+  const handleEditProject = useCallback((projectId: string) => {
+    console.log('Edit project', projectId)
+    // TODO: Implement edit functionality
+  }, [])
+
+  const handleDeleteProject = useCallback((projectId: string) => {
+    console.log('Delete project', projectId)
+    // TODO: Implement delete functionality with confirmation
+  }, [])
+
+  const handleDuplicateProject = useCallback((projectId: string) => {
+    console.log('Duplicate project', projectId)
+    // TODO: Implement duplicate functionality
+  }, [])
+
+  const handleRowClick = useCallback((project: any) => {
+    setSelectedProject(project)
+    setShowProjectModal(true)
   }, [])
 
   const handleClearFilters = useCallback(() => {
@@ -89,16 +112,9 @@ export default function ProjectsPage() {
     }
     
     return matchesSearch && matchesType && matchesStatus && matchesRegion
-  })
+  }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
 
   const columns = [
-    {
-      key: 'id',
-      label: 'Project ID',
-      render: (value: string) => (
-        <span className="font-mono text-sm">{value}</span>
-      )
-    },
     {
       key: 'title',
       label: 'Title',
@@ -137,9 +153,27 @@ export default function ProjectsPage() {
       key: 'actions',
       label: 'Actions',
       render: (value: any, row: any) => (
-        <ActionButton onClick={() => handleViewProject(row.id)}>
-          <Eye className="h-4 w-4" />
-        </ActionButton>
+        <ActionMenu
+          actions={[
+            {
+              label: 'View Details',
+              onClick: () => handleViewProject(row.id)
+            },
+            {
+              label: 'Edit',
+              onClick: () => handleEditProject(row.id)
+            },
+            {
+              label: 'Duplicate',
+              onClick: () => handleDuplicateProject(row.id)
+            },
+            {
+              label: 'Delete',
+              onClick: () => handleDeleteProject(row.id),
+              variant: 'destructive'
+            }
+          ]}
+        />
       )
     }
   ]
@@ -217,7 +251,7 @@ export default function ProjectsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable columns={columns} data={filteredProjects} />
+          <DataTable columns={columns} data={filteredProjects} onRowClick={handleRowClick} />
         </CardContent>
       </Card>
 
@@ -233,6 +267,16 @@ export default function ProjectsPage() {
         isVisible={showSuccessToast}
         onClose={() => setShowSuccessToast(false)}
         countdown={toastCountdown}
+      />
+
+      {/* Project Details Modal */}
+      <ProjectDetailsModal
+        project={selectedProject}
+        isOpen={showProjectModal}
+        onClose={() => {
+          setShowProjectModal(false)
+          setSelectedProject(null)
+        }}
       />
     </div>
   )

@@ -2,8 +2,14 @@ import React from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Eye } from 'lucide-react'
+import { Eye, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface Column {
   key: string
@@ -15,9 +21,10 @@ interface DataTableProps {
   columns: Column[]
   data: any[]
   className?: string
+  onRowClick?: (row: any) => void
 }
 
-export function DataTable({ columns, data, className }: DataTableProps) {
+export function DataTable({ columns, data, className, onRowClick }: DataTableProps) {
   return (
     <div className={cn('rounded-md border', className)}>
       <Table>
@@ -30,7 +37,11 @@ export function DataTable({ columns, data, className }: DataTableProps) {
         </TableHeader>
         <TableBody>
           {data.map((row, index) => (
-            <TableRow key={index}>
+            <TableRow 
+              key={index}
+              className={onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''}
+              onClick={() => onRowClick?.(row)}
+            >
               {columns.map((column) => (
                 <TableCell key={column.key}>
                   {column.render ? column.render(row[column.key], row) : row[column.key]}
@@ -80,3 +91,38 @@ export const ActionButton = React.memo(({ onClick, children }: { onClick: () => 
   )
 })
 ActionButton.displayName = 'ActionButton'
+
+// Action menu component with three dots
+export const ActionMenu = React.memo(({ 
+  actions, 
+  onActionClick 
+}: { 
+  actions: Array<{ label: string; onClick: () => void; variant?: 'default' | 'destructive' }>
+  onActionClick?: (action: string) => void
+}) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {actions.map((action, index) => (
+          <DropdownMenuItem
+            key={index}
+            onClick={(e) => {
+              e.stopPropagation()
+              action.onClick()
+              onActionClick?.(action.label)
+            }}
+            className={action.variant === 'destructive' ? 'text-red-600 focus:text-red-600' : ''}
+          >
+            {action.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+})
+ActionMenu.displayName = 'ActionMenu'
