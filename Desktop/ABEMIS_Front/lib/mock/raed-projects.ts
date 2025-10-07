@@ -164,7 +164,7 @@ export function generateProjectsForRegion(region: string, startIndex: number = 1
 }
 
 // Generate all projects for all RAED regions
-export function generateAllRAEDProjects(): Project[] {
+export function generateAllRAEDProjectsLegacy(): Project[] {
   const regions = [
     'Region 1', 'Region 2', 'Region 3', 'Region 4', 'Region 4B',
     'Region 5', 'Region 6', 'Region 7', 'Region 8', 'Region 9',
@@ -184,4 +184,4 @@ export function generateAllRAEDProjects(): Project[] {
 }
 
 // Export the generated projects
-export const raedProjects = generateAllRAEDProjects()
+export const raedProjects = generateAllRAEDProjectsLegacy()
