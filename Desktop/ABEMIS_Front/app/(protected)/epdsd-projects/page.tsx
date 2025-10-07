@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { DataTable, StatusBadge, ActionMenu } from '@/components/data-table'
 import { ProjectDetailsModal } from '@/components/project-details-modal'
 import { Button } from '@/components/ui/button'
@@ -64,8 +64,8 @@ export default function EPDSDProjectsPage() {
       label: 'Project Title',
       render: (value: unknown, row: unknown) => (
         <div>
-          <div className="font-medium">{row.title}</div>
-          <div className="text-sm text-muted-foreground">{row.province}</div>
+          <div className="font-medium">{(row as { title: string }).title}</div>
+          <div className="text-sm text-muted-foreground">{(row as { province: string }).province}</div>
         </div>
       )
     },
@@ -73,20 +73,20 @@ export default function EPDSDProjectsPage() {
       key: 'type',
       label: 'Type',
       render: (value: unknown, row: unknown) => (
-        <Badge variant={row.type === 'Infrastructure' ? 'default' : 'secondary'}>
-          {row.type}
+        <Badge variant={(row as { type: string }).type === 'Infrastructure' ? 'default' : 'secondary'}>
+          {(row as { type: string }).type}
         </Badge>
       )
     },
     {
       key: 'status',
       label: 'Status',
-      render: (value: any, row: any) => <StatusBadge status={row.status} />
+      render: (value: unknown, row: unknown) => (<StatusBadge status={(row as { status: string }).status} />)
     },
     {
       key: 'updatedAt',
       label: 'Updated',
-      render: (value: any, row: any) => formatDate(row.updatedAt)
+      render: (value: unknown, row: unknown) => (formatDate((row as { updatedAt: string }).updatedAt))
     },
     {
       key: 'actions',
@@ -96,24 +96,24 @@ export default function EPDSDProjectsPage() {
           actions={[
             {
               label: 'View Details',
-              onClick: () => handleRowClick(row)
+              onClick: () => handleRowClick(row as Record<string, unknown>)
             },
             {
               label: 'Approve',
-              onClick: () => handleApproveProject(row.id)
+              onClick: () => handleApproveProject((row as { id: string }).id)
             },
             {
               label: 'Reject',
-              onClick: () => handleRejectProject(row.id),
+              onClick: () => handleRejectProject((row as { id: string }).id),
               variant: 'destructive'
             },
             {
               label: 'Edit',
-              onClick: () => handleEditProject(row.id)
+              onClick: () => handleEditProject((row as { id: string }).id)
             },
             {
               label: 'Duplicate',
-              onClick: () => handleDuplicateProject(row.id)
+              onClick: () => handleDuplicateProject((row as { id: string }).id)
             }
           ]}
         />
@@ -188,7 +188,7 @@ export default function EPDSDProjectsPage() {
           <DataTable
             data={filteredProjects}
             columns={columns}
-            onRowClick={handleRowClick}
+            onRowClick={(row) => handleRowClick(row)}
           />
         </CardContent>
       </Card>

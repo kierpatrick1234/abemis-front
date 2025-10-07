@@ -73,20 +73,20 @@ export default function PPMDProjectsPage() {
       key: 'type',
       label: 'Type',
       render: (value: unknown, row: Project) => (
-        <Badge variant={row.type === 'FMR' ? 'default' : row.type === 'Infrastructure' ? 'secondary' : 'outline'}>
-          {row.type}
+        <Badge variant={(row as { type: string }).type === 'FMR' ? 'default' : (row as { type: string }).type === 'Infrastructure' ? 'secondary' : 'outline'}>
+          {(row as { type: string }).type}
         </Badge>
       )
     },
     {
       key: 'status',
       label: 'Status',
-      render: (value: any, row: any) => <StatusBadge status={row.status} />
+      render: (value: unknown, row: unknown) => <StatusBadge status={(row as { status: string }).status} />
     },
     {
       key: 'completionDate',
       label: 'Completed',
-      render: (value: any, row: any) => formatDate(row.endDate || row.updatedAt)
+      render: (value: unknown, row: unknown) => formatDate((row as { endDate?: string; updatedAt: string }).endDate || (row as { updatedAt: string }).updatedAt)
     },
     {
       key: 'actions',
@@ -100,11 +100,11 @@ export default function PPMDProjectsPage() {
             },
             {
               label: 'Edit',
-              onClick: () => handleEditProject(row.id)
+              onClick: () => handleEditProject((row as { id: string }).id)
             },
             {
               label: 'Duplicate',
-              onClick: () => handleDuplicateProject(row.id)
+              onClick: () => handleDuplicateProject((row as { id: string }).id)
             },
           ]}
         />

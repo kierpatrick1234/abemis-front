@@ -97,7 +97,7 @@ export default function LandingPage() {
     return milestones
   }
 
-  const calculateProgress = (project: any): number => {
+  const calculateProgress = (project: { status: string }): number => {
     switch (project.status) {
       case 'Proposal':
         return 10

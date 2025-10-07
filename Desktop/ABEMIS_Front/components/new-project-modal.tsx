@@ -100,7 +100,7 @@ export function NewProjectModal({ isOpen, onClose, onProjectCreate }: NewProject
     onClose()
   }
 
-  const handleInfraProjectCreate = (projectData: any) => {
+  const handleInfraProjectCreate = (projectData: Record<string, unknown>) => {
     onProjectCreate(projectData)
     setShowInfraModal(false)
     onClose()

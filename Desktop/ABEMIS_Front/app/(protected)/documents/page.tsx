@@ -43,11 +43,11 @@ export default function DocumentsPage() {
     {
       key: 'name',
       label: 'Document Name',
-      render: (value: string, row: Document) => (
+      render: (value: unknown, row: Document) => (
         <div className="flex items-center space-x-2">
           <FileText className="h-4 w-4 text-muted-foreground" />
           <div>
-            <div className="font-medium">{value}</div>
+            <div className="font-medium">{value as string}</div>
             <div className="text-sm text-muted-foreground">{row.size}</div>
           </div>
         </div>
@@ -56,33 +56,33 @@ export default function DocumentsPage() {
     {
       key: 'linkedProject',
       label: 'Linked Project',
-      render: (value: string) => (
-        <span className="font-mono text-sm">{value}</span>
+      render: (value: unknown) => (
+        <span className="font-mono text-sm">{value as string}</span>
       )
     },
     {
       key: 'uploadedBy',
       label: 'Uploaded By',
-      render: (value: string) => (
-        <span className="text-sm">{value}</span>
+      render: (value: unknown) => (
+        <span className="text-sm">{value as string}</span>
       )
     },
     {
       key: 'type',
       label: 'Type',
-      render: (value: string) => (
-        <Badge variant="outline">{value}</Badge>
+      render: (value: unknown) => (
+        <Badge variant="outline">{value as string}</Badge>
       )
     },
     {
       key: 'status',
       label: 'Status',
-      render: (value: string) => <StatusBadge status={value} />
+      render: (value: unknown) => <StatusBadge status={value as string} />
     },
     {
       key: 'date',
       label: 'Date',
-      render: (value: string) => formatDate(value)
+      render: (value: unknown) => formatDate(value as string)
     },
     {
       key: 'actions',

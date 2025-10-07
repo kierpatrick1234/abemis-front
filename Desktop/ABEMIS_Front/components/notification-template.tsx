@@ -173,7 +173,7 @@ const defaultNotifications = [
 ]
 
 export function NotificationTemplate({ raedRegion }: NotificationTemplateProps) {
-  const [notifications, setNotifications] = useState<any[]>([])
+  const [notifications, setNotifications] = useState<Record<string, unknown>[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {

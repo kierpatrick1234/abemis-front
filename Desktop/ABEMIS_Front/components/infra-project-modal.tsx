@@ -18,7 +18,7 @@ import { SuccessToast } from './success-toast'
 interface InfraProjectModalProps {
   isOpen: boolean
   onClose: () => void
-  onProjectCreate: (projectData: any) => void
+  onProjectCreate: (projectData: Record<string, unknown>) => void
 }
 
 // Mock data for dropdowns

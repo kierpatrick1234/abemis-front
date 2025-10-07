@@ -113,7 +113,7 @@ export default function ProjectsPage() {
       render: (value: string, row: unknown) => (
         <div>
           <div className="font-medium">{value}</div>
-          <div className="text-sm text-muted-foreground">{row.province}</div>
+          <div className="text-sm text-muted-foreground">{(row as { province: string }).province}</div>
         </div>
       )
     },
@@ -144,11 +144,11 @@ export default function ProjectsPage() {
           actions={[
             {
               label: 'Edit',
-              onClick: () => handleEditProject(row.id)
+              onClick: () => handleEditProject((row as { id: string }).id)
             },
             {
               label: 'Duplicate',
-              onClick: () => handleDuplicateProject(row.id)
+              onClick: () => handleDuplicateProject((row as { id: string }).id)
             },
           ]}
         />

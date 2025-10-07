@@ -61,10 +61,10 @@ export default function SEPDProjectsPage() {
       label: 'FMR Project Title',
       render: (value: unknown, row: unknown) => (
         <div>
-          <div className="font-medium">{row.title}</div>
+          <div className="font-medium">{(row as { title: string }).title}</div>
           <div className="text-sm text-muted-foreground flex items-center">
             <MapPin className="h-3 w-3 mr-1" />
-            {row.province}
+            {(row as { province: string }).province}
           </div>
         </div>
       )
@@ -72,12 +72,12 @@ export default function SEPDProjectsPage() {
     {
       key: 'status',
       label: 'Status',
-      render: (value: any, row: any) => <StatusBadge status={row.status} />
+      render: (value: unknown, row: unknown) => <StatusBadge status={(row as { status: string }).status} />
     },
     {
       key: 'updatedAt',
       label: 'Updated',
-      render: (value: any, row: any) => formatDate(row.updatedAt)
+      render: (value: unknown, row: unknown) => formatDate((row as { updatedAt: string }).updatedAt)
     },
     {
       key: 'actions',
@@ -91,20 +91,20 @@ export default function SEPDProjectsPage() {
             },
             {
               label: 'Validate',
-              onClick: () => handleValidateProject(row.id)
+              onClick: () => handleValidateProject((row as { id: string }).id)
             },
             {
               label: 'Reject',
-              onClick: () => handleRejectProject(row.id),
+              onClick: () => handleRejectProject((row as { id: string }).id),
               variant: 'destructive'
             },
             {
               label: 'Edit',
-              onClick: () => handleEditProject(row.id)
+              onClick: () => handleEditProject((row as { id: string }).id)
             },
             {
               label: 'Duplicate',
-              onClick: () => handleDuplicateProject(row.id)
+              onClick: () => handleDuplicateProject((row as { id: string }).id)
             }
           ]}
         />

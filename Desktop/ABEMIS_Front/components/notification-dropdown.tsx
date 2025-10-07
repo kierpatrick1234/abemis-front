@@ -321,7 +321,7 @@ const defaultNotifications = [
 ]
 
 export function NotificationDropdown({ raedRegion, userRole }: NotificationDropdownProps) {
-  const [notifications, setNotifications] = useState<any[]>([])
+  const [notifications, setNotifications] = useState<Record<string, unknown>[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {

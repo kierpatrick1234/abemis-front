@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -886,7 +887,7 @@ export default function ProfilePage() {
                         onClick={() => handleAvatarChange(url)}
                         className="p-2 border rounded-lg hover:bg-muted transition-colors"
                       >
-                        <img src={url} alt={`Avatar ${index + 1}`} className="w-8 h-8 rounded" />
+                        <Image src={url} alt={`Avatar ${index + 1}`} width={32} height={32} className="w-8 h-8 rounded" />
                       </button>
                     ))}
                   </div>
