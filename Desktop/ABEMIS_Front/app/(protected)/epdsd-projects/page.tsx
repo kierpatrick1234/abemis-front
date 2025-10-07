@@ -208,7 +208,6 @@ export default function EPDSDProjectsPage() {
             data={filteredProjects}
             columns={columns}
             onRowClick={handleRowClick}
-            onSearchChange={setSearchQuery}
           />
         </CardContent>
       </Card>
