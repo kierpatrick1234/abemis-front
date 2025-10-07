@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/data-table'
+import { ProjectStepper } from '@/components/project-stepper'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { Calendar, MapPin, DollarSign, User, FileText, Clock } from 'lucide-react'
 
@@ -92,6 +93,21 @@ export function ProjectDetailsModal({ project, isOpen, onClose }: ProjectDetails
                 <h4 className="font-medium mb-2">Description</h4>
                 <p className="text-sm text-muted-foreground">{project.description}</p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Project Progress Stepper */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Project Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProjectStepper 
+                currentStatus={project.status} 
+                onStepClick={(step) => console.log('Step clicked:', step)}
+                projectType={project.type}
+                project={project}
+              />
             </CardContent>
           </Card>
 
