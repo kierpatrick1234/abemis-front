@@ -394,8 +394,8 @@ export default function LoginPage() {
         <div className={`w-full space-y-8 ${isSignUp ? 'max-w-4xl' : 'max-w-md'}`}>
 
         <div className="text-center">
-          <div className="mx-auto mb-6 flex justify-center pb-10">
-            <div className="scale-[5]">
+          <div className="mx-auto mb-6 flex justify-center pb-4 mt-4">
+            <div className="scale-[3]">
               <AbemisLogo size="lg" showText={false} />
             </div>
           </div>

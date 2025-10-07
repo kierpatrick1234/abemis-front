@@ -8,6 +8,7 @@ import { Bell } from 'lucide-react'
 
 interface NotificationTemplateProps {
   raedRegion: string
+  userRole?: string
 }
 
 // Notification templates for different RAED regions
@@ -144,6 +145,34 @@ const notificationTemplates = {
   ]
 }
 
+// EPDSD-specific notifications
+const epdsdNotifications = [
+  {
+    id: 'epdsd-1',
+    message: 'RAED 7 - complied the Letter of Intent',
+    type: 'compliance' as const,
+    timestamp: '2 hours ago'
+  },
+  {
+    id: 'epdsd-2',
+    message: 'RAED 5 - Submitted a new document',
+    type: 'submission' as const,
+    timestamp: '4 hours ago'
+  },
+  {
+    id: 'epdsd-3',
+    message: 'RAED 2 - Uploaded a new document',
+    type: 'upload' as const,
+    timestamp: '1 day ago'
+  },
+  {
+    id: 'epdsd-4',
+    message: 'RAED 3 - complied the Letter of Intent',
+    type: 'compliance' as const,
+    timestamp: '2 days ago'
+  }
+]
+
 // Default notifications for regions not specified
 const defaultNotifications = [
   {
@@ -172,23 +201,30 @@ const defaultNotifications = [
   }
 ]
 
-export function NotificationTemplate({ raedRegion }: NotificationTemplateProps) {
+export function NotificationTemplate({ raedRegion, userRole }: NotificationTemplateProps) {
   const [notifications, setNotifications] = useState<Record<string, unknown>[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
-    // Get notifications for the specific region or use default
-    const regionNotifications = notificationTemplates[raedRegion as keyof typeof notificationTemplates] || defaultNotifications
+    let selectedNotifications = []
+    
+    // Show EPDSD-specific notifications for EPDSD users
+    if (userRole === 'EPDSD') {
+      selectedNotifications = epdsdNotifications
+    } else {
+      // Get notifications for the specific region or use default
+      selectedNotifications = notificationTemplates[raedRegion as keyof typeof notificationTemplates] || defaultNotifications
+    }
     
     // Initialize with some unread notifications
-    const initialNotifications = regionNotifications.map((notification, index) => ({
+    const initialNotifications = selectedNotifications.map((notification, index) => ({
       ...notification,
       isRead: index >= 2 // First 2 are unread
     }))
     
     setNotifications(initialNotifications)
     setUnreadCount(2)
-  }, [raedRegion])
+  }, [raedRegion, userRole])
 
   const handleNotificationClick = (notificationId: string) => {
     setNotifications(prev => 

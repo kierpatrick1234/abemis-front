@@ -25,7 +25,8 @@ export default function ProtectedLayout({
     // Load sidebar state from localStorage
     const savedState = localStorage.getItem('sidebar-collapsed')
     if (savedState !== null) {
-      setIsSidebarCollapsed(JSON.parse(savedState))
+      const parsedState = JSON.parse(savedState)
+      setIsSidebarCollapsed(parsedState)
     }
   }, [])
 

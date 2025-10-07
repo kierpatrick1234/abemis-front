@@ -270,6 +270,58 @@ const notificationTemplates = {
   ]
 }
 
+// EPDSD-specific notifications
+const epdsdNotifications = [
+  {
+    id: 'epdsd-1',
+    message: 'RAED 7 - complied the Letter of Intent',
+    type: 'compliance' as const,
+    timestamp: '2 hours ago'
+  },
+  {
+    id: 'epdsd-2',
+    message: 'RAED 5 - Submitted a new document',
+    type: 'submission' as const,
+    timestamp: '4 hours ago'
+  },
+  {
+    id: 'epdsd-3',
+    message: 'RAED 2 - Uploaded a new document',
+    type: 'upload' as const,
+    timestamp: '1 day ago'
+  },
+  {
+    id: 'epdsd-4',
+    message: 'RAED 3 - complied the Letter of Intent',
+    type: 'compliance' as const,
+    timestamp: '2 days ago'
+  },
+  {
+    id: 'epdsd-5',
+    message: 'RAED 1 - Submitted a new document',
+    type: 'submission' as const,
+    timestamp: '3 hours ago'
+  },
+  {
+    id: 'epdsd-6',
+    message: 'RAED 6 - Uploaded a new document',
+    type: 'upload' as const,
+    timestamp: '5 hours ago'
+  },
+  {
+    id: 'epdsd-7',
+    message: 'RAED 4 - complied the Letter of Intent',
+    type: 'compliance' as const,
+    timestamp: '2 days ago'
+  },
+  {
+    id: 'epdsd-8',
+    message: 'RAED 8 - Submitted a new document',
+    type: 'submission' as const,
+    timestamp: '3 days ago'
+  }
+]
+
 // System Admin notifications
 const adminNotifications = [
   {
@@ -330,6 +382,9 @@ export function NotificationDropdown({ raedRegion, userRole }: NotificationDropd
     // Show admin notifications for superadmin users
     if (userRole === 'superadmin' || userRole === 'admin') {
       selectedNotifications = adminNotifications
+    } else if (userRole === 'EPDSD') {
+      // Show EPDSD-specific RAED format notifications
+      selectedNotifications = epdsdNotifications
     } else {
       // Get notifications for the specific region or use default
       const regionNotifications = notificationTemplates[raedRegion as keyof typeof notificationTemplates] || defaultNotifications

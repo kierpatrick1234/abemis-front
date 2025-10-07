@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { StatusBadge } from '@/components/data-table'
 import { ProjectStepper } from '@/components/project-stepper'
-import { DocumentSidebar } from '@/components/document-sidebar'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { Calendar, MapPin, DollarSign, User, Clock, FileText, CheckCircle, XCircle, MessageSquare, Download, Eye } from 'lucide-react'
 
@@ -199,10 +198,6 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
   const [generalComments, setGeneralComments] = useState('')
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [showRejectMessage, setShowRejectMessage] = useState(false)
-  const [showDocumentSidebar, setShowDocumentSidebar] = useState(false)
-  const [selectedDocument, setSelectedDocument] = useState<any>(null)
-  const [showDocumentPreview, setShowDocumentPreview] = useState(false)
-  const [previewDocument, setPreviewDocument] = useState<any>(null)
   
   const handleDocumentEvaluationChange = useCallback((docId: string, field: 'isSatisfied' | 'comments', value: boolean | string) => {
     if (!project) return
@@ -270,25 +265,7 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
     }, 2000)
   }, [onClose])
 
-  const handleViewDocument = useCallback((doc: any) => {
-    setSelectedDocument(doc)
-    setShowDocumentSidebar(true)
-  }, [])
 
-  const handleCloseDocumentSidebar = useCallback(() => {
-    setShowDocumentSidebar(false)
-    setSelectedDocument(null)
-  }, [])
-
-  const handleMouseEnterView = useCallback((doc: any) => {
-    setPreviewDocument(doc)
-    setShowDocumentPreview(true)
-  }, [])
-
-  const handleMouseLeaveView = useCallback(() => {
-    setShowDocumentPreview(false)
-    setPreviewDocument(null)
-  }, [])
 
   const handleDownloadDocument = useCallback((doc: any) => {
     try {
@@ -332,7 +309,7 @@ Document Content Preview:
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
             <FileText className="h-6 w-6" />
@@ -344,14 +321,14 @@ Document Content Preview:
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="documents" className="w-full">
+        <Tabs defaultValue="documents" className="w-full flex-1 flex flex-col overflow-hidden">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="documents">Document Evaluation</TabsTrigger>
             <TabsTrigger value="timeline">Project Timeline</TabsTrigger>
             <TabsTrigger value="overview">Project Overview</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="documents" className="space-y-6">
+          <TabsContent value="documents" className="space-y-6 flex-1 overflow-y-auto overflow-x-hidden">
             {/* Document Evaluation Section */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Required Documents Evaluation</h3>
@@ -380,21 +357,156 @@ Document Content Preview:
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => handleViewDocument(doc)}
-                            onMouseEnter={() => handleMouseEnterView(doc)}
-                            onMouseLeave={handleMouseLeaveView}
-                            className="hover:bg-blue-50 hover:border-blue-300"
+                            className="hover:bg-blue-50 hover:border-blue-300 relative group"
+                            title={`Preview: ${doc.name}`}
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             View
+                            
+                            {/* PDF Preview Screen - Full Overlay */}
+                            <div className="fixed inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[9999]"
+                                 style={{
+                                   zIndex: 9999
+                                 }}>
+                              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white border-2 border-gray-300 rounded-lg shadow-2xl w-[800px] h-[600px] overflow-hidden relative">
+                                {/* Close Button */}
+                                <button className="absolute top-2 right-2 z-10 bg-gray-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-gray-900">
+                                  ×
+                                </button>
+                                
+                                {/* PDF Header */}
+                                <div className="bg-red-600 text-white text-center py-3 px-4">
+                                  <div className="font-bold text-base">GOVERNMENT OF THE PHILIPPINES</div>
+                                  <div className="text-sm">DEPARTMENT OF AGRICULTURE</div>
+                                  <div className="text-sm mt-1">EPDSD PROJECT EVALUATION SYSTEM</div>
+                                </div>
+                                
+                                {/* Document Title */}
+                                <div className="text-center py-4 px-6 border-b border-gray-200">
+                                  <div className="font-bold text-lg text-gray-900">{doc.name}</div>
+                                  <div className="text-sm text-gray-600 mt-2">Project Proposal Document</div>
+                                  <div className="text-sm text-gray-500 mt-2">
+                                    Document ID: {doc.id} | Uploaded: {formatDate(doc.uploadedAt)}
+                                  </div>
+                                </div>
+                                
+                                {/* PDF Content Preview */}
+                                <div className="p-6 text-sm leading-relaxed overflow-y-auto h-96">
+                                  <div className="space-y-4">
+                                    <div className="bg-blue-50 p-4 rounded-lg">
+                                      <div className="font-bold text-base text-blue-800 border-b border-blue-200 pb-2 mb-3">I. EXECUTIVE SUMMARY</div>
+                                      <div className="text-gray-700 leading-relaxed">
+                                        This document presents a comprehensive proposal for the development of rural infrastructure projects under the Department of Agriculture's EPDSD program. The project aims to improve agricultural productivity and rural development through strategic infrastructure investments.
+                                        <br/><br/>
+                                        The proposed project includes detailed technical specifications, implementation timeline, budget allocation, and environmental impact assessment to ensure sustainable development and community benefit.
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="bg-green-50 p-4 rounded-lg">
+                                      <div className="font-bold text-base text-green-800 border-b border-green-200 pb-2 mb-3">II. PROJECT OVERVIEW</div>
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                          <div className="font-semibold text-gray-800 mb-2">Project Title:</div>
+                                          <div className="bg-white p-3 rounded border text-sm font-medium">{doc.name}</div>
+                                        </div>
+                                        <div>
+                                          <div className="font-semibold text-gray-800 mb-2">Project Type:</div>
+                                          <div className="bg-white p-3 rounded border text-sm">
+                                            {doc.name.includes('Water') ? 'Water Supply System' : 
+                                             doc.name.includes('Road') ? 'Road Construction' : 
+                                             doc.name.includes('Machinery') ? 'Agricultural Machinery' : 'Infrastructure Development'}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="font-semibold text-gray-800 mb-2">Total Budget:</div>
+                                          <div className="bg-white p-3 rounded border text-sm font-mono">
+                                            ₱{doc.name.includes('Machinery') ? '25,000,000' : '15,000,000'}.00
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="font-semibold text-gray-800 mb-2">Project Duration:</div>
+                                          <div className="bg-white p-3 rounded border text-sm">12 months</div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="font-semibold text-lg text-gray-800 border-b border-gray-300 pb-2">III. TECHNICAL SPECIFICATIONS</div>
+                                    <div className="pl-4 space-y-2 text-sm">
+                                      {doc.name.includes('Water') ? (
+                                        <>
+                                          <div>• Water supply system with 50,000L storage capacity</div>
+                                          <div>• Distribution network: 5km pipeline system</div>
+                                          <div>• Pump station with backup power supply</div>
+                                          <div>• Water quality testing and treatment facility</div>
+                                          <div>• Community tap stands at strategic locations</div>
+                                        </>
+                                      ) : doc.name.includes('Road') ? (
+                                        <>
+                                          <div>• Farm-to-market road: 3km concrete pavement</div>
+                                          <div>• Road width: 6 meters with 1-meter shoulders</div>
+                                          <div>• Drainage system with culverts and ditches</div>
+                                          <div>• Road signage and safety barriers</div>
+                                          <div>• Maintenance access points</div>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <div>• Modern agricultural machinery and equipment</div>
+                                          <div>• Irrigation system with automated controls</div>
+                                          <div>• Storage facilities for agricultural products</div>
+                                          <div>• Processing equipment and tools</div>
+                                          <div>• Maintenance and repair facilities</div>
+                                        </>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="font-semibold text-lg text-gray-800 border-b border-gray-300 pb-2">IV. IMPLEMENTATION TIMELINE</div>
+                                    <div className="pl-4 text-sm space-y-2">
+                                      <div>• Phase 1: Planning & Preparation (Months 1-2)</div>
+                                      <div>• Phase 2: Construction (Months 3-8)</div>
+                                      <div>• Phase 3: Testing & Commissioning (Months 9-10)</div>
+                                      <div>• Phase 4: Turnover (Months 11-12)</div>
+                                    </div>
+                                    
+                                    <div className="font-semibold text-lg text-gray-800 border-b border-gray-300 pb-2">V. BUDGET BREAKDOWN</div>
+                                    <div className="pl-4 text-sm space-y-2">
+                                      <div>• Materials & Equipment: 60% of total budget</div>
+                                      <div>• Labor & Services: 26% of total budget</div>
+                                      <div>• Administrative: 8% of total budget</div>
+                                      <div>• Contingency: 4% of total budget</div>
+                                      <div>• Monitoring & Evaluation: 2% of total budget</div>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* PDF Footer */}
+                                <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-center">
+                                  <div className="text-sm text-gray-500">
+                                    Page 1 of 8 • Generated: {formatDate(doc.uploadedAt)}
+                                  </div>
+                                  <div className="text-sm text-gray-400 mt-1">
+                                    File Size: {doc.size} • Status: {doc.status}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </Button>
                           <Button 
                             variant="outline" 
                             size="sm"
-                            className="hover:bg-green-50 hover:border-green-300"
+                            className="hover:bg-green-50 hover:border-green-300 relative group"
+                            title={`Download: ${doc.name}`}
                           >
                             <Download className="h-4 w-4 mr-1" />
                             Download
+                            
+                            {/* Hover Preview Tooltip */}
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-green-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                              <div className="font-semibold">Download {doc.name}</div>
+                              <div className="text-xs text-green-300 mt-1">
+                                Click to download {doc.type} file
+                              </div>
+                              <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-green-900"></div>
+                            </div>
                           </Button>
                         </div>
                       </div>
@@ -426,7 +538,7 @@ Document Content Preview:
                           <textarea
                             id={`comments-${doc.id}`}
                             className="w-full p-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            rows={3}
+                            rows={2}
                             placeholder="Add your comments or remarks about this document..."
                             value={projectEvaluations[doc.id]?.comments || ''}
                             onChange={(e) => 
@@ -454,7 +566,7 @@ Document Content Preview:
             </div>
           </TabsContent>
           
-          <TabsContent value="timeline" className="space-y-4">
+          <TabsContent value="timeline" className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden">
             <h3 className="text-lg font-semibold">Project Timeline</h3>
             <Accordion type="single" collapsible className="w-full">
               {mockTimelineData.map((item, index) => (
@@ -483,7 +595,7 @@ Document Content Preview:
             </Accordion>
           </TabsContent>
           
-          <TabsContent value="overview" className="space-y-4">
+          <TabsContent value="overview" className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden">
             <h3 className="text-lg font-semibold">Project Overview</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="p-4">
@@ -600,67 +712,6 @@ Document Content Preview:
         </div>
       )}
 
-      {/* Document Preview on Hover */}
-      {showDocumentPreview && previewDocument && (
-        <div className="fixed top-4 right-4 bg-white rounded-lg shadow-lg border p-4 max-w-md z-[60]">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-medium text-sm">{previewDocument.name}</h4>
-            <FileText className="h-4 w-4 text-blue-600" />
-          </div>
-          <div className="text-xs text-gray-600 space-y-1 mb-3">
-            <div>Type: {previewDocument.type}</div>
-            <div>Size: {previewDocument.size}</div>
-            <div>Uploaded: {formatDate(previewDocument.uploadedAt)}</div>
-          </div>
-          
-          {/* Quick Preview Content */}
-          <div className="border border-gray-300 rounded bg-white shadow-inner max-h-80 overflow-y-auto">
-            <div className="p-3 text-xs">
-              {/* PDF Header */}
-              <div className="bg-red-600 text-white text-center py-1 mb-2 rounded-t">
-                <div className="font-bold">GOVERNMENT OF THE PHILIPPINES</div>
-                <div className="text-xs">DEPARTMENT OF AGRICULTURE</div>
-              </div>
-              
-              {/* Document Title */}
-              <div className="text-center mb-3">
-                <div className="font-bold text-sm mb-1">{previewDocument.name}</div>
-                <div className="text-xs text-gray-600">Project Proposal Document</div>
-              </div>
-              
-              {/* Quick Preview */}
-              <div className="space-y-2 text-xs">
-                <div className="font-semibold">Quick Preview:</div>
-                <div className="pl-2">
-                  <div>• Document Type: {previewDocument.name}</div>
-                  <div>• Status: {previewDocument.status}</div>
-                  <div>• Uploaded by: {previewDocument.uploadedBy}</div>
-                  <div>• File size: {previewDocument.size}</div>
-                </div>
-                
-                <div className="font-semibold">Click "View" for full document</div>
-                <div className="text-xs text-gray-500 text-center mt-2">
-                  Hover over "View" button to see this preview
-                </div>
-              </div>
-              
-              {/* PDF Footer */}
-              <div className="mt-4 pt-2 border-t border-gray-300 text-center">
-                <div className="text-xs text-gray-500">
-                  Quick Preview • Document ID: {previewDocument.id}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-        {/* Document Sidebar */}
-        <DocumentSidebar
-          document={selectedDocument}
-          isOpen={showDocumentSidebar}
-          onClose={handleCloseDocumentSidebar}
-        />
       </Dialog>
     </>
   )

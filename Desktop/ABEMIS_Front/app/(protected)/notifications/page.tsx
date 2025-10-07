@@ -4,8 +4,10 @@ import { NotificationTemplate } from '@/components/notification-template'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Bell, MapPin } from 'lucide-react'
+import { useAuth } from '@/lib/contexts/auth-context'
 
 export default function NotificationsPage() {
+  const { user } = useAuth()
   const raedRegions = [
     'Region I - Ilocos Region',
     'Region II - Cagayan Valley', 
@@ -36,7 +38,7 @@ export default function NotificationsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <NotificationTemplate raedRegion={region} />
+              <NotificationTemplate raedRegion={region} userRole={user?.role} />
             </CardContent>
           </Card>
         ))}

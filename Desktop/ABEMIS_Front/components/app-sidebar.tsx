@@ -39,27 +39,42 @@ export function AppSidebar({ className, isCollapsed = false, onToggle }: AppSide
 
   const sidebarContent = (
     <div className="flex h-full flex-col bg-card border-r border-border">
-      <div className="flex h-16 items-center justify-between border-b border-border px-6">
-        {!isCollapsed && (
-          <AbemisLogo size="md" textSize="md" className="text-card-foreground" />
-        )}
-        {isCollapsed && (
-          <div className="flex items-center justify-center w-full">
+      <div className="flex h-16 items-center border-b border-border px-6">
+        {!isCollapsed ? (
+          <>
+            <div className="flex-1">
+              <AbemisLogo size="md" textSize="md" className="text-card-foreground" />
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onToggle?.()
+              }}
+              className="h-8 w-8 hover:bg-accent flex-shrink-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <div className="flex items-center justify-center w-full relative">
             <AbemisLogo size="md" showText={false} />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onToggle?.()
+              }}
+              className="absolute right-0 h-8 w-8 hover:bg-accent flex-shrink-0 z-10"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggle}
-          className="h-8 w-8 hover:bg-accent"
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </Button>
       </div>
       <nav className="flex-1 space-y-2 p-4">
         {filteredNavItems.map((item) => {
@@ -82,11 +97,16 @@ export function AppSidebar({ className, isCollapsed = false, onToggle }: AppSide
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className={cn(
-        'hidden md:flex md:flex-col transition-all duration-300',
-        isCollapsed ? 'md:w-16' : 'md:w-64',
-        className
-      )}>
+      <div 
+        className={cn(
+          'hidden md:flex md:flex-col transition-all duration-300 ease-in-out',
+          className
+        )}
+        style={{
+          width: isCollapsed ? '4rem' : '16rem'
+        }}
+        data-collapsed={isCollapsed}
+      >
         {sidebarContent}
       </div>
 
