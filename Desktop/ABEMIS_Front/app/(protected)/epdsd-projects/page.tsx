@@ -947,15 +947,127 @@ export default function EPDSDProjectsPage() {
       key: 'documents',
       label: 'Documents',
       render: (value: unknown, row: unknown) => {
-        const project = row as { hasDocuments?: boolean }
-        return project.hasDocuments === false ? (
-          <Badge variant="destructive" className="text-xs">
-            No Documents Uploaded
-          </Badge>
-        ) : (
-          <Badge variant="default" className="text-xs">
-            Documents Available
-          </Badge>
+        const project = row as { hasDocuments?: boolean, id: string }
+        
+        // Mock document status for each project
+        const getDocumentStatus = (projectId: string) => {
+          const projectNumber = parseInt(projectId.split('-').pop() || '0')
+          const documentTypes = ['letterOfIntent', 'validationReport', 'feasibilityStudy', 'detailedDesign', 'programOfWork', 'rightOfWay']
+          
+          // Determine how many documents are missing (0, 1, or 2)
+          const missingCount = projectNumber % 3 // 0 = complete, 1 = missing 1, 2 = missing 2
+          
+          if (missingCount === 0) {
+            // Complete - all documents uploaded
+            return {
+              letterOfIntent: true,
+              validationReport: true,
+              feasibilityStudy: true,
+              detailedDesign: true,
+              programOfWork: true,
+              rightOfWay: true
+            }
+          } else if (missingCount === 1) {
+            // Missing 1 document
+            const missingDocumentIndex = projectNumber % documentTypes.length
+            const missingDocument = documentTypes[missingDocumentIndex]
+            
+            return {
+              letterOfIntent: missingDocument !== 'letterOfIntent',
+              validationReport: missingDocument !== 'validationReport',
+              feasibilityStudy: missingDocument !== 'feasibilityStudy',
+              detailedDesign: missingDocument !== 'detailedDesign',
+              programOfWork: missingDocument !== 'programOfWork',
+              rightOfWay: missingDocument !== 'rightOfWay'
+            }
+          } else {
+            // Missing 2 documents
+            const firstMissingIndex = projectNumber % documentTypes.length
+            const secondMissingIndex = (projectNumber + 1) % documentTypes.length
+            const firstMissing = documentTypes[firstMissingIndex]
+            const secondMissing = documentTypes[secondMissingIndex]
+            
+            return {
+              letterOfIntent: firstMissing !== 'letterOfIntent' && secondMissing !== 'letterOfIntent',
+              validationReport: firstMissing !== 'validationReport' && secondMissing !== 'validationReport',
+              feasibilityStudy: firstMissing !== 'feasibilityStudy' && secondMissing !== 'feasibilityStudy',
+              detailedDesign: firstMissing !== 'detailedDesign' && secondMissing !== 'detailedDesign',
+              programOfWork: firstMissing !== 'programOfWork' && secondMissing !== 'programOfWork',
+              rightOfWay: firstMissing !== 'rightOfWay' && secondMissing !== 'rightOfWay'
+            }
+          }
+        }
+        
+        const documentStatus = getDocumentStatus(project.id)
+        const totalDocuments = 6
+        const uploadedDocuments = Object.values(documentStatus).filter(Boolean).length
+        
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">
+                {uploadedDocuments}/{totalDocuments} Documents
+              </span>
+              <Badge 
+                variant={uploadedDocuments === totalDocuments ? "default" : uploadedDocuments > 0 ? "secondary" : "destructive"}
+                className="text-xs"
+              >
+                {uploadedDocuments === totalDocuments ? "Complete" : uploadedDocuments > 0 ? "Partial" : "None"}
+              </Badge>
+            </div>
+            
+            {/* Document Status Icons */}
+            <div className="grid grid-cols-3 gap-1">
+              <div className="flex items-center space-x-1">
+                <span className="text-xs text-muted-foreground">LOI:</span>
+                {documentStatus.letterOfIntent ? (
+                  <CheckCircle className="h-3 w-3 text-green-600" />
+                ) : (
+                  <XCircle className="h-3 w-3 text-red-500" />
+                )}
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="text-xs text-muted-foreground">VR:</span>
+                {documentStatus.validationReport ? (
+                  <CheckCircle className="h-3 w-3 text-green-600" />
+                ) : (
+                  <XCircle className="h-3 w-3 text-red-500" />
+                )}
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="text-xs text-muted-foreground">FS:</span>
+                {documentStatus.feasibilityStudy ? (
+                  <CheckCircle className="h-3 w-3 text-green-600" />
+                ) : (
+                  <XCircle className="h-3 w-3 text-red-500" />
+                )}
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="text-xs text-muted-foreground">DED:</span>
+                {documentStatus.detailedDesign ? (
+                  <CheckCircle className="h-3 w-3 text-green-600" />
+                ) : (
+                  <XCircle className="h-3 w-3 text-red-500" />
+                )}
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="text-xs text-muted-foreground">POW:</span>
+                {documentStatus.programOfWork ? (
+                  <CheckCircle className="h-3 w-3 text-green-600" />
+                ) : (
+                  <XCircle className="h-3 w-3 text-red-500" />
+                )}
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="text-xs text-muted-foreground">ROW:</span>
+                {documentStatus.rightOfWay ? (
+                  <CheckCircle className="h-3 w-3 text-green-600" />
+                ) : (
+                  <XCircle className="h-3 w-3 text-red-500" />
+                )}
+              </div>
+            </div>
+          </div>
         )
       }
     },
