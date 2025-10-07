@@ -63,7 +63,7 @@ export default function PPMDProjectsPage() {
   const columns = [
     {
       key: 'title',
-      header: 'Project Title',
+      label: 'Project Title',
       render: (project: any) => (
         <div>
           <div className="font-medium">{project.title}</div>
@@ -73,7 +73,7 @@ export default function PPMDProjectsPage() {
     },
     {
       key: 'type',
-      header: 'Type',
+      label: 'Type',
       render: (project: any) => (
         <Badge variant={project.type === 'FMR' ? 'default' : project.type === 'Infrastructure' ? 'secondary' : 'outline'}>
           {project.type}
@@ -82,22 +82,22 @@ export default function PPMDProjectsPage() {
     },
     {
       key: 'budget',
-      header: 'Final Budget',
+      label: 'Final Budget',
       render: (project: any) => formatCurrency(project.budget)
     },
     {
       key: 'status',
-      header: 'Status',
+      label: 'Status',
       render: (project: any) => <StatusBadge status={project.status} />
     },
     {
       key: 'completionDate',
-      header: 'Completed',
+      label: 'Completed',
       render: (project: any) => formatDate(project.endDate || project.updatedAt)
     },
     {
       key: 'actions',
-      header: 'Actions',
+      label: 'Actions',
       render: (project: any) => (
         <ActionMenu
           actions={[

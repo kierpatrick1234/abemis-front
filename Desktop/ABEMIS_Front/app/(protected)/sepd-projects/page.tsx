@@ -72,7 +72,7 @@ export default function SEPDProjectsPage() {
   const columns = [
     {
       key: 'title',
-      header: 'FMR Project Title',
+      label: 'FMR Project Title',
       render: (project: any) => (
         <div>
           <div className="font-medium">{project.title}</div>
@@ -85,22 +85,22 @@ export default function SEPDProjectsPage() {
     },
     {
       key: 'budget',
-      header: 'Budget',
+      label: 'Budget',
       render: (project: any) => formatCurrency(project.budget)
     },
     {
       key: 'status',
-      header: 'Status',
+      label: 'Status',
       render: (project: any) => <StatusBadge status={project.status} />
     },
     {
       key: 'updatedAt',
-      header: 'Updated',
+      label: 'Updated',
       render: (project: any) => formatDate(project.updatedAt)
     },
     {
       key: 'actions',
-      header: 'Actions',
+      label: 'Actions',
       render: (project: any) => (
         <ActionMenu
           actions={[

@@ -75,7 +75,7 @@ export default function EPDSDProjectsPage() {
   const columns = [
     {
       key: 'title',
-      header: 'Project Title',
+      label: 'Project Title',
       render: (project: any) => (
         <div>
           <div className="font-medium">{project.title}</div>
@@ -85,7 +85,7 @@ export default function EPDSDProjectsPage() {
     },
     {
       key: 'type',
-      header: 'Type',
+      label: 'Type',
       render: (project: any) => (
         <Badge variant={project.type === 'Infrastructure' ? 'default' : 'secondary'}>
           {project.type}
@@ -94,22 +94,22 @@ export default function EPDSDProjectsPage() {
     },
     {
       key: 'budget',
-      header: 'Budget',
+      label: 'Budget',
       render: (project: any) => formatCurrency(project.budget)
     },
     {
       key: 'status',
-      header: 'Status',
+      label: 'Status',
       render: (project: any) => <StatusBadge status={project.status} />
     },
     {
       key: 'updatedAt',
-      header: 'Updated',
+      label: 'Updated',
       render: (project: any) => formatDate(project.updatedAt)
     },
     {
       key: 'actions',
-      header: 'Actions',
+      label: 'Actions',
       render: (project: any) => (
         <ActionMenu
           actions={[
