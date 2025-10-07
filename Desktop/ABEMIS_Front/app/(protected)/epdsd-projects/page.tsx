@@ -7,15 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Search, Filter, CheckCircle, XCircle } from 'lucide-react'
+import { Search, CheckCircle, XCircle } from 'lucide-react'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
-import { useAuth } from '@/lib/contexts/auth-context'
 
 export default function EPDSDProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
-  const [selectedProject, setSelectedProject] = useState<any>(null)
+  const [selectedProject, setSelectedProject] = useState<unknown>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showEvaluationModal, setShowEvaluationModal] = useState(false)
   // Filter projects for EPDSD - only Infrastructure and Machinery in Proposal stage
@@ -47,7 +46,7 @@ export default function EPDSDProjectsPage() {
     // TODO: Implement duplicate functionality
   }, [])
 
-  const handleRowClick = useCallback((project: any) => {
+  const handleRowClick = useCallback((project: unknown) => {
     setSelectedProject(project)
     setShowProjectModal(true)
   }, [])
@@ -63,7 +62,7 @@ export default function EPDSDProjectsPage() {
     {
       key: 'title',
       label: 'Project Title',
-      render: (value: any, row: any) => (
+      render: (value: unknown, row: unknown) => (
         <div>
           <div className="font-medium">{row.title}</div>
           <div className="text-sm text-muted-foreground">{row.province}</div>
@@ -73,7 +72,7 @@ export default function EPDSDProjectsPage() {
     {
       key: 'type',
       label: 'Type',
-      render: (value: any, row: any) => (
+      render: (value: unknown, row: unknown) => (
         <Badge variant={row.type === 'Infrastructure' ? 'default' : 'secondary'}>
           {row.type}
         </Badge>
@@ -92,7 +91,7 @@ export default function EPDSDProjectsPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: any, row: any) => (
+      render: (value: unknown, row: unknown) => (
         <ActionMenu
           actions={[
             {

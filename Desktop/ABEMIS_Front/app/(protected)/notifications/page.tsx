@@ -3,7 +3,7 @@
 import { NotificationTemplate } from '@/components/notification-template'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Bell, Users, MapPin } from 'lucide-react'
+import { Bell, MapPin } from 'lucide-react'
 
 export default function NotificationsPage() {
   const raedRegions = [

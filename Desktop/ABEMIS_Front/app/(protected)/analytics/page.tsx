@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { 
   BarChart3, 
   TrendingUp, 
-  TrendingDown, 
   PieChart,
   Activity,
   Target,

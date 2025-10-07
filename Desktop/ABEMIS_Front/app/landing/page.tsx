@@ -6,31 +6,22 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { 
   ArrowRight, 
-  Shield, 
   BarChart3, 
   FileText, 
   Users, 
   MapPin, 
-  Leaf, 
   TrendingUp,
   CheckCircle,
   Star,
   Globe,
   Smartphone,
-  Database,
-  Zap,
   Download,
   Search,
-  Eye,
-  Calendar,
-  DollarSign,
   PieChart,
   Target,
   Clock,
-  AlertCircle,
   CheckCircle2,
   XCircle
 } from 'lucide-react'
@@ -62,13 +53,13 @@ export default function LandingPage() {
   const [isLoginHovered, setIsLoginHovered] = useState(false)
   const [trackingCode, setTrackingCode] = useState('')
   const [trackingResult, setTrackingResult] = useState<TrackingResult | null>(null)
-  const [isTrackingOpen, setIsTrackingOpen] = useState(false)
+  // const [isTrackingOpen, setIsTrackingOpen] = useState(false)
 
   const handleLoginClick = () => {
     router.push('/login')
   }
 
-  const generateMilestones = (project: any): ProjectMilestone[] => {
+  const generateMilestones = (project: unknown): ProjectMilestone[] => {
     const milestones: ProjectMilestone[] = []
     const startDate = new Date(project.startDate)
     

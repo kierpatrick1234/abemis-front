@@ -161,7 +161,7 @@ function UsersPageContent() {
       
       return matchesSearch && matchesStatus && matchesRole && matchesRegion
     })
-  }, [searchQuery, statusFilter, roleFilters, regionFilters, deletedUserIds, pendingUsers])
+  }, [searchQuery, statusFilter, roleFilters, regionFilters, deletedUserIds, pendingUsers, pendingRegistrations])
 
 
   const validateEmail = (email: string) => {
@@ -1309,7 +1309,7 @@ function UsersPageContent() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="delete-email">Confirm by typing the user's email</Label>
+                  <Label htmlFor="delete-email">Confirm by typing the user&apos;s email</Label>
                   <Input
                     id="delete-email"
                     type="email"

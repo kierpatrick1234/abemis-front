@@ -189,7 +189,7 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
+    // reset,
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   })
@@ -760,7 +760,7 @@ export default function LoginPage() {
                   </>
                 ) : (
                   <>
-                    Don't have an account?{' '}
+                    Don&apos;t have an account?{' '}
                     <Button
                       variant="link"
                       onClick={() => {
@@ -849,7 +849,7 @@ export default function LoginPage() {
             <DialogHeader>
               <DialogTitle>Reset Password</DialogTitle>
               <DialogDescription>
-                Enter your email address and we'll send you instructions to reset your password.
+                Enter your email address and we&apos;ll send you instructions to reset your password.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">

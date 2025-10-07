@@ -12,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Card, CardContent } from '@/components/ui/card'
 import { Building2 } from 'lucide-react'
 import { SuccessToast } from './success-toast'
 
@@ -900,7 +899,7 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
                 <div className="space-y-2">
                   <Label>Uploaded Documents</Label>
                   <div className="space-y-2">
-                    {documents.map((doc, index) => (
+                    {documents.map((doc) => (
                       <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center space-x-2">
                           <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

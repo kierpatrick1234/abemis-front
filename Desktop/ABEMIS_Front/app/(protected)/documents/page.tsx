@@ -42,7 +42,7 @@ export default function DocumentsPage() {
     {
       key: 'name',
       label: 'Document Name',
-      render: (value: string, row: any) => (
+      render: (value: string, row: unknown) => (
         <div className="flex items-center space-x-2">
           <FileText className="h-4 w-4 text-muted-foreground" />
           <div>
@@ -86,7 +86,7 @@ export default function DocumentsPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: any, row: any) => (
+      render: (value: unknown, row: unknown) => (
         <div className="flex space-x-1">
           <ActionButton onClick={() => handlePreviewDocument(row.id)}>
             <FileText className="h-4 w-4" />

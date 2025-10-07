@@ -10,12 +10,23 @@ import { Badge } from '@/components/ui/badge'
 import { Search, BarChart3, CheckCircle, AlertTriangle, Calendar } from 'lucide-react'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
-import { useAuth } from '@/lib/contexts/auth-context'
+
+interface Project {
+  id: string
+  title: string
+  type: string
+  province: string
+  budget: number
+  status: string
+  startDate?: string
+  endDate?: string
+  updatedAt: string
+}
 
 export default function PPMDProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [selectedProject, setSelectedProject] = useState<any>(null)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showMonitoringModal, setShowMonitoringModal] = useState(false)
   // Filter projects for PPMD - only completed projects
@@ -24,7 +35,7 @@ export default function PPMDProjectsPage() {
   )
 
 
-  const handleRowClick = useCallback((project: any) => {
+  const handleRowClick = useCallback((project: Project) => {
     setSelectedProject(project)
     setShowProjectModal(true)
   }, [])
@@ -51,7 +62,7 @@ export default function PPMDProjectsPage() {
     {
       key: 'title',
       label: 'Project Title',
-      render: (value: any, row: any) => (
+      render: (value: unknown, row: Project) => (
         <div>
           <div className="font-medium">{row.title}</div>
           <div className="text-sm text-muted-foreground">{row.province}</div>
@@ -61,7 +72,7 @@ export default function PPMDProjectsPage() {
     {
       key: 'type',
       label: 'Type',
-      render: (value: any, row: any) => (
+      render: (value: unknown, row: Project) => (
         <Badge variant={row.type === 'FMR' ? 'default' : row.type === 'Infrastructure' ? 'secondary' : 'outline'}>
           {row.type}
         </Badge>
@@ -80,7 +91,7 @@ export default function PPMDProjectsPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: any, row: any) => (
+      render: (value: unknown, row: Project) => (
         <ActionMenu
           actions={[
             {
@@ -242,8 +253,8 @@ export default function PPMDProjectsPage() {
                 <div>
                   <h4 className="font-medium mb-2">Completion Details</h4>
                   <div className="space-y-2 text-sm">
-                    <div><strong>Start Date:</strong> {formatDate(selectedProject.startDate)}</div>
-                    <div><strong>End Date:</strong> {formatDate(selectedProject.endDate)}</div>
+                    <div><strong>Start Date:</strong> {selectedProject.startDate ? formatDate(selectedProject.startDate) : 'N/A'}</div>
+                    <div><strong>End Date:</strong> {selectedProject.endDate ? formatDate(selectedProject.endDate) : 'N/A'}</div>
                     <div><strong>Duration:</strong> 45 days</div>
                     <div><strong>Last Updated:</strong> {formatDate(selectedProject.updatedAt)}</div>
                   </div>

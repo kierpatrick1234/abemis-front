@@ -10,7 +10,7 @@ import { NewProjectModal } from '@/components/new-project-modal'
 import { SuccessToast } from '@/components/success-toast'
 import { ProjectDetailsModal } from '@/components/project-details-modal'
 import { mockProjects } from '@/lib/mock/data'
-import { formatDate, formatCurrency } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { Search, Filter, Plus } from 'lucide-react'
 
@@ -19,10 +19,10 @@ export default function ProjectsPage() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false)
-  const [newProjects, setNewProjects] = useState<any[]>([])
+  const [newProjects, setNewProjects] = useState<unknown[]>([])
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [toastCountdown, setToastCountdown] = useState(10)
-  const [selectedProject, setSelectedProject] = useState<any>(null)
+  const [selectedProject, setSelectedProject] = useState<unknown>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const { user } = useAuth()
 
@@ -37,7 +37,7 @@ export default function ProjectsPage() {
     // TODO: Implement duplicate functionality
   }, [])
 
-  const handleRowClick = useCallback((project: any) => {
+  const handleRowClick = useCallback((project: unknown) => {
     setSelectedProject(project)
     setShowProjectModal(true)
   }, [])
@@ -48,7 +48,7 @@ export default function ProjectsPage() {
     setStatusFilter('all')
   }, [])
 
-  const handleCreateProject = useCallback((projectData: any) => {
+  const handleCreateProject = useCallback((projectData: unknown) => {
     console.log('Creating new project:', projectData)
     
     // Create a new project object with proper structure
@@ -110,7 +110,7 @@ export default function ProjectsPage() {
     {
       key: 'title',
       label: 'Title',
-      render: (value: string, row: any) => (
+      render: (value: string, row: unknown) => (
         <div>
           <div className="font-medium">{value}</div>
           <div className="text-sm text-muted-foreground">{row.province}</div>
@@ -139,7 +139,7 @@ export default function ProjectsPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: any, row: any) => (
+      render: (value: unknown, row: unknown) => (
         <ActionMenu
           actions={[
             {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Mail, ArrowLeft, RefreshCw, CheckCircle, Clock, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
@@ -17,7 +17,7 @@ export default function VerifyEmailPage() {
   const searchParams = useSearchParams()
   
   const email = searchParams.get('email') || 'your email address'
-  const name = searchParams.get('name') || 'User'
+  // const name = searchParams.get('name') || 'User'
 
   useEffect(() => {
     // Start countdown for resend button
@@ -57,7 +57,7 @@ export default function VerifyEmailPage() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Check Your Email</h1>
           <p className="text-muted-foreground mt-2">
-            We've sent a verification link to your email address
+            We&apos;ve sent a verification link to your email address
           </p>
         </div>
 
@@ -148,7 +148,7 @@ export default function VerifyEmailPage() {
                 size="lg"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                I've Verified My Email
+                I&apos;ve Verified My Email
               </Button>
 
               <div className="flex items-center space-x-2">
@@ -210,7 +210,7 @@ export default function VerifyEmailPage() {
                 <div className="flex items-start space-x-2">
                   <AlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-muted-foreground">
-                    <p className="font-medium mb-1">Didn't receive the email?</p>
+                    <p className="font-medium mb-1">Didn&apos;t receive the email?</p>
                     <ul className="space-y-1">
                       <li>• Check your spam or junk folder</li>
                       <li>• Make sure the email address is correct</li>

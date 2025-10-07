@@ -2,7 +2,7 @@ import React from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Eye, MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
@@ -11,20 +11,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-interface Column {
+interface Column<T = unknown> {
   key: string
   label: string
-  render?: (value: any, row: any) => React.ReactNode
+  render?: (value: unknown, row: T) => React.ReactNode
 }
 
-interface DataTableProps {
-  columns: Column[]
-  data: any[]
+interface DataTableProps<T = unknown> {
+  columns: Column<T>[]
+  data: T[]
   className?: string
-  onRowClick?: (row: any) => void
+  onRowClick?: (row: T) => void
 }
 
-export function DataTable({ columns, data, className, onRowClick }: DataTableProps) {
+export function DataTable<T = unknown>({ columns, data, className, onRowClick }: DataTableProps<T>) {
   return (
     <div className={cn('rounded-md border', className)}>
       <Table>

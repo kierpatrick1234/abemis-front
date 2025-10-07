@@ -9,7 +9,7 @@ import { formatDate, formatCurrency } from '@/lib/utils'
 import { Calendar, MapPin, DollarSign, User, FileText, Clock } from 'lucide-react'
 
 interface ProjectDetailsModalProps {
-  project: any | null
+  project: unknown | null
   isOpen: boolean
   onClose: () => void
 }

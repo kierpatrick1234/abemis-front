@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Check, FileText, ShoppingCart, Wrench, CheckCircle, Package, X, Upload, Plus, Eye, File } from 'lucide-react'
+import { Check, FileText, ShoppingCart, Wrench, CheckCircle, Package, X, Upload, Eye, File } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'

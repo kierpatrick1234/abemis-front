@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { Menu, X, ChevronLeft, ChevronRight, LayoutDashboard, FolderOpen, FileText, BarChart3, Users, Settings } from 'lucide-react'
+import { Menu, ChevronLeft, ChevronRight, LayoutDashboard, FolderOpen, FileText, BarChart3, Users, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { NavItem } from './nav-item'

@@ -10,11 +10,10 @@ import { Badge } from '@/components/ui/badge'
 import { Search, CheckCircle, XCircle, MapPin } from 'lucide-react'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
-import { useAuth } from '@/lib/contexts/auth-context'
 
 export default function SEPDProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedProject, setSelectedProject] = useState<any>(null)
+  const [selectedProject, setSelectedProject] = useState<unknown>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showEvaluationModal, setShowEvaluationModal] = useState(false)
   // Filter projects for SEPD - only FMR projects in Proposal stage
@@ -45,7 +44,7 @@ export default function SEPDProjectsPage() {
     // TODO: Implement duplicate functionality
   }, [])
 
-  const handleRowClick = useCallback((project: any) => {
+  const handleRowClick = useCallback((project: unknown) => {
     setSelectedProject(project)
     setShowProjectModal(true)
   }, [])
@@ -60,7 +59,7 @@ export default function SEPDProjectsPage() {
     {
       key: 'title',
       label: 'FMR Project Title',
-      render: (value: any, row: any) => (
+      render: (value: unknown, row: unknown) => (
         <div>
           <div className="font-medium">{row.title}</div>
           <div className="text-sm text-muted-foreground flex items-center">
@@ -83,7 +82,7 @@ export default function SEPDProjectsPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: any, row: any) => (
+      render: (value: unknown, row: unknown) => (
         <ActionMenu
           actions={[
             {
