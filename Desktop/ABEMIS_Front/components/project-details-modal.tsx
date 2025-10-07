@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/data-table'
 import { ProjectStepper } from '@/components/project-stepper'
 import { formatDate, formatCurrency } from '@/lib/utils'
-import { Calendar, MapPin, DollarSign, User, FileText, Clock } from 'lucide-react'
+import { Calendar, MapPin, DollarSign, User, Clock } from 'lucide-react'
 
 interface ProjectDetailsModalProps {
   project: unknown | null

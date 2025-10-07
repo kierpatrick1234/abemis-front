@@ -35,7 +35,7 @@ const notificationColors = {
 }
 
 export function NotificationItem({ 
-  id, 
+  // id, 
   message, 
   timestamp, 
   type, 
