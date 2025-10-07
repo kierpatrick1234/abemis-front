@@ -64,58 +64,53 @@ export default function PPMDProjectsPage() {
     {
       key: 'title',
       label: 'Project Title',
-      render: (project: any) => (
+      render: (value: any, row: any) => (
         <div>
-          <div className="font-medium">{project.title}</div>
-          <div className="text-sm text-muted-foreground">{project.province}</div>
+          <div className="font-medium">{row.title}</div>
+          <div className="text-sm text-muted-foreground">{row.province}</div>
         </div>
       )
     },
     {
       key: 'type',
       label: 'Type',
-      render: (project: any) => (
-        <Badge variant={project.type === 'FMR' ? 'default' : project.type === 'Infrastructure' ? 'secondary' : 'outline'}>
-          {project.type}
+      render: (value: any, row: any) => (
+        <Badge variant={row.type === 'FMR' ? 'default' : row.type === 'Infrastructure' ? 'secondary' : 'outline'}>
+          {row.type}
         </Badge>
       )
     },
     {
-      key: 'budget',
-      label: 'Final Budget',
-      render: (project: any) => formatCurrency(project.budget)
-    },
-    {
       key: 'status',
       label: 'Status',
-      render: (project: any) => <StatusBadge status={project.status} />
+      render: (value: any, row: any) => <StatusBadge status={row.status} />
     },
     {
       key: 'completionDate',
       label: 'Completed',
-      render: (project: any) => formatDate(project.endDate || project.updatedAt)
+      render: (value: any, row: any) => formatDate(row.endDate || row.updatedAt)
     },
     {
       key: 'actions',
       label: 'Actions',
-      render: (project: any) => (
+      render: (value: any, row: any) => (
         <ActionMenu
           actions={[
             {
               label: 'View Details',
-              onClick: () => handleRowClick(project)
+              onClick: () => handleRowClick(row)
             },
             {
               label: 'Edit',
-              onClick: () => handleEditProject(project.id)
+              onClick: () => handleEditProject(row.id)
             },
             {
               label: 'Duplicate',
-              onClick: () => handleDuplicateProject(project.id)
+              onClick: () => handleDuplicateProject(row.id)
             },
             {
               label: 'Delete',
-              onClick: () => handleDeleteProject(project.id),
+              onClick: () => handleDeleteProject(row.id),
               variant: 'destructive'
             }
           ]}

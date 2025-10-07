@@ -73,57 +73,52 @@ export default function SEPDProjectsPage() {
     {
       key: 'title',
       label: 'FMR Project Title',
-      render: (project: any) => (
+      render: (value: any, row: any) => (
         <div>
-          <div className="font-medium">{project.title}</div>
+          <div className="font-medium">{row.title}</div>
           <div className="text-sm text-muted-foreground flex items-center">
             <MapPin className="h-3 w-3 mr-1" />
-            {project.province}
+            {row.province}
           </div>
         </div>
       )
     },
     {
-      key: 'budget',
-      label: 'Budget',
-      render: (project: any) => formatCurrency(project.budget)
-    },
-    {
       key: 'status',
       label: 'Status',
-      render: (project: any) => <StatusBadge status={project.status} />
+      render: (value: any, row: any) => <StatusBadge status={row.status} />
     },
     {
       key: 'updatedAt',
       label: 'Updated',
-      render: (project: any) => formatDate(project.updatedAt)
+      render: (value: any, row: any) => formatDate(row.updatedAt)
     },
     {
       key: 'actions',
       label: 'Actions',
-      render: (project: any) => (
+      render: (value: any, row: any) => (
         <ActionMenu
           actions={[
             {
               label: 'View Details',
-              onClick: () => handleRowClick(project)
+              onClick: () => handleRowClick(row)
             },
             {
               label: 'Validate',
-              onClick: () => handleValidateProject(project.id)
+              onClick: () => handleValidateProject(row.id)
             },
             {
               label: 'Reject',
-              onClick: () => handleRejectProject(project.id),
+              onClick: () => handleRejectProject(row.id),
               variant: 'destructive'
             },
             {
               label: 'Edit',
-              onClick: () => handleEditProject(project.id)
+              onClick: () => handleEditProject(row.id)
             },
             {
               label: 'Duplicate',
-              onClick: () => handleDuplicateProject(project.id)
+              onClick: () => handleDuplicateProject(row.id)
             }
           ]}
         />

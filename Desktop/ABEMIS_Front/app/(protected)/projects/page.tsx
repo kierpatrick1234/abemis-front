@@ -140,11 +140,6 @@ export default function ProjectsPage() {
       render: (value: string) => <StatusBadge status={value} />
     },
     {
-      key: 'budget',
-      label: 'Budget',
-      render: (value: number) => formatCurrency(value)
-    },
-    {
       key: 'updatedAt',
       label: 'Updated',
       render: (value: string) => formatDate(value)
