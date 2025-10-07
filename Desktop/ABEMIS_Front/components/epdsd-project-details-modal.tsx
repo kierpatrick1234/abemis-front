@@ -23,7 +23,7 @@ const mockProposalDocuments = [
     uploadedBy: 'Project Proponent',
     uploadedAt: '2024-01-15T10:30:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
     required: true
   },
@@ -35,7 +35,7 @@ const mockProposalDocuments = [
     uploadedBy: 'Project Proponent',
     uploadedAt: '2024-01-16T14:20:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
     required: true
   },
@@ -47,7 +47,7 @@ const mockProposalDocuments = [
     uploadedBy: 'Project Proponent',
     uploadedAt: '2024-01-17T09:15:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
     required: true
   },
@@ -59,7 +59,7 @@ const mockProposalDocuments = [
     uploadedBy: 'Project Proponent',
     uploadedAt: '2024-01-18T11:45:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
     required: true
   },
@@ -71,7 +71,7 @@ const mockProposalDocuments = [
     uploadedBy: 'Project Proponent',
     uploadedAt: '2024-01-19T16:30:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
     required: true
   },
@@ -83,7 +83,7 @@ const mockProposalDocuments = [
     uploadedBy: 'Project Proponent',
     uploadedAt: '2024-01-20T08:45:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
     required: true
   },
@@ -95,9 +95,9 @@ const mockProposalDocuments = [
     uploadedBy: 'Project Proponent',
     uploadedAt: '2024-01-21T10:15:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
-    required: true
+    required: false
   }
 ]
 
@@ -194,12 +194,12 @@ interface EPDSDProjectDetailsModalProps {
 
 export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProjectDetailsModalProps) {
   // Initialize document evaluations per project
-  const [documentEvaluations, setDocumentEvaluations] = useState<Record<string, Record<string, {isSatisfied: boolean, comments: string}>>>({})
+  const [documentEvaluations, setDocumentEvaluations] = useState<Record<string, Record<string, {evaluation: 'satisfied' | 'not_satisfied' | null, comments: string}>>>({})
   const [generalComments, setGeneralComments] = useState('')
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [showRejectMessage, setShowRejectMessage] = useState(false)
   
-  const handleDocumentEvaluationChange = useCallback((docId: string, field: 'isSatisfied' | 'comments', value: boolean | string) => {
+  const handleDocumentEvaluationChange = useCallback((docId: string, field: 'evaluation' | 'comments', value: 'satisfied' | null | string) => {
     if (!project) return
     
     const projectId = (project as { id: string }).id
@@ -221,18 +221,27 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
     const projectId = (project as { id: string }).id
     const projectEvaluations = documentEvaluations[projectId] || {}
     
-    const allDocumentsSatisfied = mockProposalDocuments.every(doc => 
-      projectEvaluations[doc.id]?.isSatisfied === true
+    const requiredDocuments = mockProposalDocuments.filter(doc => doc.required)
+    const allDocumentsEvaluated = requiredDocuments.every(doc => 
+      projectEvaluations[doc.id]?.evaluation !== null && projectEvaluations[doc.id]?.evaluation !== undefined
     )
     
-    if (allDocumentsSatisfied) {
-      setShowSuccessMessage(true)
-      setTimeout(() => {
-        setShowSuccessMessage(false)
-        onClose()
-      }, 2000)
+    if (allDocumentsEvaluated) {
+      const satisfiedDocuments = requiredDocuments.filter(doc => 
+        projectEvaluations[doc.id]?.evaluation === 'satisfied'
+      )
+      
+      if (satisfiedDocuments.length === requiredDocuments.length) {
+        setShowSuccessMessage(true)
+        setTimeout(() => {
+          setShowSuccessMessage(false)
+          onClose()
+        }, 2000)
+      } else {
+        alert('All required documents must be marked as satisfied before submitting.')
+      }
     } else {
-      alert('Please evaluate all documents before submitting.')
+      alert('Please evaluate all required documents before submitting.')
     }
   }, [documentEvaluations, project, onClose])
 
@@ -242,18 +251,35 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
     const projectId = (project as { id: string }).id
     const projectEvaluations = documentEvaluations[projectId] || {}
     
-    const allDocumentsSatisfied = mockProposalDocuments.every(doc => 
-      projectEvaluations[doc.id]?.isSatisfied === true
+    const requiredDocuments = mockProposalDocuments.filter(doc => doc.required)
+    const allDocumentsEvaluated = requiredDocuments.every(doc => 
+      projectEvaluations[doc.id]?.evaluation !== null && projectEvaluations[doc.id]?.evaluation !== undefined
     )
     
-    if (allDocumentsSatisfied) {
-      setShowSuccessMessage(true)
-      setTimeout(() => {
-        setShowSuccessMessage(false)
-        onClose()
-      }, 2000)
+    if (allDocumentsEvaluated) {
+      const satisfiedDocuments = requiredDocuments.filter(doc => 
+        projectEvaluations[doc.id]?.evaluation === 'satisfied'
+      )
+      
+      if (satisfiedDocuments.length === requiredDocuments.length) {
+        setShowSuccessMessage(true)
+        setTimeout(() => {
+          setShowSuccessMessage(false)
+          onClose()
+        }, 3000)
+      } else {
+        // Show which documents are not satisfied
+        const notSatisfiedDocs = requiredDocuments.filter(doc => 
+          projectEvaluations[doc.id]?.evaluation !== 'satisfied'
+        )
+        alert(`The following required documents must be marked as satisfied before proceeding:\n\n${notSatisfiedDocs.map(doc => `• ${doc.name}`).join('\n')}`)
+      }
     } else {
-      alert('All documents must be satisfied before moving to next stage.')
+      // Show which documents are not evaluated
+      const unevaluatedDocs = requiredDocuments.filter(doc => 
+        !projectEvaluations[doc.id]?.evaluation
+      )
+      alert(`Please evaluate the following documents before proceeding:\n\n${unevaluatedDocs.map(doc => `• ${doc.name}`).join('\n')}`)
     }
   }, [documentEvaluations, project, onClose])
 
@@ -264,6 +290,18 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
       onClose()
     }, 2000)
   }, [onClose])
+
+  // Helper function to get document validation status
+  const getDocumentValidationStatus = useCallback((docId: string) => {
+    if (!project) return 'unevaluated'
+    
+    const projectId = (project as { id: string }).id
+    const projectEvaluations = documentEvaluations[projectId] || {}
+    const evaluation = projectEvaluations[docId]?.evaluation
+    
+    if (!evaluation) return 'unevaluated'
+    return evaluation
+  }, [documentEvaluations, project])
 
 
 
@@ -313,11 +351,11 @@ Document Content Preview:
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
             <FileText className="h-6 w-6" />
-            {project.title}
+            {(project as { title: string }).title}
           </DialogTitle>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4" />
-            {project.province}, {project.region}
+            {(project as { province: string }).province}, {(project as { region: string }).region}
           </div>
         </DialogHeader>
 
@@ -331,36 +369,39 @@ Document Content Preview:
           <TabsContent value="documents" className="space-y-6 flex-1 overflow-y-auto overflow-x-hidden">
             {/* Document Evaluation Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Required Documents Evaluation</h3>
+              <h3 className="text-lg font-semibold">Document Evaluation</h3>
               <div className="space-y-4">
                 {mockProposalDocuments.map((doc) => {
                   const projectId = (project as { id: string }).id
                   const projectEvaluations = documentEvaluations[projectId] || {}
-                  const isSatisfied = projectEvaluations[doc.id]?.isSatisfied || false
+                  const evaluation = projectEvaluations[doc.id]?.evaluation || null
+                  const isSatisfied = evaluation === 'satisfied'
+                  
                   return (
-                    <Card key={doc.id} className={`p-4 transition-all duration-200 hover:shadow-md ${
-                      isSatisfied ? 'border-green-200 bg-green-50' : 'border-gray-200'
+                    <Card key={doc.id} className={`p-6 border rounded-lg transition-all duration-200 ${
+                      isSatisfied ? 'border-green-500 bg-green-50/50 shadow-green-100' : ''
                     }`}>
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <FileText className={`h-5 w-5 ${isSatisfied ? 'text-green-600' : 'text-blue-600'}`} />
-                          <div>
-                            <h4 className="font-medium">{doc.name}</h4>
-                            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                              <span>{doc.type} • {doc.size}</span>
-                              <span>Uploaded by {doc.uploadedBy}</span>
-                              <span>{formatDate(doc.uploadedAt)}</span>
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-4 flex-1">
+                          <div className={`p-2 rounded-md transition-colors duration-200 ${
+                            isSatisfied ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+                          }`}>
+                            <FileText className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <h4 className="text-lg font-semibold text-foreground">{doc.name}</h4>
+                            <div className="text-sm text-muted-foreground">
+                              {doc.type} • {doc.size} • Uploaded by {doc.uploadedBy} • {formatDate(doc.uploadedAt)}
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center gap-2">
                           <Button 
                             variant="outline" 
                             size="sm"
-                            className="hover:bg-blue-50 hover:border-blue-300 relative group"
-                            title={`Preview: ${doc.name}`}
+                            className="relative group"
                           >
-                            <Eye className="h-4 w-4 mr-1" />
+                            <Eye className="h-4 w-4 mr-2" />
                             View
                             
                             {/* PDF Preview Screen - Full Overlay */}
@@ -493,10 +534,8 @@ Document Content Preview:
                           <Button 
                             variant="outline" 
                             size="sm"
-                            className="hover:bg-green-50 hover:border-green-300 relative group"
-                            title={`Download: ${doc.name}`}
                           >
-                            <Download className="h-4 w-4 mr-1" />
+                            <Download className="h-4 w-4 mr-2" />
                             Download
                             
                             {/* Hover Preview Tooltip */}
@@ -511,34 +550,31 @@ Document Content Preview:
                         </div>
                       </div>
                       
-                      <div className="space-y-3">
-                        <div className="flex items-center space-x-2">
+                      <div className="space-y-4 mt-6 pt-4 border-t border-border">
+                        <div className="flex items-center space-x-3">
                           <Checkbox
                             id={`satisfied-${doc.id}`}
                             checked={isSatisfied}
                             onCheckedChange={(checked) => 
-                              handleDocumentEvaluationChange(doc.id, 'isSatisfied', checked as boolean)
+                              handleDocumentEvaluationChange(doc.id, 'evaluation', checked ? 'satisfied' : null)
                             }
-                            className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                            className={`data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 data-[state=checked]:text-white`}
                           />
-                          <label htmlFor={`satisfied-${doc.id}`} className={`text-sm font-medium ${
-                            isSatisfied ? 'text-green-700' : 'text-gray-700'
+                          <label htmlFor={`satisfied-${doc.id}`} className={`text-sm font-medium cursor-pointer ${
+                            isSatisfied ? 'text-green-700' : ''
                           }`}>
                             I am satisfied with this document
                           </label>
-                          {isSatisfied && (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          )}
                         </div>
                         
                         <div className="space-y-2">
-                          <label htmlFor={`comments-${doc.id}`} className="text-sm font-medium">
+                          <label htmlFor={`comments-${doc.id}`} className="text-sm font-semibold text-foreground">
                             Comments/Remarks:
                           </label>
-                          <textarea
+                          <input
                             id={`comments-${doc.id}`}
-                            className="w-full p-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            rows={2}
+                            type="text"
+                            className="w-full p-3 border border-input rounded-md text-sm bg-background placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200"
                             placeholder="Add your comments or remarks about this document..."
                             value={projectEvaluations[doc.id]?.comments || ''}
                             onChange={(e) => 
@@ -601,18 +637,18 @@ Document Content Preview:
               <Card className="p-4">
                 <h4 className="font-medium mb-3">Project Information</h4>
                 <div className="space-y-2 text-sm">
-                  <div><strong>Type:</strong> {project.type}</div>
-                  <div><strong>Province:</strong> {project.province}</div>
-                  <div><strong>Budget:</strong> {formatCurrency(project.budget)}</div>
-                  <div><strong>Status:</strong> <StatusBadge status={project.status} /></div>
+                  <div><strong>Type:</strong> {(project as { type: string }).type}</div>
+                  <div><strong>Province:</strong> {(project as { province: string }).province}</div>
+                  <div><strong>Budget:</strong> {formatCurrency((project as { budget: number }).budget)}</div>
+                  <div><strong>Status:</strong> <StatusBadge status={(project as { status: string }).status} /></div>
                 </div>
               </Card>
               <Card className="p-4">
                 <h4 className="font-medium mb-3">Timeline</h4>
                 <div className="space-y-2 text-sm">
-                  <div><strong>Start Date:</strong> {formatDate(project.startDate || '')}</div>
-                  <div><strong>End Date:</strong> {formatDate(project.endDate || '')}</div>
-                  <div><strong>Updated:</strong> {formatDate(project.updatedAt)}</div>
+                  <div><strong>Start Date:</strong> {formatDate((project as { startDate?: string }).startDate || '')}</div>
+                  <div><strong>End Date:</strong> {formatDate((project as { endDate?: string }).endDate || '')}</div>
+                  <div><strong>Updated:</strong> {formatDate((project as { updatedAt: string }).updatedAt)}</div>
                 </div>
               </Card>
             </div>
@@ -620,7 +656,7 @@ Document Content Preview:
             <Card className="p-4">
               <h4 className="font-medium mb-2">Project Description</h4>
               <p className="text-sm text-muted-foreground">
-                {project.description}
+                {(project as { description: string }).description}
               </p>
             </Card>
 
@@ -631,10 +667,10 @@ Document Content Preview:
               </CardHeader>
               <CardContent>
                 <ProjectStepper 
-                  currentStatus={project.status} 
+                  currentStatus={(project as { status: string }).status} 
                   onStepClick={(step) => console.log('Step clicked:', step)}
-                  projectType={project.type}
-                  project={project}
+                  projectType={(project as { type: string }).type}
+                  project={project as any}
                 />
               </CardContent>
             </Card>
@@ -679,16 +715,23 @@ Document Content Preview:
       {/* Success Message */}
       {showSuccessMessage && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md mx-4 text-center">
-            <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+          <div className="bg-white rounded-xl p-8 max-w-lg mx-4 text-center shadow-2xl border border-green-200">
+            <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full animate-pulse">
+              <CheckCircle className="h-10 w-10 text-green-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Success!</h3>
-            <p className="text-gray-600 mb-4">
-              Project has been successfully processed and moved to the next stage.
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Project Approved!</h3>
+            <p className="text-gray-600 mb-2 text-lg">
+              <strong>{(project as { title: string }).title}</strong>
             </p>
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+            <p className="text-gray-600 mb-6">
+              All documents have been evaluated and satisfied. The project has been successfully moved to the next stage.
+            </p>
+            <div className="flex items-center justify-center space-x-2 text-green-600">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-600"></div>
+              <span className="text-sm font-medium">Processing...</span>
+            </div>
+            <div className="mt-4 text-xs text-gray-500">
+              This dialog will close automatically
             </div>
           </div>
         </div>

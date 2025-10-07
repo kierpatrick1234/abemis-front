@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Search, CheckCircle, XCircle, FileText, Clock, User, MessageSquare, Download, Eye, ChevronDown, ChevronRight } from 'lucide-react'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
@@ -24,7 +25,7 @@ const mockProposalDocuments = [
     uploadedBy: 'John Engineer',
     uploadedAt: '2024-01-15T10:30:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
     required: true
   },
@@ -36,7 +37,7 @@ const mockProposalDocuments = [
     uploadedBy: 'Jane Engineer',
     uploadedAt: '2024-01-16T14:20:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
     required: true
   },
@@ -48,7 +49,7 @@ const mockProposalDocuments = [
     uploadedBy: 'Mike Engineer',
     uploadedAt: '2024-01-17T09:15:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
     required: true
   },
@@ -60,7 +61,7 @@ const mockProposalDocuments = [
     uploadedBy: 'Sarah Engineer',
     uploadedAt: '2024-01-18T11:45:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
     required: true
   },
@@ -72,7 +73,7 @@ const mockProposalDocuments = [
     uploadedBy: 'David Engineer',
     uploadedAt: '2024-01-19T16:30:00Z',
     status: 'For Review',
-    isSatisfied: false,
+    evaluation: null,
     comments: '',
     required: true
   }
@@ -112,10 +113,11 @@ const mockTimelineData = [
 export default function EPDSDProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [regionFilter, setRegionFilter] = useState('all')
   const [selectedProject, setSelectedProject] = useState<any>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showEvaluationModal, setShowEvaluationModal] = useState(false)
-  const [documentEvaluations, setDocumentEvaluations] = useState<Record<string, Record<string, {isSatisfied: boolean, comments: string}>>>({})
+  const [documentEvaluations, setDocumentEvaluations] = useState<Record<string, Record<string, {evaluation: 'satisfied' | 'not_satisfied' | null, comments: string}>>>({})
   const [generalComments, setGeneralComments] = useState('')
   
 
@@ -145,7 +147,8 @@ export default function EPDSDProjectsPage() {
       budget: 25000000,
       startDate: '2024-02-15',
       endDate: '2024-11-30',
-      updatedAt: '2024-01-22T14:20:00Z'
+      updatedAt: '2024-01-22T14:20:00Z',
+      hasDocuments: false
     },
     {
       id: 'PRJ-EPDSD-003',
@@ -802,7 +805,7 @@ export default function EPDSDProjectsPage() {
     setShowEvaluationModal(true)
   }, [])
 
-  const handleDocumentEvaluationChange = useCallback((docId: string, field: 'isSatisfied' | 'comments', value: boolean | string) => {
+  const handleDocumentEvaluationChange = useCallback((docId: string, field: 'evaluation' | 'comments', value: 'satisfied' | 'not_satisfied' | null | string) => {
     if (!selectedProject) return
     
     const projectId = (selectedProject as { id: string }).id
@@ -824,13 +827,21 @@ export default function EPDSDProjectsPage() {
     const projectId = (selectedProject as { id: string }).id
     const projectEvaluations = documentEvaluations[projectId] || {}
     
-    const allDocumentsSatisfied = mockProposalDocuments.every(doc => 
-      projectEvaluations[doc.id]?.isSatisfied === true
+    const allDocumentsEvaluated = mockProposalDocuments.every(doc => 
+      projectEvaluations[doc.id]?.evaluation !== null && projectEvaluations[doc.id]?.evaluation !== undefined
     )
     
-    if (allDocumentsSatisfied) {
-      alert('All documents evaluated successfully! Project can proceed to next stage.')
-      setShowEvaluationModal(false)
+    if (allDocumentsEvaluated) {
+      const satisfiedDocuments = mockProposalDocuments.filter(doc => 
+        projectEvaluations[doc.id]?.evaluation === 'satisfied'
+      )
+      
+      if (satisfiedDocuments.length === mockProposalDocuments.length) {
+        alert('All documents evaluated successfully! Project can proceed to next stage.')
+        setShowEvaluationModal(false)
+      } else {
+        alert('All documents must be marked as "Satisfied" before submitting.')
+      }
     } else {
       alert('Please evaluate all documents before submitting.')
     }
@@ -842,16 +853,45 @@ export default function EPDSDProjectsPage() {
     const projectId = (selectedProject as { id: string }).id
     const projectEvaluations = documentEvaluations[projectId] || {}
     
-    const allDocumentsSatisfied = mockProposalDocuments.every(doc => 
-      projectEvaluations[doc.id]?.isSatisfied === true
+    const allDocumentsEvaluated = mockProposalDocuments.every(doc => 
+      projectEvaluations[doc.id]?.evaluation !== null && projectEvaluations[doc.id]?.evaluation !== undefined
     )
     
-    if (allDocumentsSatisfied) {
-      alert('Project moved to procurement stage!')
-      setShowEvaluationModal(false)
+    if (allDocumentsEvaluated) {
+      const satisfiedDocuments = mockProposalDocuments.filter(doc => 
+        projectEvaluations[doc.id]?.evaluation === 'satisfied'
+      )
+      
+      if (satisfiedDocuments.length === mockProposalDocuments.length) {
+        // Show enhanced success message
+        alert(`🎉 Project Approved!\n\n"${selectedProject.title}" has been successfully moved to the procurement stage.\n\nAll documents have been evaluated and satisfied.`)
+        setShowEvaluationModal(false)
+      } else {
+        // Show which documents are not satisfied
+        const notSatisfiedDocs = mockProposalDocuments.filter(doc => 
+          projectEvaluations[doc.id]?.evaluation === 'not_satisfied'
+        )
+        alert(`❌ Cannot proceed to next stage!\n\nThe following documents are marked as "Not Satisfied" and must be addressed:\n\n${notSatisfiedDocs.map(doc => `• ${doc.name}`).join('\n')}`)
+      }
     } else {
-      alert('All documents must be satisfied before moving to next stage.')
+      // Show which documents are not evaluated
+      const unevaluatedDocs = mockProposalDocuments.filter(doc => 
+        !projectEvaluations[doc.id]?.evaluation
+      )
+      alert(`⚠️ Please complete evaluation!\n\nThe following documents need to be evaluated:\n\n${unevaluatedDocs.map(doc => `• ${doc.name}`).join('\n')}`)
     }
+  }, [documentEvaluations, selectedProject])
+
+  // Helper function to get document validation status
+  const getDocumentValidationStatus = useCallback((docId: string) => {
+    if (!selectedProject) return 'unevaluated'
+    
+    const projectId = (selectedProject as { id: string }).id
+    const projectEvaluations = documentEvaluations[projectId] || {}
+    const evaluation = projectEvaluations[docId]?.evaluation
+    
+    if (!evaluation) return 'unevaluated'
+    return evaluation
   }, [documentEvaluations, selectedProject])
 
   const handleRowClick = useCallback((project: unknown) => {
@@ -859,11 +899,23 @@ export default function EPDSDProjectsPage() {
     setShowProjectModal(true)
   }, [])
 
+  // Get unique regions for filter options and sort alphabetically
+  const uniqueRegions = Array.from(new Set(epdsdProjects.map(project => project.region)))
+    .sort((a, b) => {
+      // Extract numbers from region names (e.g., "Region 1" -> 1, "Region 2" -> 2)
+      const getRegionNumber = (region: string) => {
+        const match = region.match(/Region (\d+)/)
+        return match ? parseInt(match[1], 10) : 999
+      }
+      return getRegionNumber(a) - getRegionNumber(b)
+    })
+
   const filteredProjects = epdsdProjects.filter(project => {
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          project.province.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesType = typeFilter === 'all' || project.type === typeFilter
-    return matchesSearch && matchesType
+    const matchesRegion = regionFilter === 'all' || project.region === regionFilter
+    return matchesSearch && matchesType && matchesRegion
   }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
 
   const columns = [
@@ -890,6 +942,22 @@ export default function EPDSDProjectsPage() {
       key: 'status',
       label: 'Status',
       render: (value: unknown, row: unknown) => (<StatusBadge status={(row as { status: string }).status} />)
+    },
+    {
+      key: 'documents',
+      label: 'Documents',
+      render: (value: unknown, row: unknown) => {
+        const project = row as { hasDocuments?: boolean }
+        return project.hasDocuments === false ? (
+          <Badge variant="destructive" className="text-xs">
+            No Documents Uploaded
+          </Badge>
+        ) : (
+          <Badge variant="default" className="text-xs">
+            Documents Available
+          </Badge>
+        )
+      }
     },
     {
       key: 'updatedAt',
@@ -961,28 +1029,46 @@ export default function EPDSDProjectsPage() {
                 />
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant={typeFilter === 'all' ? 'default' : 'outline'}
-                onClick={() => setTypeFilter('all')}
-                size="sm"
-              >
-                All Types
-              </Button>
-              <Button
-                variant={typeFilter === 'Infrastructure' ? 'default' : 'outline'}
-                onClick={() => setTypeFilter('Infrastructure')}
-                size="sm"
-              >
-                Infrastructure
-              </Button>
-              <Button
-                variant={typeFilter === 'Machinery' ? 'default' : 'outline'}
-                onClick={() => setTypeFilter('Machinery')}
-                size="sm"
-              >
-                Machinery
-              </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex gap-2">
+                <Button
+                  variant={typeFilter === 'all' ? 'default' : 'outline'}
+                  onClick={() => setTypeFilter('all')}
+                  size="sm"
+                >
+                  All Types
+                </Button>
+                <Button
+                  variant={typeFilter === 'Infrastructure' ? 'default' : 'outline'}
+                  onClick={() => setTypeFilter('Infrastructure')}
+                  size="sm"
+                >
+                  Infrastructure
+                </Button>
+                <Button
+                  variant={typeFilter === 'Machinery' ? 'default' : 'outline'}
+                  onClick={() => setTypeFilter('Machinery')}
+                  size="sm"
+                >
+                  Machinery
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-muted-foreground">Region:</label>
+                <Select value={regionFilter} onValueChange={setRegionFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Regions</SelectItem>
+                    {uniqueRegions.map(region => (
+                      <SelectItem key={region} value={region}>
+                        {region}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -1043,62 +1129,166 @@ export default function EPDSDProjectsPage() {
                       {mockProposalDocuments.map((doc) => {
                         const projectId = (selectedProject as { id: string }).id
                         const projectEvaluations = documentEvaluations[projectId] || {}
-                        const isSatisfied = projectEvaluations[doc.id]?.isSatisfied || false
+                        const evaluation = projectEvaluations[doc.id]?.evaluation || null
+                        const isSatisfied = evaluation === 'satisfied'
+                        const isNotSatisfied = evaluation === 'not_satisfied'
+                        const isUnevaluated = !evaluation
+                        const validationStatus = getDocumentValidationStatus(doc.id)
+                        
+                        // shadcn-inspired styling based on validation status
+                        const cardClasses = `p-6 transition-all duration-200 hover:shadow-md bg-card border rounded-lg ${
+                          isSatisfied ? 'border-l-4 border-l-green-500 hover:shadow-green-100' : 
+                          isNotSatisfied ? 'border-l-4 border-l-destructive border-destructive/20 hover:shadow-destructive/10' : 
+                          isUnevaluated ? 'border-l-4 border-l-orange-500 border-orange-200 hover:shadow-orange-100' : 
+                          'border-l-4 border-l-primary hover:shadow-primary/10'
+                        }`
+                        
                         return (
-                        <Card key={doc.id} className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center space-x-3">
-                              <FileText className="h-5 w-5 text-blue-600" />
-                <div>
-                                <h4 className="font-medium">{doc.name}</h4>
-                                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                                  <span>{doc.type} • {doc.size}</span>
-                                  <span>Uploaded by {doc.uploadedBy}</span>
-                                  <span>{formatDate(doc.uploadedAt)}</span>
-                  </div>
-                </div>
-                  </div>
-                            <div className="flex items-center space-x-2">
+                        <Card key={doc.id} className={cardClasses}>
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center space-x-4 flex-1">
+                              <div className={`p-2 rounded-md ${
+                                isSatisfied ? 'bg-green-100 text-green-600' : 
+                                isNotSatisfied ? 'bg-destructive/10 text-destructive' : 
+                                isUnevaluated ? 'bg-orange-100 text-orange-600' : 'bg-primary/10 text-primary'
+                              }`}>
+                                <FileText className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-lg font-semibold text-foreground">{doc.name}</h4>
+                                  {/* shadcn Status Badge */}
+                                  <Badge variant={
+                                    isSatisfied ? 'default' : 
+                                    isNotSatisfied ? 'destructive' : 
+                                    isUnevaluated ? 'secondary' : 'outline'
+                                  } className="text-xs">
+                                    {isSatisfied ? '✅ Satisfied' : 
+                                     isNotSatisfied ? '❌ Not Satisfied' : 
+                                     isUnevaluated ? '⏳ Pending' : '❓ Unknown'}
+                                  </Badge>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <span className="font-medium">Type:</span>
+                                    <span className="text-primary font-medium">{doc.type}</span>
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <span className="font-medium">Size:</span>
+                                    <span>{doc.size}</span>
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <span className="font-medium">By:</span>
+                                    <span>{doc.uploadedBy}</span>
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <span className="font-medium">Date:</span>
+                                    <span>{formatDate(doc.uploadedAt)}</span>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
                               <Button variant="outline" size="sm">
-                                <Eye className="h-4 w-4 mr-1" />
+                                <Eye className="h-4 w-4 mr-2" />
                                 View
                               </Button>
                               <Button variant="outline" size="sm">
-                                <Download className="h-4 w-4 mr-1" />
+                                <Download className="h-4 w-4 mr-2" />
                                 Download
                               </Button>
-                </div>
-              </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`satisfied-${doc.id}`}
-                                checked={isSatisfied}
-                                onCheckedChange={(checked) => 
-                                  handleDocumentEvaluationChange(doc.id, 'isSatisfied', checked as boolean)
-                                }
-                              />
-                              <label htmlFor={`satisfied-${doc.id}`} className="text-sm font-medium">
-                                I am satisfied with this document
-                              </label>
                             </div>
+                          </div>
+
+                <div className="space-y-4 mt-6 pt-4 border-t border-border">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <span>📋 Document Evaluation</span>
+                      </h3>
+                      {isUnevaluated && (
+                        <Badge variant="destructive" className="text-xs">
+                          Required
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className={`p-4 rounded-lg border transition-all duration-200 cursor-pointer hover:shadow-sm ${
+                        isSatisfied ? 'border-green-500 bg-green-50/50 shadow-sm' : 'border-border hover:border-green-300 hover:bg-green-50/30'
+                      }`} onClick={() => handleDocumentEvaluationChange(doc.id, 'evaluation', 'satisfied')}>
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="radio"
+                            id={`satisfied-${doc.id}`}
+                            name={`evaluation-${doc.id}`}
+                            value="satisfied"
+                            checked={isSatisfied}
+                            onChange={() => 
+                              handleDocumentEvaluationChange(doc.id, 'evaluation', 'satisfied')
+                            }
+                            className="w-4 h-4 text-green-600 border-input focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                          />
+                          <div className="flex items-center space-x-2">
+                            <CheckCircle className={`h-4 w-4 ${isSatisfied ? 'text-green-600' : 'text-muted-foreground'}`} />
+                            <label htmlFor={`satisfied-${doc.id}`} className={`text-sm font-medium cursor-pointer ${
+                              isSatisfied ? 'text-green-700' : 'text-foreground'
+                            }`}>
+                              Satisfied
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className={`p-4 rounded-lg border transition-all duration-200 cursor-pointer hover:shadow-sm ${
+                        isNotSatisfied ? 'border-destructive bg-destructive/5 shadow-sm' : 'border-border hover:border-destructive/50 hover:bg-destructive/5'
+                      }`} onClick={() => handleDocumentEvaluationChange(doc.id, 'evaluation', 'not_satisfied')}>
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="radio"
+                            id={`not-satisfied-${doc.id}`}
+                            name={`evaluation-${doc.id}`}
+                            value="not_satisfied"
+                            checked={isNotSatisfied}
+                            onChange={() => 
+                              handleDocumentEvaluationChange(doc.id, 'evaluation', 'not_satisfied')
+                            }
+                            className="w-4 h-4 text-destructive border-input focus:ring-2 focus:ring-destructive focus:ring-offset-2"
+                          />
+                          <div className="flex items-center space-x-2">
+                            <XCircle className={`h-4 w-4 ${isNotSatisfied ? 'text-destructive' : 'text-muted-foreground'}`} />
+                            <label htmlFor={`not-satisfied-${doc.id}`} className={`text-sm font-medium cursor-pointer ${
+                              isNotSatisfied ? 'text-destructive' : 'text-foreground'
+                            }`}>
+                              Not Satisfied
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                             
                             <div className="space-y-2">
-                              <label htmlFor={`comments-${doc.id}`} className="text-sm font-medium">
-                                Comments/Remarks:
-                              </label>
+                              <div className="flex items-center justify-between">
+                                <label htmlFor={`comments-${doc.id}`} className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                  <span>💬 Comments/Remarks</span>
+                                </label>
+                                {(isNotSatisfied || isUnevaluated) && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Recommended
+                                  </Badge>
+                                )}
+                              </div>
                               <textarea
                                 id={`comments-${doc.id}`}
-                                className="w-full p-2 border rounded-md text-sm"
-                                rows={3}
-                                placeholder="Add your comments or remarks about this document..."
+                                className="w-full p-3 border border-input rounded-md text-sm bg-background placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200 resize-none"
+                                rows={2}
+                                placeholder={isNotSatisfied ? "Please explain why this document is not satisfied and what needs to be improved..." : "Add any comments or remarks about this document (optional)..."}
                                 value={projectEvaluations[doc.id]?.comments || ''}
                                 onChange={(e) => 
                                   handleDocumentEvaluationChange(doc.id, 'comments', e.target.value)
                                 }
                               />
-                  </div>
+                            </div>
                   </div>
                         </Card>
                         )
