@@ -6,10 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { StatusBadge } from '@/components/data-table'
-import { ProjectStepper } from '@/components/project-stepper'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { Calendar, MapPin, DollarSign, User, Clock, FileText, CheckCircle, XCircle, MessageSquare, Download, Eye } from 'lucide-react'
 
@@ -101,90 +98,6 @@ const mockProposalDocuments = [
   }
 ]
 
-// Mock timeline data for EPDSD evaluation
-const mockTimelineData = [
-  {
-    id: 'TIMELINE-001',
-    title: 'Project Submitted',
-    description: 'Project proposal submitted by proponent',
-    timestamp: '2024-01-15T10:30:00Z',
-    user: 'Project Proponent',
-    status: 'completed',
-    type: 'submission'
-  },
-  {
-    id: 'TIMELINE-002',
-    title: 'Letter of Intent Submitted',
-    description: 'Letter of Intent document uploaded by proponent',
-    timestamp: '2024-01-15T10:30:00Z',
-    user: 'Project Proponent',
-    status: 'completed',
-    type: 'document_upload'
-  },
-  {
-    id: 'TIMELINE-003',
-    title: 'Validation Report Submitted',
-    description: 'Validation Report document uploaded by proponent',
-    timestamp: '2024-01-16T14:20:00Z',
-    user: 'Project Proponent',
-    status: 'completed',
-    type: 'document_upload'
-  },
-  {
-    id: 'TIMELINE-004',
-    title: 'FS/EFA Documents Submitted',
-    description: 'Feasibility Study and Environmental Impact Assessment documents uploaded',
-    timestamp: '2024-01-17T09:15:00Z',
-    user: 'Project Proponent',
-    status: 'completed',
-    type: 'document_upload'
-  },
-  {
-    id: 'TIMELINE-005',
-    title: 'DED Documents Submitted',
-    description: 'Detailed Engineering Design documents uploaded',
-    timestamp: '2024-01-18T11:45:00Z',
-    user: 'Project Proponent',
-    status: 'completed',
-    type: 'document_upload'
-  },
-  {
-    id: 'TIMELINE-006',
-    title: 'POW Documents Submitted',
-    description: 'Program of Work documents uploaded',
-    timestamp: '2024-01-19T16:30:00Z',
-    user: 'Project Proponent',
-    status: 'completed',
-    type: 'document_upload'
-  },
-  {
-    id: 'TIMELINE-007',
-    title: 'Right of Way Documents Submitted',
-    description: 'Right of Way documents uploaded',
-    timestamp: '2024-01-20T08:45:00Z',
-    user: 'Project Proponent',
-    status: 'completed',
-    type: 'document_upload'
-  },
-  {
-    id: 'TIMELINE-008',
-    title: 'Other Documents Submitted',
-    description: 'Additional supporting documents uploaded',
-    timestamp: '2024-01-21T10:15:00Z',
-    user: 'Project Proponent',
-    status: 'completed',
-    type: 'document_upload'
-  },
-  {
-    id: 'TIMELINE-009',
-    title: 'Under EPDSD Review',
-    description: 'All required documents under evaluation by EPDSD',
-    timestamp: '2024-01-22T09:00:00Z',
-    user: 'EPDSD Reviewer',
-    status: 'in_progress',
-    type: 'review'
-  }
-]
 
 interface EPDSDProjectDetailsModalProps {
   project: unknown | null
@@ -198,6 +111,13 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
   const [generalComments, setGeneralComments] = useState('')
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [showRejectMessage, setShowRejectMessage] = useState(false)
+  
+  // Clear success message when project changes or modal closes
+  useEffect(() => {
+    if (!isOpen || !project) {
+      setShowSuccessMessage(false)
+    }
+  }, [isOpen, project])
   
   const handleDocumentEvaluationChange = useCallback((docId: string, field: 'evaluation' | 'comments', value: 'satisfied' | null | string) => {
     if (!project) return
@@ -236,7 +156,7 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
         setTimeout(() => {
           setShowSuccessMessage(false)
           onClose()
-        }, 2000)
+        }, 5000)
       } else {
         alert('All required documents must be marked as satisfied before submitting.')
       }
@@ -266,7 +186,7 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
         setTimeout(() => {
           setShowSuccessMessage(false)
           onClose()
-        }, 3000)
+        }, 5000)
       } else {
         // Show which documents are not satisfied
         const notSatisfiedDocs = requiredDocuments.filter(doc => 
@@ -359,17 +279,80 @@ Document Content Preview:
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="documents" className="w-full flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="documents">Document Evaluation</TabsTrigger>
-            <TabsTrigger value="timeline">Project Timeline</TabsTrigger>
-            <TabsTrigger value="overview">Project Overview</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="documents" className="space-y-6 flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="w-full flex-1 flex flex-col overflow-hidden">
+          <div className="space-y-6 flex-1 overflow-y-auto overflow-x-hidden">
             {/* Document Evaluation Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Document Evaluation</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Document Evaluation</h3>
+                <div className="text-sm text-muted-foreground">
+                  {(() => {
+                    if (!project) return '0/0 documents satisfied'
+                    const projectId = (project as { id: string }).id
+                    const projectEvaluations = documentEvaluations[projectId] || {}
+                    const requiredDocuments = mockProposalDocuments.filter(doc => doc.required)
+                    const satisfiedCount = requiredDocuments.filter(doc => 
+                      projectEvaluations[doc.id]?.evaluation === 'satisfied'
+                    ).length
+                    return `${satisfiedCount}/${requiredDocuments.length} documents satisfied`
+                  })()}
+                </div>
+              </div>
+              
+              {/* Sticky Progress Bar */}
+              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-200 pb-4 mb-4">
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center space-x-4">
+                    <span className="text-base font-medium text-gray-700">Progress:</span>
+                    <span className="text-base text-gray-600">
+                      {(() => {
+                        if (!project) return '0/0'
+                        const projectId = (project as { id: string }).id
+                        const projectEvaluations = documentEvaluations[projectId] || {}
+                        const requiredDocuments = mockProposalDocuments.filter(doc => doc.required)
+                        const satisfiedCount = requiredDocuments.filter(doc => 
+                          projectEvaluations[doc.id]?.evaluation === 'satisfied'
+                        ).length
+                        return `${satisfiedCount}/${requiredDocuments.length}`
+                      })()}
+                    </span>
+                    <span className="font-bold text-lg text-blue-600">
+                      {(() => {
+                        if (!project) return '0%'
+                        const projectId = (project as { id: string }).id
+                        const projectEvaluations = documentEvaluations[projectId] || {}
+                        const requiredDocuments = mockProposalDocuments.filter(doc => doc.required)
+                        const satisfiedCount = requiredDocuments.filter(doc => 
+                          projectEvaluations[doc.id]?.evaluation === 'satisfied'
+                        ).length
+                        const percentage = requiredDocuments.length > 0 ? Math.round((satisfiedCount / requiredDocuments.length) * 100) : 0
+                        return `${percentage}%`
+                      })()}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    <div className="w-32 bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 ease-out"
+                        style={{
+                          width: (() => {
+                            if (!project) return '0%'
+                            const projectId = (project as { id: string }).id
+                            const projectEvaluations = documentEvaluations[projectId] || {}
+                            const requiredDocuments = mockProposalDocuments.filter(doc => doc.required)
+                            const satisfiedCount = requiredDocuments.filter(doc => 
+                              projectEvaluations[doc.id]?.evaluation === 'satisfied'
+                            ).length
+                            const percentage = requiredDocuments.length > 0 ? (satisfiedCount / requiredDocuments.length) * 100 : 0
+                            return `${percentage}%`
+                          })()
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="space-y-4">
                 {mockProposalDocuments.map((doc) => {
                   const projectId = (project as { id: string }).id
@@ -600,82 +583,8 @@ Document Content Preview:
                 />
               </Card>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="timeline" className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden">
-            <h3 className="text-lg font-semibold">Project Timeline</h3>
-            <Accordion type="single" collapsible className="w-full">
-              {mockTimelineData.map((item, index) => (
-                <AccordionItem key={item.id} value={item.id}>
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        item.status === 'completed' ? 'bg-green-500' : 
-                        item.status === 'in_progress' ? 'bg-yellow-500' : 'bg-gray-400'
-                      }`} />
-                      <div className="text-left">
-                        <div className="font-medium">{item.title}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {formatDate(item.timestamp)} • {item.user}
-                        </div>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="pl-6 pb-2">
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </TabsContent>
-          
-          <TabsContent value="overview" className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden">
-            <h3 className="text-lg font-semibold">Project Overview</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="p-4">
-                <h4 className="font-medium mb-3">Project Information</h4>
-                <div className="space-y-2 text-sm">
-                  <div><strong>Type:</strong> {(project as { type: string }).type}</div>
-                  <div><strong>Province:</strong> {(project as { province: string }).province}</div>
-                  <div><strong>Budget:</strong> {formatCurrency((project as { budget: number }).budget)}</div>
-                  <div><strong>Status:</strong> <StatusBadge status={(project as { status: string }).status} /></div>
-                </div>
-              </Card>
-              <Card className="p-4">
-                <h4 className="font-medium mb-3">Timeline</h4>
-                <div className="space-y-2 text-sm">
-                  <div><strong>Start Date:</strong> {formatDate((project as { startDate?: string }).startDate || '')}</div>
-                  <div><strong>End Date:</strong> {formatDate((project as { endDate?: string }).endDate || '')}</div>
-                  <div><strong>Updated:</strong> {formatDate((project as { updatedAt: string }).updatedAt)}</div>
-                </div>
-              </Card>
-            </div>
-            
-            <Card className="p-4">
-              <h4 className="font-medium mb-2">Project Description</h4>
-              <p className="text-sm text-muted-foreground">
-                {(project as { description: string }).description}
-              </p>
-            </Card>
-
-            {/* Project Progress Stepper */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Project Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ProjectStepper 
-                  currentStatus={(project as { status: string }).status} 
-                  onStepClick={(step) => console.log('Step clicked:', step)}
-                  projectType={(project as { type: string }).type}
-                  project={project as any}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
 
         {/* Action Buttons */}
         <div className="flex justify-between pt-4 border-t">
@@ -714,12 +623,21 @@ Document Content Preview:
 
       {/* Success Message */}
       {showSuccessMessage && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-8 max-w-lg mx-4 text-center shadow-2xl border border-green-200">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]"
+          onClick={() => {
+            setShowSuccessMessage(false)
+            onClose()
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl p-8 max-w-lg mx-4 text-center shadow-2xl border border-green-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full animate-pulse">
               <CheckCircle className="h-10 w-10 text-green-600" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Project Approved!</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Project Proposal Approved</h3>
             <p className="text-gray-600 mb-2 text-lg">
               <strong>{(project as { title: string }).title}</strong>
             </p>
@@ -731,7 +649,7 @@ Document Content Preview:
               <span className="text-sm font-medium">Processing...</span>
             </div>
             <div className="mt-4 text-xs text-gray-500">
-              This dialog will close automatically
+              This dialog will close automatically in 5 seconds or click outside to close
             </div>
           </div>
         </div>
@@ -739,7 +657,7 @@ Document Content Preview:
 
       {/* Reject Message */}
       {showRejectMessage && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
           <div className="bg-white rounded-lg p-6 max-w-md mx-4 text-center">
             <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full">
               <XCircle className="h-8 w-8 text-red-600" />
