@@ -34,7 +34,7 @@ const regions = [
   'Region 11', 'Region 12', 'Region 13'
 ]
 
-const roles: Role[] = ['superadmin', 'RAED', 'EPDSD', 'PPMD', 'SEPD']
+// const roles: Role[] = ['superadmin', 'RAED', 'EPDSD', 'PPMD', 'SEPD']
 
 // Generate 150 Filipino users
 export const generateFilipinoUsers = (): User[] => {

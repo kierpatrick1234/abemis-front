@@ -8,11 +8,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
+interface Project {
+  title?: string
+  [key: string]: unknown
+}
+
 interface ProjectStepperProps {
   currentStatus: string
   onStepClick: (step: string) => void
   projectType?: string
-  project?: any
+  project?: Project
 }
 
 const steps = [
@@ -66,7 +71,6 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
   }
 
   const currentStepIndex = getStepIndex(currentStatus)
-  const activeStepIndex = getStepIndex(activeStep)
   
 
   const isStepAccessible = (stepIndex: number) => {
@@ -209,7 +213,7 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
 }
 
 // Step Content Components
-function ProposalStepContent({ projectType, currentStatus, project }: { projectType?: string, currentStatus?: string, project?: any }) {
+function ProposalStepContent({ projectType, currentStatus, project }: { projectType?: string, currentStatus?: string, project?: Project }) {
   const evaluator = projectType === 'FMR' ? 'SEPD' : 'EPDSD'
   const isBeyondProposal = currentStatus && ['Procurement', 'Implementation', 'Completed'].includes(currentStatus)
   const [uploadingDocuments, setUploadingDocuments] = useState<Set<string>>(new Set())

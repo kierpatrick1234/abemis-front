@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React from 'react'
 import { Toast } from '@/components/ui/toast'
 import { CheckCircle } from 'lucide-react'
 

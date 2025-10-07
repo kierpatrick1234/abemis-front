@@ -74,9 +74,9 @@ const regionProvinces = {
   'Region 13': ['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur']
 }
 
-const statuses: Array<'Proposal' | 'Procurement' | 'Implementation' | 'Completed'> = [
-  'Proposal', 'Procurement', 'Implementation', 'Completed'
-]
+// const statuses: Array<'Proposal' | 'Procurement' | 'Implementation' | 'Completed'> = [
+//   'Proposal', 'Procurement', 'Implementation', 'Completed'
+// ]
 
 // Generate random status with realistic distribution
 function getRandomStatus(): 'Proposal' | 'Procurement' | 'Implementation' | 'Completed' {
@@ -138,7 +138,7 @@ function generateProjectsForRegion(region: string, startIndex: number = 1): Proj
     const randomUpdateTime = startTime + Math.random() * timeDiff
     const updatedAt = new Date(randomUpdateTime).toISOString()
     
-    const regionNumber = region === 'Region 4B' ? '4B' : region.split(' ')[1]
+    // const regionNumber = region === 'Region 4B' ? '4B' : region.split(' ')[1]
     
     const project: Project = {
       id: `PRJ-${String(projectIndex).padStart(3, '0')}`,

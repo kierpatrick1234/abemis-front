@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { Search, Bell, User, Settings, LogOut } from 'lucide-react'
+import { Search, User, Settings, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +17,6 @@ import {
 import { Breadcrumbs } from './breadcrumbs'
 import { RoleBadge } from './role-badge'
 import { NotificationDropdown } from './notification-dropdown'
-import { AbemisLogo } from './abemis-logo'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { generateBreadcrumbs } from '@/lib/utils'
 

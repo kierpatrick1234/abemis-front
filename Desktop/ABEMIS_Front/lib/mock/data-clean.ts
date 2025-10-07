@@ -1,4 +1,4 @@
-import { Project, Document, Activity, StatCard, NavItem, Role, User } from '../types'
+import { Project, Document, Activity, StatCard, NavItem, User } from '../types'
 import { mockFilipinoUsers } from './filipino-users'
 
 export const mockProjects: Project[] = [

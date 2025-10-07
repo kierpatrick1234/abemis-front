@@ -14,7 +14,7 @@ export function generateSimpleRAEDProjects(): Project[] {
   
   for (const region of regions) {
     const projectCount = 18 // Fixed number for testing
-    const regionNumber = region === 'Region 4B' ? '4B' : region.split(' ')[1]
+    // const regionNumber = region === 'Region 4B' ? '4B' : region.split(' ')[1]
     
     for (let i = 0; i < projectCount; i++) {
       const project: Project = {
