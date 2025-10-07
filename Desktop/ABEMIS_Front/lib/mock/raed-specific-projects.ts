@@ -96,6 +96,21 @@ function getRandomDate(): string {
   return new Date(randomTime).toISOString().split('T')[0]
 }
 
+// Generate project tracking reference in format: type-region-title-datecreated
+function generateProjectReference(type: string, region: string, title: string, dateCreated: string): string {
+  // Clean and format the inputs
+  const cleanType = type.toUpperCase()
+  const cleanRegion = region.replace(/\s+/g, '').toUpperCase() // Remove spaces and convert to uppercase
+  const cleanTitle = title
+    .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .toUpperCase()
+    .substring(0, 20) // Limit to 20 characters
+  const cleanDate = dateCreated.replace(/-/g, '') // Remove hyphens from date
+  
+  return `${cleanType}-${cleanRegion}-${cleanTitle}-${cleanDate}`
+}
+
 // Generate random budget between 2M and 50M
 function getRandomBudget(): number {
   return Math.floor(Math.random() * 48000000) + 2000000 // 2M to 50M
@@ -140,14 +155,17 @@ function generateProjectsForRegion(region: string, startIndex: number = 1): Proj
     
     // const regionNumber = region === 'Region 4B' ? '4B' : region.split(' ')[1]
     
+    const projectTitle = `${template} - ${region}`
+    const projectReference = generateProjectReference(projectType, region, template, startDate)
+    
     const project: Project = {
-      id: `PRJ-${String(projectIndex).padStart(3, '0')}`,
-      title: `${template} - ${region}`,
+      id: projectReference,
+      title: projectTitle,
       type: projectType,
       province: province,
       region: region,
       status: status,
-      description: `Comprehensive ${template.toLowerCase()} initiative for ${province} in ${region}. This project aims to improve local infrastructure and support community development through strategic implementation of modern agricultural and infrastructure solutions.`,
+      description: `${template} project for ${province}, ${region}`,
       budget: budget,
       startDate: startDate,
       endDate: endDate,

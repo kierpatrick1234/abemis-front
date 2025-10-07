@@ -17,7 +17,7 @@ import { Search, Filter, Plus } from 'lucide-react'
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [stageFilter, setStageFilter] = useState('all')
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false)
   const [newProjects, setNewProjects] = useState<unknown[]>([])
   const [showSuccessToast, setShowSuccessToast] = useState(false)
@@ -45,7 +45,7 @@ export default function ProjectsPage() {
   const handleClearFilters = useCallback(() => {
     setSearchQuery('')
     setTypeFilter('all')
-    setStatusFilter('all')
+    setStageFilter('all')
   }, [])
 
   const handleCreateProject = useCallback((projectData: unknown) => {
@@ -95,7 +95,18 @@ export default function ProjectsPage() {
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          project.id.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesType = typeFilter === 'all' || project.type === typeFilter
-    const matchesStatus = statusFilter === 'all' || project.status === statusFilter
+    
+    // Handle stage filtering
+    let matchesStage = true
+    if (stageFilter !== 'all') {
+      if (stageFilter === 'Inventory') {
+        // For now, treat Inventory as a special case - could be projects that need inventory management
+        // This could be projects that are completed and need inventory tracking
+        matchesStage = project.status === 'Completed'
+      } else {
+        matchesStage = project.status === stageFilter
+      }
+    }
     
     // For RAED users, filter by their assigned region
     let matchesRegion = true
@@ -103,7 +114,7 @@ export default function ProjectsPage() {
       matchesRegion = project.region === user.regionAssigned
     }
     
-    return matchesSearch && matchesType && matchesStatus && matchesRegion
+    return matchesSearch && matchesType && matchesStage && matchesRegion
   }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
 
   const columns = [
@@ -172,51 +183,96 @@ export default function ProjectsPage() {
       </div>
 
       {/* Compact Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 p-4 bg-muted/30 rounded-lg border">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search projects..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+      <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
+        {/* Search and Type Filter Row */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search projects..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="h-10 px-3 py-2 border border-input bg-background rounded-md text-sm min-w-[120px]"
+            >
+              <option value="all">All Types</option>
+              <option value="FMR">FMR</option>
+              <option value="Infrastructure">Infrastructure</option>
+              <option value="Machinery">Machinery</option>
+            </select>
+            
+            <Button 
+              variant="outline" 
+              onClick={handleClearFilters}
+              className="h-10 px-3"
+            >
+              <Filter className="h-4 w-4 mr-1" />
+              Clear
+            </Button>
           </div>
         </div>
         
-        <div className="flex gap-2">
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="h-10 px-3 py-2 border border-input bg-background rounded-md text-sm min-w-[120px]"
-          >
-            <option value="all">All Types</option>
-            <option value="FMR">FMR</option>
-            <option value="Infrastructure">Infrastructure</option>
-            <option value="Machinery">Machinery</option>
-          </select>
-          
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 px-3 py-2 border border-input bg-background rounded-md text-sm min-w-[120px]"
-          >
-            <option value="all">All Status</option>
-            <option value="Proposal">Proposal</option>
-            <option value="Procurement">Procurement</option>
-            <option value="Implementation">Implementation</option>
-            <option value="Completed">Completed</option>
-          </select>
-          
-          <Button 
-            variant="outline" 
-            onClick={handleClearFilters}
-            className="h-10 px-3"
-          >
-            <Filter className="h-4 w-4 mr-1" />
-            Clear
-          </Button>
+        {/* Stage Filter Buttons - Centered */}
+        <div className="flex justify-center">
+          <div className="inline-flex rounded-lg border border-input bg-background p-1">
+            <Button
+              variant={stageFilter === 'all' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setStageFilter('all')}
+              className="rounded-md"
+            >
+              All Stages
+            </Button>
+            <Button
+              variant={stageFilter === 'Proposal' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setStageFilter('Proposal')}
+              className="rounded-md"
+            >
+              Proposal
+            </Button>
+            <Button
+              variant={stageFilter === 'Procurement' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setStageFilter('Procurement')}
+              className="rounded-md"
+            >
+              Procurement
+            </Button>
+            <Button
+              variant={stageFilter === 'Implementation' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setStageFilter('Implementation')}
+              className="rounded-md"
+            >
+              Implementation
+            </Button>
+            <Button
+              variant={stageFilter === 'Completed' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setStageFilter('Completed')}
+              className="rounded-md"
+            >
+              Completed
+            </Button>
+            <Button
+              variant={stageFilter === 'Inventory' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setStageFilter('Inventory')}
+              className="rounded-md"
+            >
+              Inventory
+            </Button>
+          </div>
         </div>
       </div>
 

@@ -54,17 +54,18 @@ const steps = [
 ]
 
 export function ProjectStepper({ currentStatus, onStepClick, projectType, project }: ProjectStepperProps) {
-  const [activeStep, setActiveStep] = useState(currentStatus)
+  // Map currentStatus to the correct step key
+  const statusToStepMap: { [key: string]: string } = {
+    'Proposal': 'proposal',
+    'Procurement': 'procurement', 
+    'Implementation': 'implementation',
+    'Completed': 'completed'
+  }
+  
+  const mappedCurrentStatus = statusToStepMap[currentStatus] || 'proposal'
+  const [activeStep, setActiveStep] = useState(mappedCurrentStatus)
 
   const getStepIndex = (step: string) => {
-    // Map project statuses to stepper steps
-    const statusToStepMap: { [key: string]: string } = {
-      'Proposal': 'proposal',
-      'Procurement': 'procurement', 
-      'Implementation': 'implementation',
-      'Completed': 'completed'
-    }
-    
     const mappedStep = statusToStepMap[step] || step
     const index = steps.findIndex(s => s.key === mappedStep)
     return index >= 0 ? index : 0
@@ -110,7 +111,7 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
               key={step.key} 
               onClick={() => isAccessible && handleStepClick(step.key, index)}
               className={cn(
-                "flex flex-col items-center flex-1 min-w-0 p-2 rounded-lg transition-all duration-200",
+                "flex flex-col items-center flex-1 min-w-0 p-2 rounded-lg transition-all duration-200 text-center",
                 {
                   "hover:bg-muted/50": isAccessible,
                   "cursor-pointer": isAccessible,
@@ -129,11 +130,12 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
                   className={cn(
                     "flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-200 z-10 relative flex-shrink-0",
                     {
-                      "bg-primary text-primary-foreground border-primary": stepStatus === 'completed' || stepStatus === 'current',
+                      "bg-green-500 text-white border-green-500": stepStatus === 'current',
+                      "bg-black text-white border-black": stepStatus === 'completed',
                       "bg-muted text-muted-foreground border-muted": stepStatus === 'upcoming',
                       "cursor-pointer hover:scale-105 hover:bg-primary/10": isAccessible,
                       "cursor-not-allowed opacity-50": !isAccessible,
-                      "ring-2 ring-primary ring-offset-2": isActive
+                      "ring-2 ring-green-500 ring-offset-2": isActive
                     }
                   )}
                 >
@@ -149,7 +151,8 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
                   <div className={cn(
                     "flex-1 h-0.5 mx-2",
                     {
-                      "bg-primary": stepStatus === 'completed',
+                      "bg-black": stepStatus === 'completed',
+                      "bg-green-500": stepStatus === 'current',
                       "bg-muted": stepStatus === 'upcoming'
                     }
                   )} />
@@ -159,16 +162,24 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
               {/* Step Label */}
               <div className="mt-3 text-center w-full px-1">
                 <p className={cn(
-                  "text-sm font-medium truncate",
+                  "text-sm font-medium text-center min-h-[20px] flex items-center justify-center",
                   {
-                    "text-primary": stepStatus === 'completed' || stepStatus === 'current',
+                    "text-green-600": stepStatus === 'current',
+                    "text-black": stepStatus === 'completed',
                     "text-muted-foreground": stepStatus === 'upcoming',
-                    "hover:text-primary": isAccessible && stepStatus !== 'completed' && stepStatus !== 'current'
+                    "hover:text-green-600": isAccessible && stepStatus === 'upcoming'
                   }
                 )}>
                   {step.label}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1 leading-tight break-words">
+                <p className={cn(
+                  "text-xs mt-1 leading-tight text-center min-h-[32px] flex items-center justify-center",
+                  {
+                    "text-green-600": stepStatus === 'current',
+                    "text-black": stepStatus === 'completed',
+                    "text-muted-foreground": stepStatus === 'upcoming'
+                  }
+                )}>
                   {step.description}
                 </p>
               </div>
@@ -185,7 +196,7 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
               React.createElement(steps.find(s => s.key === activeStep)!.icon, { className: "h-5 w-5" })
             )}
             {steps.find(s => s.key === activeStep)?.label} Details
-            {activeStep === currentStatus && (
+            {activeStep === mappedCurrentStatus && (
               <Badge variant="secondary" className="ml-2">Current</Badge>
             )}
           </CardTitle>

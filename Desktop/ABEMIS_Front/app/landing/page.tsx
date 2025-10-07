@@ -344,7 +344,7 @@ export default function LandingPage() {
               <CardContent className="space-y-6">
                 <div className="flex gap-4">
                   <Input
-                    placeholder={`Enter project code (e.g., ${mockProjects[0]?.id || 'PRJ-001'})`}
+                    placeholder={`Enter project tracking reference (e.g., ${mockProjects[0]?.id || 'PRJ-001'})`}
                     value={trackingCode}
                     onChange={(e) => setTrackingCode(e.target.value)}
                     className="flex-1"
@@ -425,7 +425,7 @@ export default function LandingPage() {
                     <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
                     <p className="text-red-700">Project not found. Please check your tracking code.</p>
                     <p className="text-sm text-red-600 mt-1">
-                      Try: {mockProjects.slice(0, 5).map(p => p.id).join(', ')} or any other project ID
+                      Try: {mockProjects.slice(0, 5).map(p => p.id).join(', ')} or any other project tracking reference
                     </p>
                   </div>
                 )}
