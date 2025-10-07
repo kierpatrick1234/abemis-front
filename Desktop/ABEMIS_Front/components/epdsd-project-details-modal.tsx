@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { StatusBadge } from '@/components/data-table'
 import { ProjectStepper } from '@/components/project-stepper'
+import { DocumentSidebar } from '@/components/document-sidebar'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { Calendar, MapPin, DollarSign, User, Clock, FileText, CheckCircle, XCircle, MessageSquare, Download, Eye } from 'lucide-react'
 
@@ -198,7 +199,7 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
   const [generalComments, setGeneralComments] = useState('')
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [showRejectMessage, setShowRejectMessage] = useState(false)
-  const [showDocumentViewer, setShowDocumentViewer] = useState(false)
+  const [showDocumentSidebar, setShowDocumentSidebar] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<any>(null)
   const [showDocumentPreview, setShowDocumentPreview] = useState(false)
   const [previewDocument, setPreviewDocument] = useState<any>(null)
@@ -271,32 +272,13 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
 
   const handleViewDocument = useCallback((doc: any) => {
     setSelectedDocument(doc)
-    setShowDocumentViewer(true)
+    setShowDocumentSidebar(true)
   }, [])
 
-  const handleCloseDocumentViewer = useCallback(() => {
-    setShowDocumentViewer(false)
+  const handleCloseDocumentSidebar = useCallback(() => {
+    setShowDocumentSidebar(false)
     setSelectedDocument(null)
-    // Reset any cached content
-    setTimeout(() => {
-      setShowDocumentViewer(false)
-      setSelectedDocument(null)
-    }, 100)
   }, [])
-
-  // Handle ESC key to close document viewer
-  useEffect(() => {
-    const handleEscKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && showDocumentViewer) {
-        handleCloseDocumentViewer()
-      }
-    }
-
-    if (showDocumentViewer) {
-      document.addEventListener('keydown', handleEscKey)
-      return () => document.removeEventListener('keydown', handleEscKey)
-    }
-  }, [showDocumentViewer, handleCloseDocumentViewer])
 
   const handleMouseEnterView = useCallback((doc: any) => {
     setPreviewDocument(doc)
@@ -673,281 +655,12 @@ Document Content Preview:
         </div>
       )}
 
-        {/* Document Viewer Modal - Inside main dialog */}
-        {showDocumentViewer && selectedDocument && (
-      <div 
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-[150] p-4"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            handleCloseDocumentViewer()
-          }
-        }}
-      >
-        <div 
-          key={selectedDocument.id} 
-          className="bg-white rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col relative"
-          onClick={(e) => e.stopPropagation()}
-        >
-            {/* Modal Header */}
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">{selectedDocument.name}</h2>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                  <span>Type: {selectedDocument.type}</span>
-                  <span>Size: {selectedDocument.size}</span>
-                  <span>Uploaded: {formatDate(selectedDocument.uploadedAt)}</span>
-                  <span>By: {selectedDocument.uploadedBy}</span>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  console.log('X button clicked!')
-                  handleCloseDocumentViewer()
-                }}
-                className="hover:bg-gray-200 relative z-10 cursor-pointer"
-                style={{ pointerEvents: 'auto', zIndex: 9999 }}
-                type="button"
-              >
-                <XCircle className="h-5 w-5" />
-              </Button>
-            </div>
-            
-            {/* Document Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {/* Full PDF Content */}
-              <div key={`content-${selectedDocument.id}`} className="border border-gray-300 rounded bg-white shadow-inner max-h-full overflow-y-auto">
-                <div className="p-8 text-sm leading-relaxed">
-                  {/* PDF Header */}
-                  <div className="bg-red-600 text-white text-center py-3 mb-6 rounded-t">
-                    <div className="font-bold text-xl">GOVERNMENT OF THE PHILIPPINES</div>
-                    <div className="text-base">DEPARTMENT OF AGRICULTURE</div>
-                    <div className="text-sm mt-1">EPDSD PROJECT EVALUATION SYSTEM</div>
-                  </div>
-                  
-                  {/* Document Title */}
-                  <div className="text-center mb-6">
-                    <div className="font-bold text-xl mb-2">{selectedDocument.name}</div>
-                    <div className="text-sm text-gray-600">Project Proposal Document</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Document ID: {selectedDocument.id} | Uploaded: {formatDate(selectedDocument.uploadedAt)}
-                    </div>
-                  </div>
-                  
-                  {/* Full Document Content */}
-                  <div className="space-y-6">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <div className="font-bold text-lg text-blue-800 border-b border-blue-200 pb-2 mb-3">I. EXECUTIVE SUMMARY</div>
-                      <div className="space-y-3 text-gray-700">
-                        <p>This document presents a comprehensive proposal for the development of rural infrastructure projects under the Department of Agriculture's EPDSD program. The project aims to improve agricultural productivity and rural development through strategic infrastructure investments.</p>
-                        <p>The proposed project includes detailed technical specifications, implementation timeline, budget allocation, and environmental impact assessment to ensure sustainable development and community benefit.</p>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-green-50 p-4 rounded-lg">
-                      <div className="font-bold text-lg text-green-800 border-b border-green-200 pb-2 mb-3">II. PROJECT OVERVIEW</div>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <div className="font-semibold text-gray-800">Project Title:</div>
-                          <div className="text-gray-700 bg-white p-2 rounded border">{selectedDocument.name}</div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="font-semibold text-gray-800">Project Type:</div>
-                          <div className="text-gray-700 bg-white p-2 rounded border">{selectedDocument.name.includes('Water') ? 'Water Supply System' : selectedDocument.name.includes('Road') ? 'Road Construction' : 'Infrastructure Development'}</div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="font-semibold text-gray-800">Total Budget:</div>
-                          <div className="text-gray-700 bg-white p-2 rounded border font-mono">₱{selectedDocument.name.includes('Machinery') ? '25,000,000' : '15,000,000'}.00</div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="font-semibold text-gray-800">Duration:</div>
-                          <div className="text-gray-700 bg-white p-2 rounded border">12 months</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="font-semibold text-base border-b pb-1">III. TECHNICAL SPECIFICATIONS</div>
-                    <div className="pl-4 space-y-2">
-                      {selectedDocument.name.includes('Water') ? (
-                        <>
-                          <div>• Water supply system with 50,000L storage capacity</div>
-                          <div>• Distribution network: 5km pipeline system</div>
-                          <div>• Pump station with backup power supply</div>
-                          <div>• Water quality testing and treatment facility</div>
-                          <div>• Community tap stands at strategic locations</div>
-                          <div>• Pressure regulation and control systems</div>
-                        </>
-                      ) : selectedDocument.name.includes('Road') ? (
-                        <>
-                          <div>• Farm-to-market road: 3km concrete pavement</div>
-                          <div>• Road width: 6 meters with 1-meter shoulders</div>
-                          <div>• Drainage system with culverts and ditches</div>
-                          <div>• Road signage and safety barriers</div>
-                          <div>• Maintenance access points</div>
-                          <div>• Environmental protection measures</div>
-                        </>
-                      ) : (
-                        <>
-                          <div>• Modern agricultural machinery and equipment</div>
-                          <div>• Irrigation system with automated controls</div>
-                          <div>• Storage facilities for agricultural products</div>
-                          <div>• Processing equipment and tools</div>
-                          <div>• Maintenance and repair facilities</div>
-                          <div>• Training center for farmers</div>
-                        </>
-                      )}
-                    </div>
-                    
-                    <div className="font-semibold text-base border-b pb-1">IV. IMPLEMENTATION TIMELINE</div>
-                    <div className="pl-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <div className="font-medium mb-2">Phase 1: Planning & Preparation (Months 1-2)</div>
-                          <div className="text-sm space-y-1">
-                            <div>• Site survey and assessment</div>
-                            <div>• Permit acquisition</div>
-                            <div>• Contractor selection</div>
-                            <div>• Material procurement</div>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="font-medium mb-2">Phase 2: Construction (Months 3-8)</div>
-                          <div className="text-sm space-y-1">
-                            <div>• Site preparation</div>
-                            <div>• Foundation work</div>
-                            <div>• Main construction</div>
-                            <div>• Quality control</div>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="font-medium mb-2">Phase 3: Testing & Commissioning (Months 9-10)</div>
-                          <div className="text-sm space-y-1">
-                            <div>• System testing</div>
-                            <div>• Performance evaluation</div>
-                            <div>• Safety inspections</div>
-                            <div>• Final adjustments</div>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="font-medium mb-2">Phase 4: Turnover (Months 11-12)</div>
-                          <div className="text-sm space-y-1">
-                            <div>• Documentation completion</div>
-                            <div>• Training of operators</div>
-                            <div>• Project turnover</div>
-                            <div>• Post-implementation monitoring</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="font-semibold text-base border-b pb-1">V. BUDGET BREAKDOWN</div>
-                    <div className="pl-4">
-                      <div className="space-y-2">
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <div className="font-medium">Materials & Equipment</div>
-                            <div>₱{selectedDocument.name.includes('Machinery') ? '15,000,000' : '8,500,000'} (60%)</div>
-                          </div>
-                          <div>
-                            <div className="font-medium">Labor & Services</div>
-                            <div>₱{selectedDocument.name.includes('Machinery') ? '6,500,000' : '4,200,000'} (26%)</div>
-                          </div>
-                          <div>
-                            <div className="font-medium">Administrative</div>
-                            <div>₱{selectedDocument.name.includes('Machinery') ? '2,000,000' : '1,800,000'} (8%)</div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <div className="font-medium">Contingency</div>
-                            <div>₱{selectedDocument.name.includes('Machinery') ? '1,000,000' : '500,000'} (4%)</div>
-                          </div>
-                          <div>
-                            <div className="font-medium">Monitoring & Evaluation</div>
-                            <div>₱{selectedDocument.name.includes('Machinery') ? '500,000' : '1,000,000'} (2%)</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="font-semibold text-base border-b pb-1">VI. ENVIRONMENTAL IMPACT ASSESSMENT</div>
-                    <div className="pl-4 space-y-2">
-                      <div>• Minimal environmental impact with proper mitigation measures</div>
-                      <div>• Erosion control and sediment management plan</div>
-                      <div>• Waste management and disposal procedures</div>
-                      <div>• Community consultation and stakeholder engagement</div>
-                      <div>• Biodiversity protection measures</div>
-                      <div>• Water quality monitoring and protection</div>
-                    </div>
-                    
-                    <div className="font-semibold text-base border-b pb-1">VII. SUSTAINABILITY AND MAINTENANCE</div>
-                    <div className="pl-4 space-y-2">
-                      <div>• Community-based maintenance program</div>
-                      <div>• Training for local operators and technicians</div>
-                      <div>• Spare parts inventory and supply chain</div>
-                      <div>• Regular inspection and monitoring schedule</div>
-                      <div>• Revenue generation for sustainability</div>
-                    </div>
-                  </div>
-                  
-                  {/* PDF Footer */}
-                  <div className="mt-6 pt-4 border-t border-gray-300 text-center">
-                    <div className="text-xs text-gray-500">
-                      Page 1 of 8 • Generated: {formatDate(selectedDocument.uploadedAt)}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      Document ID: {selectedDocument.id} • File Size: {selectedDocument.size}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      Uploaded by: {selectedDocument.uploadedBy} • Status: {selectedDocument.status}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Modal Footer */}
-            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-between items-center flex-shrink-0">
-              <div className="text-sm text-gray-600">
-                Document Status: <span className="font-medium text-green-600">{selectedDocument.status}</span>
-              </div>
-              <div className="flex space-x-3 relative z-10">
-                <Button 
-                  variant="outline" 
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    console.log('Close button clicked!')
-                    handleCloseDocumentViewer()
-                  }}
-                  className="relative z-10 cursor-pointer"
-                  style={{ pointerEvents: 'auto', zIndex: 9999 }}
-                  type="button"
-                >
-                  Close
-                </Button>
-                <Button 
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    console.log('Download button clicked!')
-                    handleDownloadDocument(selectedDocument)
-                  }}
-                  className="relative z-10 cursor-pointer"
-                  style={{ pointerEvents: 'auto', zIndex: 9999 }}
-                  type="button"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-        )}
+        {/* Document Sidebar */}
+        <DocumentSidebar
+          document={selectedDocument}
+          isOpen={showDocumentSidebar}
+          onClose={handleCloseDocumentSidebar}
+        />
       </Dialog>
     </>
   )
