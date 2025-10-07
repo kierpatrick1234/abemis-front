@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { DataTable, StatusBadge, ActionButton, ActionMenu } from '@/components/data-table'
+import { DataTable, StatusBadge, ActionMenu } from '@/components/data-table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,7 @@ import { ProjectDetailsModal } from '@/components/project-details-modal'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
-import { Search, Filter, Plus, Eye } from 'lucide-react'
+import { Search, Filter, Plus } from 'lucide-react'
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -26,19 +26,11 @@ export default function ProjectsPage() {
   const [showProjectModal, setShowProjectModal] = useState(false)
   const { user } = useAuth()
 
-  const handleViewProject = useCallback((projectId: string) => {
-    console.log('View project', projectId)
-  }, [])
-
   const handleEditProject = useCallback((projectId: string) => {
     console.log('Edit project', projectId)
     // TODO: Implement edit functionality
   }, [])
 
-  const handleDeleteProject = useCallback((projectId: string) => {
-    console.log('Delete project', projectId)
-    // TODO: Implement delete functionality with confirmation
-  }, [])
 
   const handleDuplicateProject = useCallback((projectId: string) => {
     console.log('Duplicate project', projectId)
@@ -151,10 +143,6 @@ export default function ProjectsPage() {
         <ActionMenu
           actions={[
             {
-              label: 'View Details',
-              onClick: () => handleViewProject(row.id)
-            },
-            {
               label: 'Edit',
               onClick: () => handleEditProject(row.id)
             },
@@ -162,11 +150,6 @@ export default function ProjectsPage() {
               label: 'Duplicate',
               onClick: () => handleDuplicateProject(row.id)
             },
-            {
-              label: 'Delete',
-              onClick: () => handleDeleteProject(row.id),
-              variant: 'destructive'
-            }
           ]}
         />
       )

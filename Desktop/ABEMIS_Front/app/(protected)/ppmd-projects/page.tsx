@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { DataTable, StatusBadge, ActionButton, ActionMenu } from '@/components/data-table'
+import { DataTable, StatusBadge, ActionMenu } from '@/components/data-table'
 import { ProjectDetailsModal } from '@/components/project-details-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Search, Eye, BarChart3, CheckCircle, AlertTriangle, Calendar } from 'lucide-react'
+import { Search, BarChart3, CheckCircle, AlertTriangle, Calendar } from 'lucide-react'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -18,20 +18,11 @@ export default function PPMDProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<any>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showMonitoringModal, setShowMonitoringModal] = useState(false)
-  const { user } = useAuth()
-
   // Filter projects for PPMD - only completed projects
   const ppmdProjects = mockProjects.filter(project => 
     project.status === 'Completed'
   )
 
-  const handleViewProject = useCallback((projectId: string) => {
-    const project = ppmdProjects.find(p => p.id === projectId)
-    if (project) {
-      setSelectedProject(project)
-      setShowMonitoringModal(true)
-    }
-  }, [ppmdProjects])
 
   const handleRowClick = useCallback((project: any) => {
     setSelectedProject(project)
@@ -43,10 +34,6 @@ export default function PPMDProjectsPage() {
     // TODO: Implement edit functionality
   }, [])
 
-  const handleDeleteProject = useCallback((projectId: string) => {
-    console.log('Delete project', projectId)
-    // TODO: Implement delete functionality with confirmation
-  }, [])
 
   const handleDuplicateProject = useCallback((projectId: string) => {
     console.log('Duplicate project', projectId)
@@ -108,11 +95,6 @@ export default function PPMDProjectsPage() {
               label: 'Duplicate',
               onClick: () => handleDuplicateProject(row.id)
             },
-            {
-              label: 'Delete',
-              onClick: () => handleDeleteProject(row.id),
-              variant: 'destructive'
-            }
           ]}
         />
       )

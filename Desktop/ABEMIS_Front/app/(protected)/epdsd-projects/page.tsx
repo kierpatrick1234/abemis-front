@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { DataTable, StatusBadge, ActionButton, ActionMenu } from '@/components/data-table'
+import { DataTable, StatusBadge, ActionMenu } from '@/components/data-table'
 import { ProjectDetailsModal } from '@/components/project-details-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Search, Filter, CheckCircle, XCircle, Eye, FileText } from 'lucide-react'
+import { Search, Filter, CheckCircle, XCircle } from 'lucide-react'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -18,21 +18,12 @@ export default function EPDSDProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<any>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showEvaluationModal, setShowEvaluationModal] = useState(false)
-  const { user } = useAuth()
-
   // Filter projects for EPDSD - only Infrastructure and Machinery in Proposal stage
   const epdsdProjects = mockProjects.filter(project => 
     (project.type === 'Infrastructure' || project.type === 'Machinery') && 
     project.status === 'Proposal'
   )
 
-  const handleViewProject = useCallback((projectId: string) => {
-    const project = epdsdProjects.find(p => p.id === projectId)
-    if (project) {
-      setSelectedProject(project)
-      setShowEvaluationModal(true)
-    }
-  }, [epdsdProjects])
 
   const handleApproveProject = useCallback((projectId: string) => {
     console.log('Approving project:', projectId)
@@ -50,10 +41,6 @@ export default function EPDSDProjectsPage() {
     // TODO: Implement edit functionality
   }, [])
 
-  const handleDeleteProject = useCallback((projectId: string) => {
-    console.log('Delete project', projectId)
-    // TODO: Implement delete functionality with confirmation
-  }, [])
 
   const handleDuplicateProject = useCallback((projectId: string) => {
     console.log('Duplicate project', projectId)

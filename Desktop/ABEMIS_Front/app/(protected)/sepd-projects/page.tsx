@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { DataTable, StatusBadge, ActionButton, ActionMenu } from '@/components/data-table'
+import { DataTable, StatusBadge, ActionMenu } from '@/components/data-table'
 import { ProjectDetailsModal } from '@/components/project-details-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Search, CheckCircle, XCircle, Eye, FileText, MapPin } from 'lucide-react'
+import { Search, CheckCircle, XCircle, MapPin } from 'lucide-react'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -17,20 +17,11 @@ export default function SEPDProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<any>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showEvaluationModal, setShowEvaluationModal] = useState(false)
-  const { user } = useAuth()
-
   // Filter projects for SEPD - only FMR projects in Proposal stage
   const sepdProjects = mockProjects.filter(project => 
     project.type === 'FMR' && project.status === 'Proposal'
   )
 
-  const handleViewProject = useCallback((projectId: string) => {
-    const project = sepdProjects.find(p => p.id === projectId)
-    if (project) {
-      setSelectedProject(project)
-      setShowEvaluationModal(true)
-    }
-  }, [sepdProjects])
 
   const handleValidateProject = useCallback((projectId: string) => {
     console.log('Validating FMR project:', projectId)
@@ -48,10 +39,6 @@ export default function SEPDProjectsPage() {
     // TODO: Implement edit functionality
   }, [])
 
-  const handleDeleteProject = useCallback((projectId: string) => {
-    console.log('Delete project', projectId)
-    // TODO: Implement delete functionality with confirmation
-  }, [])
 
   const handleDuplicateProject = useCallback((projectId: string) => {
     console.log('Duplicate project', projectId)
