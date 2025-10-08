@@ -430,7 +430,7 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
   const [documentLabel, setDocumentLabel] = useState('')
 
   const handleNext = () => {
-    if (currentStep < 4) {
+    if (currentStep < 5) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -558,32 +558,60 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
             Create Infrastructure Project
           </DialogTitle>
           <DialogDescription>
-            Step {currentStep} of 4: {
+            Step {currentStep} of 5: {
               currentStep === 1 ? 'Project Description' :
               currentStep === 2 ? 'Budget Source' : 
-              currentStep === 3 ? 'Location' : 'Document Upload'
+              currentStep === 3 ? 'Location' : 
+              currentStep === 4 ? 'Document Upload' : 'Summary'
             }
           </DialogDescription>
         </DialogHeader>
 
         {/* Progress Indicator */}
-        <div className="flex items-center justify-center space-x-4 py-4">
-          {[1, 2, 3, 4].map((step) => (
-            <div key={step} className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step <= currentStep 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-muted text-muted-foreground'
-              }`}>
-                {step}
+        <div className="py-4 bg-muted/20 rounded-lg mx-2">
+          <div className="flex items-start justify-center w-full">
+            {[
+              { step: 1, label: 'Project Description' },
+              { step: 2, label: 'Budget Source' },
+              { step: 3, label: 'Location' },
+              { step: 4, label: 'Document Upload' },
+              { step: 5, label: 'Summary' }
+            ].map(({ step, label }, index) => (
+              <div key={step} className="flex flex-col items-center flex-1 min-w-0">
+                <div className="flex items-center w-full justify-center mb-3">
+                  <button
+                    onClick={() => {
+                      setCurrentStep(step)
+                    }}
+                    disabled={step > currentStep}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 flex-shrink-0 ${
+                      step === currentStep
+                        ? 'bg-green-600 text-white hover:bg-green-700 cursor-pointer ring-2 ring-green-300'
+                        : step < currentStep
+                        ? 'bg-black text-white hover:bg-green-500 cursor-pointer'
+                        : 'bg-muted text-muted-foreground cursor-not-allowed'
+                    }`}
+                  >
+                    {step}
+                  </button>
+                  {index < 4 && (
+                    <div className={`flex-1 h-0.5 mx-2 rounded-full ${
+                      step < currentStep ? 'bg-black' : 'bg-muted'
+                    }`} />
+                  )}
+                </div>
+                <span className={`text-xs text-center px-1 leading-tight font-medium ${
+                  step === currentStep
+                    ? 'text-green-600'
+                    : step < currentStep
+                    ? 'text-black'
+                    : 'text-muted-foreground'
+                }`}>
+                  {label}
+                </span>
               </div>
-              {step < 4 && (
-                <div className={`w-8 h-0.5 ${
-                  step < currentStep ? 'bg-primary' : 'bg-muted'
-                }`} />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <div className="py-6">
@@ -924,6 +952,133 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
               )}
             </div>
           )}
+
+          {currentStep === 5 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">Project Summary</h3>
+                <p className="text-sm text-muted-foreground">Review all information before submitting your project</p>
+              </div>
+
+              {/* Step 1: Project Description Summary */}
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="font-semibold mb-3 text-primary">1. Project Description</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Classification:</span>
+                    <p className="text-muted-foreground">{projectClassification || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Type:</span>
+                    <p className="text-muted-foreground">{projectType || 'Not specified'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="font-medium">Title:</span>
+                    <p className="text-muted-foreground">{projectTitle || 'Not specified'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="font-medium">Description:</span>
+                    <p className="text-muted-foreground">{projectDescription || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2: Budget Source Summary */}
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="font-semibold mb-3 text-primary">2. Budget Source</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Implementation Days:</span>
+                    <p className="text-muted-foreground">{implementationDays || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">PREXC Program:</span>
+                    <p className="text-muted-foreground">{prexcProgram || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">PREXC Sub Program:</span>
+                    <p className="text-muted-foreground">{prexcSubProgram || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Budget Process:</span>
+                    <p className="text-muted-foreground">{budgetProcess || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Fund Source:</span>
+                    <p className="text-muted-foreground">{proposedFundSource || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Source Agency:</span>
+                    <p className="text-muted-foreground">{sourceAgency || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Banner Program:</span>
+                    <p className="text-muted-foreground">{bannerProgram || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Funding Year:</span>
+                    <p className="text-muted-foreground">{fundingYear || 'Not specified'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="font-medium">Allocated Amount:</span>
+                    <p className="text-muted-foreground">{allocatedAmount ? `₱${parseFloat(allocatedAmount).toLocaleString()}` : 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: Location Summary */}
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="font-semibold mb-3 text-primary">3. Location</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Region:</span>
+                    <p className="text-muted-foreground">{region || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Province:</span>
+                    <p className="text-muted-foreground">{province || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Municipality:</span>
+                    <p className="text-muted-foreground">{municipality || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">District:</span>
+                    <p className="text-muted-foreground">{district || 'Not specified'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="font-medium">Barangay:</span>
+                    <p className="text-muted-foreground">{barangay || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 4: Document Upload Summary */}
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="font-semibold mb-3 text-primary">4. Document Upload</h4>
+                <div className="text-sm">
+                  <span className="font-medium">Uploaded Documents:</span>
+                  {documents.length > 0 ? (
+                    <div className="mt-2 space-y-2">
+                      {documents.map((doc) => (
+                        <div key={doc.id} className="flex items-center justify-between p-2 bg-background rounded border">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span className="font-medium">{doc.label || doc.file.name}</span>
+                            <span className="text-xs text-muted-foreground">({(doc.file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground mt-2">No documents uploaded</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="flex gap-2">
@@ -935,7 +1090,7 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          {currentStep < 4 ? (
+          {currentStep < 5 ? (
             <Button 
               onClick={handleNext}
               disabled={

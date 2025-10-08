@@ -76,7 +76,8 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
   
 
   const isStepAccessible = (stepIndex: number) => {
-    // Can only click on steps up to and including the current status
+    // Can click on steps up to and including the current status
+    // Additionally, can always click on the current stage even after clicking previous stages
     // If current status is "completed" (index 3), can click on steps 0,1,2,3
     // If current status is "implementation" (index 2), can click on steps 0,1,2
     // If current status is "procurement" (index 1), can click on steps 0,1
@@ -87,14 +88,18 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
   const handleStepClick = (step: string, stepIndex: number) => {
     if (isStepAccessible(stepIndex)) {
       setActiveStep(step)
-      // Update the current step status when manually clicking
+      // Only update the current step status when clicking on the current stage or forward
+      // Don't update when clicking on previous stages to maintain accessibility
       const stepToStatusMap: { [key: string]: string } = {
         'proposal': 'Proposal',
         'procurement': 'Procurement',
         'implementation': 'Implementation',
         'completed': 'Completed'
       }
-      setCurrentStepStatus(stepToStatusMap[step] || step)
+      // Only update currentStepStatus if clicking on current stage or forward
+      if (stepIndex >= currentStepIndex) {
+        setCurrentStepStatus(stepToStatusMap[step] || step)
+      }
       onStepClick(step)
     }
   }
