@@ -24,7 +24,6 @@ const loginSchema = z.object({
 
 const signUpSchema = z.object({
   region: z.string().min(1, 'Please select a region'),
-  operatingUnit: z.string().min(1, 'Please enter operating unit'),
   firstName: z.string().min(1, 'First name is required'),
   middleName: z.string().optional(),
   lastName: z.string().min(1, 'Last name is required'),
@@ -553,17 +552,6 @@ export default function LoginPage() {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="operatingUnit">Operating Unit *</Label>
-                    <Input
-                      id="operatingUnit"
-                      placeholder="Enter your operating unit"
-                      {...registerSignUp('operatingUnit')}
-                    />
-                    {signUpErrors.operatingUnit && (
-                      <p className="text-sm text-red-600">{signUpErrors.operatingUnit.message}</p>
-                    )}
-                  </div>
                 </div>
 
                 {/* Account Security Section */}

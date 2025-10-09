@@ -34,6 +34,7 @@ export interface Project {
   endDate?: string
   updatedAt: string
   assignedTo?: string
+  evaluator?: string
   // Procurement fields
   budgetYear?: string
   bidOpeningDate?: string

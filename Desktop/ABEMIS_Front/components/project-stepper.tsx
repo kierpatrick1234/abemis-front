@@ -2,16 +2,14 @@
 
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Check, FileText, ShoppingCart, Wrench, CheckCircle, Package, X, Upload, Eye, File } from 'lucide-react'
+import { Check, FileText, ShoppingCart, Wrench, CheckCircle, Package, Upload, XCircle, Eye, Download, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-
-interface Project {
-  title?: string
-  [key: string]: unknown
-}
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Project } from '@/lib/types'
+import { formatDate } from '@/lib/utils'
 
 interface ProjectStepperProps {
   currentStatus: string
@@ -256,604 +254,300 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
 
 // Step Content Components
 function ProposalStepContent({ projectType, currentStatus, project }: { projectType?: string, currentStatus?: string, project?: Project }) {
-  const evaluator = projectType === 'FMR' ? 'SEPD' : 'EPDSD'
+  const evaluator: string = projectType === 'FMR' ? 'SEPD' : (project?.evaluator ? String(project.evaluator) : 'EPDSD')
   const isBeyondProposal = currentStatus && ['Procurement', 'Implementation', 'Completed'].includes(currentStatus)
-  const [uploadingDocuments, setUploadingDocuments] = useState<Set<string>>(new Set())
-  const [previewDocument, setPreviewDocument] = useState<string | null>(null)
-  const [showPreview, setShowPreview] = useState(false)
-  const [hoveredDocument, setHoveredDocument] = useState<string | null>(null)
+  const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, any>>({})
   
-  const handleDocumentUpload = (documentType: string, event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setUploadingDocuments(prev => new Set(prev).add(documentType))
-      // Simulate upload process
-      setTimeout(() => {
-        setUploadingDocuments(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(documentType)
-          return newSet
-        })
-      }, 2000)
+  // Required documents for EPDSD evaluation
+  const requiredDocuments = [
+    {
+      id: 'DOC-001',
+      name: 'Letter of Intent',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-002', 
+      name: 'Validation Report',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-003',
+      name: 'FS/EFA (Feasibility Study/Environmental Impact Assessment)',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-004',
+      name: 'DED (Detailed Engineering Design)',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-005',
+      name: 'POW (Program of Work)',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-006',
+      name: 'Right of Way Documents',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-007',
+      name: 'Other Documents',
+      type: 'PDF',
+      required: false
     }
-  }
+  ]
 
-  const handleDocumentPreview = (documentType: string) => {
-    setPreviewDocument(documentType)
-    setShowPreview(true)
-  }
-
-  const mockDocumentContent = (documentType: string) => {
-    const contents = {
-      'letter-of-intent': {
-        title: 'Letter of Intent',
-        content: 'This is a mock Letter of Intent document. It contains the formal expression of intent to proceed with the project proposal...',
-        preview: 'Formal expression of intent to proceed with the project proposal. Contains project objectives, scope, and commitment details.'
-      },
-      'validation-report': {
-        title: 'Validation Report',
-        content: 'This is a mock Validation Report document. It contains the validation findings and recommendations for the project...',
-        preview: 'Validation findings and recommendations for the project. Includes technical assessment and compliance verification.'
-      },
-      'fs-efa': {
-        title: 'Feasibility Study/Environmental Impact Assessment',
-        content: 'This is a mock FS/EFA document. It contains the feasibility study results and environmental impact assessment...',
-        preview: 'Feasibility study results and environmental impact assessment. Contains technical analysis and environmental compliance.'
-      },
-      'ded': {
-        title: 'Detailed Engineering Design',
-        content: 'This is a mock DED document. It contains the detailed engineering specifications and design plans...',
-        preview: 'Detailed engineering specifications and design plans. Includes technical drawings, specifications, and implementation details.'
-      },
-      'pow': {
-        title: 'Program of Work',
-        content: 'This is a mock POW document. It contains the detailed program of work and implementation schedule...',
-        preview: 'Detailed program of work and implementation schedule. Contains project timeline, milestones, and resource allocation.'
-      },
-      'right-of-way': {
-        title: 'Right of Way Documents',
-        content: 'This is a mock Right of Way document. It contains the legal documents and agreements for land access...',
-        preview: 'Legal documents and agreements for land access. Contains property rights, easements, and land use permissions.'
-      },
-      'others': {
-        title: 'Other Supporting Documents',
-        content: 'This is a mock document containing other supporting materials and additional requirements...',
-        preview: 'Other supporting materials and additional requirements. Contains supplementary documentation and compliance materials.'
+  // Mock function to get document status
+  const getDocumentStatus = (docId: string) => {
+    // If project is beyond proposal stage, show all documents as approved (green)
+    if (isBeyondProposal) {
+      return {
+        uploaded: true,
+        epdsdApproved: true,
+        comments: ''
       }
     }
-    return contents[documentType as keyof typeof contents] || { title: 'Document', content: 'Mock document content...', preview: 'Document preview...' }
+    
+    // If project is in Proposal stage, show random mix of green and red
+    // Use docId to create consistent "random" results
+    const hash = docId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0)
+      return a & a
+    }, 0)
+    const isApproved = Math.abs(hash) % 2 === 0 // 50/50 chance based on docId
+    
+    return {
+      uploaded: true,
+      epdsdApproved: isApproved,
+      comments: isApproved ? '' : 'Please revise this document according to requirements.'
+    }
+  }
+
+  // Mock function to get uploaded document info
+  const getUploadedDocument = (docId: string) => {
+    const status = getDocumentStatus(docId)
+    if (!status.uploaded) return null
+    
+    return {
+      id: docId,
+      name: requiredDocuments.find(doc => doc.id === docId)?.name || 'Document',
+      type: 'PDF',
+      size: '2.4 MB',
+      uploadedBy: 'RAED User',
+      uploadedAt: new Date().toISOString(),
+      status: status.epdsdApproved ? 'Approved' : 'Under Review'
+    }
+  }
+
+  const handleFileUpload = (docId: string, file: File) => {
+    // Mock upload functionality
+    console.log('Uploading file for document:', docId, file.name)
+    
+    // Simulate successful upload
+    const uploadedDoc = {
+      id: docId,
+      name: file.name,
+      type: file.type,
+      size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+      uploadedBy: 'RAED User',
+      uploadedAt: new Date().toISOString(),
+      status: 'Under Review'
+    }
+    
+    setUploadedDocuments(prev => ({
+      ...prev,
+      [docId]: uploadedDoc
+    }))
+    
+    alert(`Document uploaded successfully: ${file.name}`)
   }
   
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-6">
+      {/* Proposal Details Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-muted/30 rounded-lg">
         <div>
-          <h4 className="font-medium mb-2">Evaluator</h4>
+          <h4 className="font-medium mb-3">Evaluator</h4>
           <div className="flex items-center gap-2">
             <Badge variant="outline">{evaluator}</Badge>
           </div>
         </div>
         <div>
-          <h4 className="font-medium mb-2">Status</h4>
+          <h4 className="font-medium mb-3">Status</h4>
           <Badge variant={isBeyondProposal ? "default" : "secondary"}>
             {isBeyondProposal ? "All Documents Reviewed" : "Under Review"}
           </Badge>
         </div>
       </div>
-      
+
+      {/* Required Documents Section */}
       <div>
-        <h4 className="font-medium mb-2">Required Documents</h4>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <Check className="h-6 w-6 text-green-600" />
-              <span className="text-sm">Letter of Intent</span>
-            </div>
-            <div className="relative">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => handleDocumentPreview('letter-of-intent')}
-                className="cursor-pointer hover:bg-muted"
-                onMouseEnter={() => setHoveredDocument('letter-of-intent')}
-                onMouseLeave={() => setHoveredDocument(null)}
-              >
-                <Eye className="h-4 w-4 mr-1" />
-                View
-              </Button>
-              
-              {/* PDF Document Preview */}
-              {hoveredDocument === 'letter-of-intent' && (
-                <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                  {/* PDF Header */}
-                  <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 rounded-t-lg">
-                    <div className="flex items-center gap-2">
-                      <File className="h-4 w-4 text-red-600" />
-                      <span className="font-medium text-sm">Letter of Intent.pdf</span>
-                      <span className="text-xs text-gray-500 ml-auto">2.4 MB</span>
-                    </div>
-                  </div>
-                  
-                  {/* PDF Content */}
-                  <div className="p-4 max-h-80 overflow-y-auto bg-white">
-                    <div className="text-xs leading-relaxed text-gray-800">
-                      <h3 className="font-bold text-sm mb-3 text-center">LETTER OF INTENT</h3>
-                      <p className="mb-2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                      </p>
-                      <p className="mb-2">
-                        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                      </p>
-                      <p className="mb-2">
-                        Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                      </p>
-                      <p className="mb-2">
-                        Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
-                      </p>
-                      <p className="mb-2">
-                        Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* PDF Footer */}
-                  <div className="bg-gray-50 px-4 py-2 border-t border-gray-200 rounded-b-lg">
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>Page 1 of 3</span>
-                      <span>✅ Approved</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <Check className="h-6 w-6 text-green-600" />
-              <span className="text-sm">Validation Report</span>
-            </div>
-            <div className="relative">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => handleDocumentPreview('validation-report')}
-                className="cursor-pointer hover:bg-muted"
-                onMouseEnter={() => setHoveredDocument('validation-report')}
-                onMouseLeave={() => setHoveredDocument(null)}
-              >
-                <Eye className="h-4 w-4 mr-1" />
-                View
-              </Button>
-              
-              {/* PDF Document Preview */}
-              {hoveredDocument === 'validation-report' && (
-                <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                  {/* PDF Header */}
-                  <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 rounded-t-lg">
-                    <div className="flex items-center gap-2">
-                      <File className="h-4 w-4 text-red-600" />
-                      <span className="font-medium text-sm">Validation Report.pdf</span>
-                      <span className="text-xs text-gray-500 ml-auto">1.8 MB</span>
-                    </div>
-                  </div>
-                  
-                  {/* PDF Content */}
-                  <div className="p-4 max-h-80 overflow-y-auto bg-white">
-                    <div className="text-xs leading-relaxed text-gray-800">
-                      <h3 className="font-bold text-sm mb-3 text-center">PROJECT VALIDATION REPORT</h3>
-                      <p className="mb-2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                      </p>
-                      <p className="mb-2">
-                        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                      </p>
-                      <p className="mb-2">
-                        Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* PDF Footer */}
-                  <div className="bg-gray-50 px-4 py-2 border-t border-gray-200 rounded-b-lg">
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>Page 1 of 2</span>
-                      <span>✅ Approved</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <Check className="h-6 w-6 text-green-600" />
-              <span className="text-sm">FS/EFA (Feasibility Study/Environmental Impact Assessment)</span>
-            </div>
-            <div className="relative">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => handleDocumentPreview('fs-efa')}
-                className="cursor-pointer hover:bg-muted"
-                onMouseEnter={() => setHoveredDocument('fs-efa')}
-                onMouseLeave={() => setHoveredDocument(null)}
-              >
-                <Eye className="h-4 w-4 mr-1" />
-                View
-              </Button>
-              
-              {/* PDF Document Preview */}
-              {hoveredDocument === 'fs-efa' && (
-                <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                  {/* PDF Header */}
-                  <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 rounded-t-lg">
-          <div className="flex items-center gap-2">
-                      <File className="h-4 w-4 text-red-600" />
-                      <span className="font-medium text-sm">FS-EFA Report.pdf</span>
-                      <span className="text-xs text-gray-500 ml-auto">3.2 MB</span>
-                    </div>
-                  </div>
-                  
-                  {/* PDF Content */}
-                  <div className="p-4 max-h-80 overflow-y-auto bg-white">
-                    <div className="text-xs leading-relaxed text-gray-800">
-                      <h3 className="font-bold text-sm mb-3 text-center">FEASIBILITY STUDY & ENVIRONMENTAL IMPACT ASSESSMENT</h3>
-                      <p className="mb-2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                      </p>
-                      <p className="mb-2">
-                        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                      </p>
-                      <p className="mb-2">
-                        Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* PDF Footer */}
-                  <div className="bg-gray-50 px-4 py-2 border-t border-gray-200 rounded-b-lg">
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>Page 1 of 4</span>
-                      <span>✅ Approved</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <Check className="h-6 w-6 text-green-600" />
-              <span className="text-sm">DED (Detailed Engineering Design)</span>
-            </div>
-            <div className="relative">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => handleDocumentPreview('ded')}
-                className="cursor-pointer hover:bg-muted"
-                onMouseEnter={() => setHoveredDocument('ded')}
-                onMouseLeave={() => setHoveredDocument(null)}
-              >
-                <Eye className="h-4 w-4 mr-1" />
-                View
-              </Button>
-              
-              {/* PDF Document Preview */}
-              {hoveredDocument === 'ded' && (
-                <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                  {/* PDF Header */}
-                  <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 rounded-t-lg">
-                    <div className="flex items-center gap-2">
-                      <File className="h-4 w-4 text-red-600" />
-                      <span className="font-medium text-sm">DED Plans.pdf</span>
-                      <span className="text-xs text-gray-500 ml-auto">4.1 MB</span>
-                    </div>
-                  </div>
-                  
-                  {/* PDF Content */}
-                  <div className="p-4 max-h-80 overflow-y-auto bg-white">
-                    <div className="text-xs leading-relaxed text-gray-800">
-                      <h3 className="font-bold text-sm mb-3 text-center">DETAILED ENGINEERING DESIGN</h3>
-                      <p className="mb-2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                      </p>
-                      <p className="mb-2">
-                        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                      </p>
-                      <p className="mb-2">
-                        Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* PDF Footer */}
-                  <div className="bg-gray-50 px-4 py-2 border-t border-gray-200 rounded-b-lg">
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>Page 1 of 5</span>
-                      <span>✅ Approved</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <Check className="h-6 w-6 text-green-600" />
-              <span className="text-sm">POW (Program of Work)</span>
-            </div>
-            <div className="relative">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => handleDocumentPreview('pow')}
-                className="cursor-pointer hover:bg-muted"
-                onMouseEnter={() => setHoveredDocument('pow')}
-                onMouseLeave={() => setHoveredDocument(null)}
-              >
-                <Eye className="h-4 w-4 mr-1" />
-                View
-              </Button>
-              
-              {/* PDF Document Preview */}
-              {hoveredDocument === 'pow' && (
-                <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                  {/* PDF Header */}
-                  <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 rounded-t-lg">
-                    <div className="flex items-center gap-2">
-                      <File className="h-4 w-4 text-red-600" />
-                      <span className="font-medium text-sm">Program of Work.pdf</span>
-                      <span className="text-xs text-gray-500 ml-auto">2.7 MB</span>
-                    </div>
-                  </div>
-                  
-                  {/* PDF Content */}
-                  <div className="p-4 max-h-80 overflow-y-auto bg-white">
-                    <div className="text-xs leading-relaxed text-gray-800">
-                      <h3 className="font-bold text-sm mb-3 text-center">PROGRAM OF WORK</h3>
-                      <p className="mb-2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                      </p>
-                      <p className="mb-2">
-                        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                      </p>
-                      <p className="mb-2">
-                        Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* PDF Footer */}
-                  <div className="bg-gray-50 px-4 py-2 border-t border-gray-200 rounded-b-lg">
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>Page 1 of 3</span>
-                      <span>✅ Approved</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div 
-            className="flex items-center justify-between p-3 border rounded-lg relative group hover:bg-muted/50 transition-colors cursor-pointer"
-            onMouseEnter={() => setHoveredDocument('right-of-way')}
-            onMouseLeave={() => setHoveredDocument(null)}
-          >
-            <div className="flex items-center gap-3">
-              {isBeyondProposal ? (
-                <Check className="h-6 w-6 text-green-600" />
-              ) : (
-                <X className="h-6 w-6 text-red-600" />
-              )}
-              <span className="text-sm">Right of Way Documents</span>
-            </div>
-            {isBeyondProposal ? (
-              <div className="relative">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleDocumentPreview('right-of-way')}
-                  className="cursor-pointer hover:bg-muted"
-                  onMouseEnter={() => setHoveredDocument('right-of-way')}
-                  onMouseLeave={() => setHoveredDocument(null)}
-                >
-                  <Eye className="h-4 w-4 mr-1" />
-                  View
-                </Button>
-              </div>
-            ) : (
-          <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => handleDocumentUpload('right-of-way', e)}
-                  className="hidden"
-                  id="right-of-way-upload"
-                  disabled={uploadingDocuments.has('right-of-way')}
-                />
-                <Button 
-                  size="sm" 
-                  variant="default"
-                  onClick={() => document.getElementById('right-of-way-upload')?.click()}
-                  disabled={uploadingDocuments.has('right-of-way')}
-                >
-                  {uploadingDocuments.has('right-of-way') ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-1" />
-                      Upload
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
+        <h4 className="font-medium mb-4">Required Documents</h4>
+        <Accordion type="single" collapsible className="w-full">
+          {requiredDocuments.map((doc) => {
+            const status = getDocumentStatus(doc.id)
+            const uploadedDoc = getUploadedDocument(doc.id)
             
-            {/* PDF Document Preview */}
-            {hoveredDocument === 'right-of-way' && (
-              <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                {/* PDF Header */}
-                <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 rounded-t-lg">
-                  <div className="flex items-center gap-2">
-                    <File className="h-4 w-4 text-red-600" />
-                    <span className="font-medium text-sm">Right of Way Documents.pdf</span>
-                    <span className="text-xs text-gray-500 ml-auto">{isBeyondProposal ? '3.5 MB' : 'Not uploaded'}</span>
+            return (
+              <AccordionItem key={doc.id} value={doc.id} className="border rounded-lg mb-2 hover:bg-blue-50 hover:border-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer">
+                <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                  <div className="flex items-center justify-between w-full pr-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        status.uploaded 
+                          ? status.epdsdApproved 
+                            ? 'bg-green-100 text-green-600' 
+                            : 'bg-red-100 text-red-600'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {status.uploaded ? (
+                          status.epdsdApproved ? (
+                            <CheckCircle className="h-4 w-4" />
+                          ) : (
+                            <XCircle className="h-4 w-4" />
+                          )
+                        ) : (
+                          <FileText className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div className="text-left">
+                        <div className="font-medium">{doc.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {status.uploaded 
+                            ? status.epdsdApproved 
+                              ? 'Approved by EPDSD' 
+                              : 'Needs revision'
+                            : 'Not uploaded'
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant={
+                        status.uploaded 
+                          ? status.epdsdApproved 
+                            ? 'default' 
+                            : 'destructive'
+                          : 'secondary'
+                      } className={
+                        status.uploaded && status.epdsdApproved 
+                          ? 'bg-green-600 hover:bg-green-700 text-white' 
+                          : ''
+                      }>
+                        {status.uploaded 
+                          ? status.epdsdApproved 
+                            ? 'Approved' 
+                            : 'Needs Revision'
+                          : 'Pending'
+                        }
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-                
-                {/* PDF Content */}
-                <div className="p-4 max-h-80 overflow-y-auto bg-white">
-                  <div className="text-xs leading-relaxed text-gray-800">
-                    <h3 className="font-bold text-sm mb-3 text-center">RIGHT OF WAY DOCUMENTS</h3>
-                    {isBeyondProposal ? (
-                      <>
-                        <p className="mb-2">
-                          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                        </p>
-                        <p className="mb-2">
-                          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                        </p>
-                        <p className="mb-2">
-                          Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                        </p>
-                      </>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <X className="h-12 w-12 mx-auto mb-2 text-red-400" />
-                        <p className="text-sm">Document not uploaded</p>
-                        <p className="text-xs">Click Upload to add this document</p>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <div className="space-y-4">
+                    {/* Uploaded Document Info */}
+                    {uploadedDoc && (
+                      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-sm">Uploaded Document</h4>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                            <Button variant="outline" size="sm">
+                              <Download className="h-3 w-3 mr-1" />
+                              Download
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium">File:</span> {uploadedDoc.name}
+                          </div>
+                          <div>
+                            <span className="font-medium">Size:</span> {uploadedDoc.size}
+                          </div>
+                          <div>
+                            <span className="font-medium">Uploaded by:</span> {uploadedDoc.uploadedBy}
+                          </div>
+                          <div>
+                            <span className="font-medium">Date:</span> {formatDate(uploadedDoc.uploadedAt)}
+                          </div>
+                        </div>
                       </div>
                     )}
-                  </div>
-                </div>
-                
-                {/* PDF Footer */}
-                <div className="bg-gray-50 px-4 py-2 border-t border-gray-200 rounded-b-lg">
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{isBeyondProposal ? 'Page 1 of 2' : 'No pages'}</span>
-                    <span>{isBeyondProposal ? '✅ Approved' : '❌ Missing'}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <div 
-            className="flex items-center justify-between p-3 border rounded-lg relative group hover:bg-muted/50 transition-colors cursor-pointer"
-            onMouseEnter={() => setHoveredDocument('others')}
-            onMouseLeave={() => setHoveredDocument(null)}
-          >
-            <div className="flex items-center gap-3">
-              {isBeyondProposal ? (
-                <Check className="h-6 w-6 text-green-600" />
-              ) : (
-                <X className="h-6 w-6 text-red-600" />
-              )}
-              <span className="text-sm">Others</span>
-            </div>
-            {isBeyondProposal ? (
-              <div className="relative">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleDocumentPreview('others')}
-                  className="cursor-pointer hover:bg-muted"
-                  onMouseEnter={() => setHoveredDocument('others')}
-                  onMouseLeave={() => setHoveredDocument(null)}
-                >
-                  <Eye className="h-4 w-4 mr-1" />
-                  View
-                </Button>
-              </div>
-            ) : (
-          <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => handleDocumentUpload('others', e)}
-                  className="hidden"
-                  id="others-upload"
-                  disabled={uploadingDocuments.has('others')}
-                />
-                <Button 
-                  size="sm" 
-                  variant="default"
-                  onClick={() => document.getElementById('others-upload')?.click()}
-                  disabled={uploadingDocuments.has('others')}
-                >
-                  {uploadingDocuments.has('others') ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-1" />
-                      Upload
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-            
-            {/* PDF Document Preview */}
-            {hoveredDocument === 'others' && (
-              <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                {/* PDF Header */}
-                <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 rounded-t-lg">
-                  <div className="flex items-center gap-2">
-                    <File className="h-4 w-4 text-red-600" />
-                    <span className="font-medium text-sm">Other Documents.pdf</span>
-                    <span className="text-xs text-gray-500 ml-auto">{isBeyondProposal ? '2.9 MB' : 'Not uploaded'}</span>
-                  </div>
-                </div>
-                
-                {/* PDF Content */}
-                <div className="p-4 max-h-80 overflow-y-auto bg-white">
-                  <div className="text-xs leading-relaxed text-gray-800">
-                    <h3 className="font-bold text-sm mb-3 text-center">OTHER SUPPORTING DOCUMENTS</h3>
-                    {isBeyondProposal ? (
-                      <>
-                        <p className="mb-2">
-                          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                        </p>
-                        <p className="mb-2">
-                          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                        </p>
-                        <p className="mb-2">
-                          Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                        </p>
-                      </>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <X className="h-12 w-12 mx-auto mb-2 text-red-400" />
-                        <p className="text-sm">Document not uploaded</p>
-                        <p className="text-xs">Click Upload to add this document</p>
+
+                    {/* EPDSD Comments */}
+                    {status.comments && (
+                      <div className={`border rounded-lg p-4 ${
+                        !isBeyondProposal && !status.epdsdApproved
+                          ? 'bg-red-50 border-red-200' 
+                          : 'bg-yellow-50 border-yellow-200'
+                      }`}>
+                        <div className={`flex items-center gap-2 mb-2 ${
+                          !isBeyondProposal && !status.epdsdApproved
+                            ? 'text-red-800' 
+                            : 'text-yellow-800'
+                        }`}>
+                          <MessageSquare className={`h-4 w-4 ${
+                            !isBeyondProposal && !status.epdsdApproved
+                              ? 'text-red-600' 
+                              : 'text-yellow-600'
+                          }`} />
+                          <h4 className="font-medium text-sm">EPDSD Comments</h4>
+                        </div>
+                        <p className={`text-sm ${
+                          !isBeyondProposal && !status.epdsdApproved
+                            ? 'text-red-700' 
+                            : 'text-yellow-700'
+                        }`}>{status.comments}</p>
                       </div>
                     )}
+
+                    {/* Upload Section */}
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        id={`upload-${doc.id}`}
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            handleFileUpload(doc.id, file)
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      <label htmlFor={`upload-${doc.id}`} className="cursor-pointer">
+                        <div className="space-y-2">
+                          <Upload className="h-6 w-6 text-gray-400 mx-auto" />
+                          <div className="text-xs text-gray-600">
+                            {uploadedDoc ? 'Replace document' : 'Upload document'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            PDF, DOC, DOCX up to 10MB
+                          </div>
+                          <Button variant="outline" size="sm" className="text-xs px-3 py-1 h-7" asChild>
+                            <span>Choose File</span>
+                          </Button>
+                        </div>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                
-                {/* PDF Footer */}
-                <div className="bg-gray-50 px-4 py-2 border-t border-gray-200 rounded-b-lg">
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{isBeyondProposal ? 'Page 1 of 2' : 'No pages'}</span>
-                    <span>{isBeyondProposal ? '✅ Approved' : '❌ Missing'}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
+        </Accordion>
       </div>
 
       {isBeyondProposal && (
@@ -875,229 +569,6 @@ function ProposalStepContent({ projectType, currentStatus, project }: { projectT
           </div>
         </div>
       )}
-
-      <div>
-        <h4 className="font-medium mb-2">Comments</h4>
-        <div className="bg-muted p-3 rounded-lg">
-          <p className="text-sm text-muted-foreground">
-            {isBeyondProposal 
-              ? "All necessary documents are complete and the proposal has been successfully forwarded to the next stage."
-              : "Please provide the Right of Way Documents and other supporting documents to proceed with the evaluation."
-            }
-          </p>
-        </div>
-      </div>
-
-      {/* Document Preview Modal */}
-      <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <File className="h-5 w-5 text-red-600" />
-              {previewDocument && mockDocumentContent(previewDocument).title}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {/* PDF Document Viewer */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-            {/* PDF Header */}
-            <div className="bg-gray-100 px-6 py-3 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <File className="h-5 w-5 text-red-600" />
-                  <span className="font-medium">
-                    {previewDocument === 'letter-of-intent' && 'Letter of Intent.pdf'}
-                    {previewDocument === 'validation-report' && 'Validation Report.pdf'}
-                    {previewDocument === 'fs-efa' && 'FS-EFA Report.pdf'}
-                    {previewDocument === 'ded' && 'DED Plans.pdf'}
-                    {previewDocument === 'pow' && 'Program of Work.pdf'}
-                    {previewDocument === 'right-of-way' && 'Right of Way Documents.pdf'}
-                    {previewDocument === 'others' && 'Other Documents.pdf'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span>
-                    {previewDocument === 'letter-of-intent' && '2.4 MB'}
-                    {previewDocument === 'validation-report' && '1.8 MB'}
-                    {previewDocument === 'fs-efa' && '3.2 MB'}
-                    {previewDocument === 'ded' && '4.1 MB'}
-                    {previewDocument === 'pow' && '2.7 MB'}
-                    {previewDocument === 'right-of-way' && '3.5 MB'}
-                    {previewDocument === 'others' && '2.9 MB'}
-                  </span>
-                  <span>✅ Approved</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* PDF Content */}
-            <div className="p-6 max-h-[60vh] overflow-y-auto bg-white">
-              <div className="text-sm leading-relaxed text-gray-800">
-                {previewDocument === 'letter-of-intent' && (
-                  <>
-                    <h3 className="font-bold text-lg mb-2 text-center">LETTER OF INTENT</h3>
-                    <h4 className="font-semibold text-base mb-4 text-center text-blue-700">
-                      {project?.title || 'Project Title'}
-                    </h4>
-                    <p className="mb-3">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                    </p>
-                    <p className="mb-3">
-                      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </p>
-                    <p className="mb-3">
-                      Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                    </p>
-                    <p className="mb-3">
-                      Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
-                    </p>
-                    <p className="mb-3">
-                      Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
-                    </p>
-                  </>
-                )}
-                
-                {previewDocument === 'validation-report' && (
-                  <>
-                    <h3 className="font-bold text-lg mb-2 text-center">PROJECT VALIDATION REPORT</h3>
-                    <h4 className="font-semibold text-base mb-4 text-center text-blue-700">
-                      {project?.title || 'Project Title'}
-                    </h4>
-                    <p className="mb-3">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                    </p>
-                    <p className="mb-3">
-                      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </p>
-                    <p className="mb-3">
-                      Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                    </p>
-                  </>
-                )}
-                
-                {previewDocument === 'fs-efa' && (
-                  <>
-                    <h3 className="font-bold text-lg mb-2 text-center">FEASIBILITY STUDY & ENVIRONMENTAL IMPACT ASSESSMENT</h3>
-                    <h4 className="font-semibold text-base mb-4 text-center text-blue-700">
-                      {project?.title || 'Project Title'}
-                    </h4>
-                    <p className="mb-3">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                    </p>
-                    <p className="mb-3">
-                      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </p>
-                    <p className="mb-3">
-                      Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                    </p>
-                  </>
-                )}
-                
-                {previewDocument === 'ded' && (
-                  <>
-                    <h3 className="font-bold text-lg mb-2 text-center">DETAILED ENGINEERING DESIGN</h3>
-                    <h4 className="font-semibold text-base mb-4 text-center text-blue-700">
-                      {project?.title || 'Project Title'}
-                    </h4>
-                    <p className="mb-3">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                    </p>
-                    <p className="mb-3">
-                      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </p>
-                    <p className="mb-3">
-                      Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                    </p>
-                  </>
-                )}
-                
-                {previewDocument === 'pow' && (
-                  <>
-                    <h3 className="font-bold text-lg mb-2 text-center">PROGRAM OF WORK</h3>
-                    <h4 className="font-semibold text-base mb-4 text-center text-blue-700">
-                      {project?.title || 'Project Title'}
-                    </h4>
-                    <p className="mb-3">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                    </p>
-                    <p className="mb-3">
-                      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </p>
-                    <p className="mb-3">
-                      Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                    </p>
-                  </>
-                )}
-                
-                {previewDocument === 'right-of-way' && (
-                  <>
-                    <h3 className="font-bold text-lg mb-2 text-center">RIGHT OF WAY DOCUMENTS</h3>
-                    <h4 className="font-semibold text-base mb-4 text-center text-blue-700">
-                      {project?.title || 'Project Title'}
-                    </h4>
-                    <p className="mb-3">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                    </p>
-                    <p className="mb-3">
-                      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </p>
-                    <p className="mb-3">
-                      Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                    </p>
-                  </>
-                )}
-                
-                {previewDocument === 'others' && (
-                  <>
-                    <h3 className="font-bold text-lg mb-2 text-center">OTHER SUPPORTING DOCUMENTS</h3>
-                    <h4 className="font-semibold text-base mb-4 text-center text-blue-700">
-                      {project?.title || 'Project Title'}
-                    </h4>
-                    <p className="mb-3">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                    </p>
-                    <p className="mb-3">
-                      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </p>
-                    <p className="mb-3">
-                      Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
-            
-            {/* PDF Footer */}
-            <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <span>
-                  {previewDocument === 'letter-of-intent' && 'Page 1 of 3'}
-                  {previewDocument === 'validation-report' && 'Page 1 of 2'}
-                  {previewDocument === 'fs-efa' && 'Page 1 of 4'}
-                  {previewDocument === 'ded' && 'Page 1 of 5'}
-                  {previewDocument === 'pow' && 'Page 1 of 3'}
-                  {previewDocument === 'right-of-way' && 'Page 1 of 2'}
-                  {previewDocument === 'others' && 'Page 1 of 2'}
-                </span>
-                <div className="flex items-center gap-4">
-                  <span>✅ Approved</span>
-                  <span>📅 {new Date().toLocaleDateString()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Modal Actions */}
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowPreview(false)}>
-              Close
-            </Button>
-            <Button variant="default">
-              Download PDF
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

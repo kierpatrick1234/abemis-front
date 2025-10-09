@@ -1,6 +1,15 @@
 import { Project } from '../types'
 import { getRAEDLabel } from './raed-assignments'
 
+// EPDSD Evaluator names
+const epdsdEvaluators = [
+  'EPDSD - Mark Gomez',
+  'EPDSD - Sarah Rodriguez',
+  'EPDSD - Miguel Santos',
+  'EPDSD - Ana Dela Cruz',
+  'EPDSD - Roberto Martinez'
+]
+
 // Project templates for different types
 const projectTemplates = {
   FMR: [
@@ -171,6 +180,10 @@ function generateProjectsForRegion(region: string, startIndex: number = 1): Proj
       endDate: endDate,
       updatedAt: updatedAt,
       assignedTo: getRAEDLabel(region),
+      // Add evaluator for proposal stage projects (Infrastructure and Machinery)
+      ...(status === 'Proposal' && (projectType === 'Infrastructure' || projectType === 'Machinery') ? {
+        evaluator: epdsdEvaluators[Math.floor(Math.random() * epdsdEvaluators.length)]
+      } : {}),
       // Add procurement fields for projects in Procurement, Implementation, or Completed status
       ...(status === 'Procurement' || status === 'Implementation' || status === 'Completed' ? {
         budgetYear: ['2023', '2024', '2025', '2026'][Math.floor(Math.random() * 4)],

@@ -7,15 +7,116 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Search, CheckCircle, XCircle, MapPin } from 'lucide-react'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Search, CheckCircle, XCircle, MapPin, FileText, Upload, Eye, Download, MessageSquare } from 'lucide-react'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
+import { Project } from '@/lib/types'
+
+// Required documents for FMR projects
+const requiredDocuments = [
+  {
+    id: 'DOC-FMR-001',
+    name: 'FMR Project Proposal',
+    type: 'PDF',
+    required: true
+  },
+  {
+    id: 'DOC-FMR-002',
+    name: 'Road Design Plans',
+    type: 'PDF',
+    required: true
+  },
+  {
+    id: 'DOC-FMR-003',
+    name: 'Traffic Impact Assessment',
+    type: 'PDF',
+    required: true
+  },
+  {
+    id: 'DOC-FMR-004',
+    name: 'Community Consultation Report',
+    type: 'PDF',
+    required: true
+  },
+  {
+    id: 'DOC-FMR-005',
+    name: 'Environmental Clearance',
+    type: 'PDF',
+    required: true
+  },
+  {
+    id: 'DOC-FMR-006',
+    name: 'Right-of-Way Documentation',
+    type: 'PDF',
+    required: true
+  }
+]
 
 export default function SEPDProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedProject, setSelectedProject] = useState<unknown>(null)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showEvaluationModal, setShowEvaluationModal] = useState(false)
+  const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, any>>({})
+
+  // Mock function to get document status
+  const getDocumentStatus = useCallback((docId: string) => {
+    // For FMR projects in Proposal stage, show all documents as needing revision (red)
+    if (selectedProject?.status === 'Proposal') {
+      return {
+        uploaded: true,
+        epdsdApproved: false,
+        comments: 'Please revise this document according to SEPD requirements.'
+      }
+    }
+    
+    // If project is approved or in other stages, show all documents as approved (green)
+    return {
+      uploaded: true,
+      epdsdApproved: true,
+      comments: ''
+    }
+  }, [selectedProject])
+
+  // Mock function to get uploaded document info
+  const getUploadedDocument = useCallback((docId: string) => {
+    const status = getDocumentStatus(docId)
+    if (!status.uploaded) return null
+    
+    return {
+      id: docId,
+      name: requiredDocuments.find(doc => doc.id === docId)?.name || 'Document',
+      type: 'PDF',
+      size: '2.4 MB',
+      uploadedBy: 'RAED User',
+      uploadedAt: new Date().toISOString(),
+      status: status.epdsdApproved ? 'Approved' : 'Under Review'
+    }
+  }, [getDocumentStatus])
+
+  const handleFileUpload = useCallback((docId: string, file: File) => {
+    // Mock upload functionality
+    console.log('Uploading file for document:', docId, file.name)
+    
+    // Simulate successful upload
+    const uploadedDoc = {
+      id: docId,
+      name: file.name,
+      type: file.type,
+      size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+      uploadedBy: 'RAED User',
+      uploadedAt: new Date().toISOString(),
+      status: 'Under Review'
+    }
+    
+    setUploadedDocuments(prev => ({
+      ...prev,
+      [docId]: uploadedDoc
+    }))
+    
+    alert(`Document uploaded successfully: ${file.name}`)
+  }, [])
   // Filter projects for SEPD - only FMR projects in Proposal stage
   const sepdProjects = mockProjects.filter(project => 
     project.type === 'FMR' && project.status === 'Proposal'
@@ -44,7 +145,7 @@ export default function SEPDProjectsPage() {
     // TODO: Implement duplicate functionality
   }, [])
 
-  const handleRowClick = useCallback((project: unknown) => {
+  const handleRowClick = useCallback((project: Project) => {
     setSelectedProject(project)
     setShowProjectModal(true)
   }, [])
@@ -59,12 +160,12 @@ export default function SEPDProjectsPage() {
     {
       key: 'title',
       label: 'FMR Project Title',
-      render: (value: unknown, row: unknown) => (
+      render: (value: unknown, row: Project) => (
         <div>
-          <div className="font-medium">{(row as { title: string }).title}</div>
+          <div className="font-medium">{row.title}</div>
           <div className="text-sm text-muted-foreground flex items-center">
             <MapPin className="h-3 w-3 mr-1" />
-            {(row as { province: string }).province}
+            {row.province}
           </div>
         </div>
       )
@@ -72,17 +173,17 @@ export default function SEPDProjectsPage() {
     {
       key: 'status',
       label: 'Status',
-      render: (value: unknown, row: unknown) => <StatusBadge status={(row as { status: string }).status} />
+      render: (value: unknown, row: Project) => <StatusBadge status={row.status} />
     },
     {
       key: 'updatedAt',
       label: 'Updated',
-      render: (value: unknown, row: unknown) => formatDate((row as { updatedAt: string }).updatedAt)
+      render: (value: unknown, row: Project) => formatDate(row.updatedAt)
     },
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: unknown, row: unknown) => (
+      render: (value: unknown, row: Project) => (
         <ActionMenu
           actions={[
             {
@@ -91,20 +192,20 @@ export default function SEPDProjectsPage() {
             },
             {
               label: 'Validate',
-              onClick: () => handleValidateProject((row as { id: string }).id)
+              onClick: () => handleValidateProject(row.id)
             },
             {
               label: 'Reject',
-              onClick: () => handleRejectProject((row as { id: string }).id),
+              onClick: () => handleRejectProject(row.id),
               variant: 'destructive'
             },
             {
               label: 'Edit',
-              onClick: () => handleEditProject((row as { id: string }).id)
+              onClick: () => handleEditProject(row.id)
             },
             {
               label: 'Duplicate',
-              onClick: () => handleDuplicateProject((row as { id: string }).id)
+              onClick: () => handleDuplicateProject(row.id)
             }
           ]}
         />
@@ -205,42 +306,180 @@ export default function SEPDProjectsPage() {
                   <h4 className="font-medium mb-2">Timeline</h4>
                   <div className="space-y-2 text-sm">
                     <div><strong>Start Date:</strong> {formatDate(selectedProject.startDate)}</div>
-                    <div><strong>End Date:</strong> {formatDate(selectedProject.endDate)}</div>
+                    <div><strong>End Date:</strong> {selectedProject.endDate ? formatDate(selectedProject.endDate) : 'Not set'}</div>
                     <div><strong>Updated:</strong> {formatDate(selectedProject.updatedAt)}</div>
                   </div>
                 </div>
               </div>
 
               {/* FMR Specific Requirements */}
-              <div>
-                <h4 className="font-medium mb-4">FMR Documentary Requirements Checklist</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">FMR Project Proposal</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Road Design Plans</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Traffic Impact Assessment</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Community Consultation Report</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Environmental Clearance</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Right-of-Way Documentation</span>
-                  </div>
-                </div>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Required Documents
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Upload required documents for SEPD evaluation
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Accordion type="single" collapsible className="w-full">
+                    {requiredDocuments.map((doc) => {
+                      const status = getDocumentStatus(doc.id)
+                      const uploadedDoc = getUploadedDocument(doc.id)
+                      
+                      return (
+                        <AccordionItem key={doc.id} value={doc.id} className="border rounded-lg mb-2">
+                          <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                            <div className="flex items-center justify-between w-full pr-4">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                  status.uploaded 
+                                    ? status.epdsdApproved 
+                                      ? 'bg-green-100 text-green-600' 
+                                      : selectedProject?.status === 'Proposal' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'
+                                    : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                  {status.uploaded ? (
+                                    status.epdsdApproved ? (
+                                      <CheckCircle className="h-4 w-4" />
+                                    ) : (
+                                      <XCircle className="h-4 w-4" />
+                                    )
+                                  ) : (
+                                    <FileText className="h-4 w-4" />
+                                  )}
+                                </div>
+                                <div className="text-left">
+                                  <div className="font-medium">{doc.name}</div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {status.uploaded 
+                                      ? status.epdsdApproved 
+                                        ? 'Approved by SEPD' 
+                                        : selectedProject?.status === 'Proposal' ? 'Needs revision' : 'Under review'
+                                      : 'Not uploaded'
+                                    }
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <Badge variant={
+                                  status.uploaded 
+                                    ? status.epdsdApproved 
+                                      ? 'default' 
+                                      : selectedProject?.status === 'Proposal' ? 'destructive' : 'secondary'
+                                    : 'secondary'
+                                }>
+                                  {status.uploaded 
+                                    ? status.epdsdApproved 
+                                      ? 'Approved' 
+                                      : selectedProject?.status === 'Proposal' ? 'Needs Revision' : 'Review'
+                                    : 'Pending'
+                                  }
+                                </Badge>
+                              </div>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-4 pb-4">
+                            <div className="space-y-4">
+                              {/* Uploaded Document Info */}
+                              {uploadedDoc && (
+                                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="font-medium text-sm">Uploaded Document</h4>
+                                    <div className="flex gap-2">
+                                      <Button variant="outline" size="sm">
+                                        <Eye className="h-3 w-3 mr-1" />
+                                        View
+                                      </Button>
+                                      <Button variant="outline" size="sm">
+                                        <Download className="h-3 w-3 mr-1" />
+                                        Download
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                      <span className="font-medium">File:</span> {uploadedDoc.name}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Size:</span> {uploadedDoc.size}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Uploaded by:</span> {uploadedDoc.uploadedBy}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Date:</span> {formatDate(uploadedDoc.uploadedAt)}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* SEPD Comments */}
+                              {status.comments && (
+                                <div className={`border rounded-lg p-4 ${
+                                  selectedProject?.status === 'Proposal' 
+                                    ? 'bg-red-50 border-red-200' 
+                                    : 'bg-yellow-50 border-yellow-200'
+                                }`}>
+                                  <div className={`flex items-center gap-2 mb-2 ${
+                                    selectedProject?.status === 'Proposal' 
+                                      ? 'text-red-800' 
+                                      : 'text-yellow-800'
+                                  }`}>
+                                    <MessageSquare className={`h-4 w-4 ${
+                                      selectedProject?.status === 'Proposal' 
+                                        ? 'text-red-600' 
+                                        : 'text-yellow-600'
+                                    }`} />
+                                    <h4 className="font-medium text-sm">SEPD Comments</h4>
+                                  </div>
+                                  <p className={`text-sm ${
+                                    selectedProject?.status === 'Proposal' 
+                                      ? 'text-red-700' 
+                                      : 'text-yellow-700'
+                                  }`}>{status.comments}</p>
+                                </div>
+                              )}
+
+                              {/* Upload Section */}
+                              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                                <input
+                                  type="file"
+                                  id={`upload-${doc.id}`}
+                                  accept=".pdf,.doc,.docx"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0]
+                                    if (file) {
+                                      handleFileUpload(doc.id, file)
+                                    }
+                                  }}
+                                  className="hidden"
+                                />
+                                <label htmlFor={`upload-${doc.id}`} className="cursor-pointer">
+                                  <div className="space-y-2">
+                                    <Upload className="h-8 w-8 text-gray-400 mx-auto" />
+                                    <div className="text-sm text-gray-600">
+                                      {uploadedDoc ? 'Replace document' : 'Upload document'}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      PDF, DOC, DOCX up to 10MB
+                                    </div>
+                                    <Button variant="outline" size="sm" asChild>
+                                      <span>Choose File</span>
+                                    </Button>
+                                  </div>
+                                </label>
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )
+                    })}
+                  </Accordion>
+                </CardContent>
+              </Card>
 
               {/* Project Description */}
               <div>

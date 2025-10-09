@@ -1122,68 +1122,68 @@ export default function EPDSDProjectsPage() {
         </p>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Project Filters</CardTitle>
-          <CardDescription>Filter projects for evaluation</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search projects..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex gap-2">
-                <Button
-                  variant={typeFilter === 'all' ? 'default' : 'outline'}
-                  onClick={() => setTypeFilter('all')}
-                  size="sm"
-                >
-                  All Types
-                </Button>
-                <Button
-                  variant={typeFilter === 'Infrastructure' ? 'default' : 'outline'}
-                  onClick={() => setTypeFilter('Infrastructure')}
-                  size="sm"
-                >
-                  Infrastructure
-                </Button>
-                <Button
-                  variant={typeFilter === 'Machinery' ? 'default' : 'outline'}
-                  onClick={() => setTypeFilter('Machinery')}
-                  size="sm"
-                >
-                  Machinery
-                </Button>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-muted-foreground">Region:</label>
-                <Select value={regionFilter} onValueChange={setRegionFilter}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select region" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Regions</SelectItem>
-                    {uniqueRegions.map(region => (
-                      <SelectItem key={region} value={region}>
-                        {region}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+      {/* Compact Filters */}
+      <Card className="p-4">
+        <div className="flex flex-col lg:flex-row gap-3">
+          {/* Search */}
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search projects..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-7 h-8 text-sm"
+            />
           </div>
-        </CardContent>
+          
+          {/* Type Filters */}
+          <div className="flex gap-1">
+            <Button
+              variant={typeFilter === 'all' ? 'default' : 'outline'}
+              onClick={() => setTypeFilter('all')}
+              size="sm"
+              className="h-8 px-2 text-xs"
+            >
+              All
+            </Button>
+            <Button
+              variant={typeFilter === 'Infrastructure' ? 'default' : 'outline'}
+              onClick={() => setTypeFilter('Infrastructure')}
+              size="sm"
+              className="h-8 px-2 text-xs"
+            >
+              Infra
+            </Button>
+            <Button
+              variant={typeFilter === 'Machinery' ? 'default' : 'outline'}
+              onClick={() => setTypeFilter('Machinery')}
+              size="sm"
+              className="h-8 px-2 text-xs"
+            >
+              Machinery
+            </Button>
+          </div>
+          
+          {/* Region Filter */}
+          <Select value={regionFilter} onValueChange={setRegionFilter}>
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="Region" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Regions</SelectItem>
+              {uniqueRegions.map(region => (
+                <SelectItem key={region} value={region} className="text-xs">
+                  {region}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          {/* Results Count */}
+          <div className="flex items-center text-xs text-muted-foreground bg-muted px-2 py-1 rounded h-8">
+            {filteredProjects.length} projects
+          </div>
+        </div>
       </Card>
 
       {/* Projects Table */}

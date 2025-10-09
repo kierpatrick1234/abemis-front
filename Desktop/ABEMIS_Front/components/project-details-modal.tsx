@@ -6,15 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/data-table'
 import { ProjectStepper } from '@/components/project-stepper'
 import { formatDate, formatCurrency } from '@/lib/utils'
-import { Calendar, MapPin, DollarSign, User, Clock } from 'lucide-react'
+import { Project } from '@/lib/types'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { MapPin, User } from 'lucide-react'
 
 interface ProjectDetailsModalProps {
-  project: unknown | null
+  project: Project | null
   isOpen: boolean
   onClose: () => void
 }
 
 export function ProjectDetailsModal({ project, isOpen, onClose }: ProjectDetailsModalProps) {
+  const { user } = useAuth()
+
   if (!project) return null
 
   return (
@@ -88,6 +92,7 @@ export function ProjectDetailsModal({ project, isOpen, onClose }: ProjectDetails
               />
             </CardContent>
           </Card>
+
 
         </div>
       </DialogContent>

@@ -10,18 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Search, BarChart3, CheckCircle, AlertTriangle, Calendar } from 'lucide-react'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
-
-interface Project {
-  id: string
-  title: string
-  type: string
-  province: string
-  budget: number
-  status: string
-  startDate?: string
-  endDate?: string
-  updatedAt: string
-}
+import { Project } from '@/lib/types'
 
 export default function PPMDProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')

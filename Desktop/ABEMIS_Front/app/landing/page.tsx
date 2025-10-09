@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import { AbemisLogo } from '@/components/abemis-logo'
 import { mockProjects } from '@/lib/mock/data'
+import { Project } from '@/lib/types'
 
 interface ProjectMilestone {
   name: string
@@ -59,7 +60,7 @@ export default function LandingPage() {
     router.push('/login')
   }
 
-  const generateMilestones = (project: unknown): ProjectMilestone[] => {
+  const generateMilestones = (project: Project): ProjectMilestone[] => {
     const milestones: ProjectMilestone[] = []
     const startDate = new Date(project.startDate)
     

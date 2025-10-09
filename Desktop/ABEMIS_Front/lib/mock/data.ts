@@ -229,7 +229,7 @@ export const navigationItems: NavItem[] = [
     roles: ['admin', 'engineer', 'stakeholder', 'read', 'manager', 'supervisor', 'superadmin', 'RAED'],
   },
   {
-    title: 'EPDSD Projects',
+    title: 'Projects',
     href: '/epdsd-projects',
     icon: 'FolderOpen',
     roles: ['EPDSD'],

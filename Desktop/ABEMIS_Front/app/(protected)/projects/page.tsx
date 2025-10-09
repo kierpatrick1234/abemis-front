@@ -12,6 +12,7 @@ import { ProjectDetailsModal } from '@/components/project-details-modal'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
+import { Project } from '@/lib/types'
 import { Search, Filter, Plus } from 'lucide-react'
 
 export default function ProjectsPage() {
@@ -19,10 +20,10 @@ export default function ProjectsPage() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [stageFilter, setStageFilter] = useState('all')
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false)
-  const [newProjects, setNewProjects] = useState<unknown[]>([])
+  const [newProjects, setNewProjects] = useState<Project[]>([])
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [toastCountdown, setToastCountdown] = useState(10)
-  const [selectedProject, setSelectedProject] = useState<unknown>(null)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const { user } = useAuth()
 
@@ -37,7 +38,7 @@ export default function ProjectsPage() {
     // TODO: Implement duplicate functionality
   }, [])
 
-  const handleRowClick = useCallback((project: unknown) => {
+  const handleRowClick = useCallback((project: Project) => {
     setSelectedProject(project)
     setShowProjectModal(true)
   }, [])
@@ -48,21 +49,21 @@ export default function ProjectsPage() {
     setStageFilter('all')
   }, [])
 
-  const handleCreateProject = useCallback((projectData: unknown) => {
+  const handleCreateProject = useCallback((projectData: any) => {
     console.log('Creating new project:', projectData)
     
     // Create a new project object with proper structure
-    const newProject = {
+    const newProject: Project = {
       id: `PROJ-${Date.now()}`, // Generate unique ID
       title: projectData.title || 'New Infrastructure Project',
-      type: projectData.type || 'Infrastructure',
+      type: (projectData.type as Project['type']) || 'Infrastructure',
       status: 'Proposal',
       budget: projectData.allocatedAmount ? parseFloat(projectData.allocatedAmount) : 0,
       province: projectData.province || 'Unknown',
       region: projectData.region || 'Unknown',
+      description: projectData.description || 'New project description',
+      startDate: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString(),
-      // Add all the form data
-      ...projectData
     }
     
     // Add to new projects list
@@ -122,45 +123,45 @@ export default function ProjectsPage() {
     {
       key: 'title',
       label: 'Title',
-      render: (value: string, row: unknown) => (
+      render: (value: unknown, row: Project) => (
         <div>
-          <div className="font-medium">{value}</div>
-          <div className="text-sm text-muted-foreground">{(row as { province: string }).province}</div>
+          <div className="font-medium">{value as string}</div>
+          <div className="text-sm text-muted-foreground">{row.province}</div>
         </div>
       )
     },
     {
       key: 'type',
       label: 'Type',
-      render: (value: string) => (
-        <Badge variant={value === 'FMR' ? 'secondary' : 'outline'}>
-          {value}
+      render: (value: unknown) => (
+        <Badge variant={(value as string) === 'FMR' ? 'secondary' : 'outline'}>
+          {value as string}
         </Badge>
       )
     },
     {
       key: 'status',
       label: 'Status',
-      render: (value: string) => <StatusBadge status={value} />
+      render: (value: unknown) => <StatusBadge status={value as string} />
     },
     {
       key: 'updatedAt',
       label: 'Updated',
-      render: (value: string) => formatDate(value)
+      render: (value: unknown) => formatDate(value as string)
     },
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: unknown, row: unknown) => (
+      render: (value: unknown, row: Project) => (
         <ActionMenu
           actions={[
             {
               label: 'Edit',
-              onClick: () => handleEditProject((row as { id: string }).id)
+              onClick: () => handleEditProject(row.id)
             },
             {
               label: 'Duplicate',
-              onClick: () => handleDuplicateProject((row as { id: string }).id)
+              onClick: () => handleDuplicateProject(row.id)
             },
           ]}
         />

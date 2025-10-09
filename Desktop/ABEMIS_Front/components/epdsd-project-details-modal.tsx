@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { StatusBadge } from '@/components/data-table'
 import { formatDate, formatCurrency } from '@/lib/utils'
-import { Calendar, MapPin, DollarSign, User, Clock, FileText, CheckCircle, XCircle, MessageSquare, Download, Eye } from 'lucide-react'
+import { Calendar, MapPin, DollarSign, User, Clock, FileText, CheckCircle, XCircle, MessageSquare, Download, Eye, ChevronDown, ChevronRight, Send, Reply, Check } from 'lucide-react'
 
 // Mock data for EPDSD proposal stage documents
 const mockProposalDocuments = [
@@ -98,6 +98,17 @@ const mockProposalDocuments = [
   }
 ]
 
+// Comment history interface
+interface CommentHistory {
+  id: string
+  documentId: string
+  comment: string
+  author: string
+  authorRole: 'evaluator' | 'proponent'
+  timestamp: string
+  response?: string
+  responseTimestamp?: string
+}
 
 interface EPDSDProjectDetailsModalProps {
   project: unknown | null
@@ -111,6 +122,10 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
   const [generalComments, setGeneralComments] = useState('')
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [showRejectMessage, setShowRejectMessage] = useState(false)
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({})
+  const [commentHistory, setCommentHistory] = useState<CommentHistory[]>([])
+  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
   
   // Clear success message when project changes or modal closes
   useEffect(() => {
@@ -134,6 +149,80 @@ export function EPDSDProjectDetailsModal({ project, isOpen, onClose }: EPDSDProj
       }
     }))
   }, [project])
+
+  const toggleCommentsSection = useCallback((docId: string) => {
+    setExpandedComments(prev => ({
+      ...prev,
+      [docId]: !prev[docId]
+    }))
+  }, [])
+
+  const showToastNotification = useCallback((message: string) => {
+    setToastMessage(message)
+    setShowToast(true)
+    setTimeout(() => {
+      setShowToast(false)
+    }, 3000)
+  }, [])
+
+  const submitComment = useCallback((docId: string, comment: string) => {
+    if (!comment.trim() || !project) return
+    
+    const projectId = (project as { id: string }).id
+    const commentId = `comment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const now = new Date().toISOString()
+    
+    // Add evaluator comment
+    const evaluatorComment: CommentHistory = {
+      id: commentId,
+      documentId: docId,
+      comment: comment.trim(),
+      author: 'EPDSD Evaluator',
+      authorRole: 'evaluator',
+      timestamp: now
+    }
+    
+    // Generate simulated proponent response (70% chance)
+    const hasResponse = Math.random() > 0.3
+    let proponentResponse: CommentHistory | null = null
+    
+    if (hasResponse) {
+      const responseTime = new Date(Date.now() + Math.random() * 24 * 60 * 60 * 1000).toISOString() // Within 24 hours
+      const responses = [
+        'Thank you for the feedback. We will address this concern and provide the updated document.',
+        'We acknowledge your comment and will revise the document accordingly.',
+        'Your feedback is noted. We will incorporate the necessary changes.',
+        'Thank you for pointing this out. We will make the required modifications.',
+        'We appreciate your review. The document will be updated with the suggested improvements.',
+        'Your comment is well-received. We will provide a revised version addressing your concerns.'
+      ]
+      
+      proponentResponse = {
+        id: `response-${commentId}`,
+        documentId: docId,
+        comment: responses[Math.floor(Math.random() * responses.length)],
+        author: 'Project Proponent',
+        authorRole: 'proponent',
+        timestamp: responseTime
+      }
+    }
+    
+    // Update comment history
+    setCommentHistory(prev => {
+      const newHistory = [...prev, evaluatorComment]
+      if (proponentResponse) {
+        newHistory.push(proponentResponse)
+      }
+      return newHistory
+    })
+    
+    // Clear the input field
+    handleDocumentEvaluationChange(docId, 'comments', '')
+    
+    // Show success toast notification
+    const docName = mockProposalDocuments.find(doc => doc.id === docId)?.name || 'document'
+    showToastNotification(`Comment submitted successfully for ${docName}!`)
+  }, [project, handleDocumentEvaluationChange, showToastNotification])
 
   const handleSubmitEvaluation = useCallback(() => {
     if (!project) return
@@ -550,20 +639,135 @@ Document Content Preview:
                           </label>
                         </div>
                         
-                        <div className="space-y-2">
-                          <label htmlFor={`comments-${doc.id}`} className="text-sm font-semibold text-foreground">
-                            Comments/Remarks:
-                          </label>
-                          <input
-                            id={`comments-${doc.id}`}
-                            type="text"
-                            className="w-full p-3 border border-input rounded-md text-sm bg-background placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200"
-                            placeholder="Add your comments or remarks about this document..."
-                            value={projectEvaluations[doc.id]?.comments || ''}
-                            onChange={(e) => 
-                              handleDocumentEvaluationChange(doc.id, 'comments', e.target.value)
-                            }
-                          />
+                        {/* Collapsible Comments Section */}
+                        <div className="border-t border-border pt-4">
+                          <button
+                            onClick={() => toggleCommentsSection(doc.id)}
+                            className="flex items-center justify-between w-full p-2 rounded-md hover:bg-gray-50 transition-colors duration-200"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <MessageSquare className="h-4 w-4 text-gray-600" />
+                              <span className="text-xs font-semibold text-foreground">
+                                Comments/Remarks
+                              </span>
+                              {(() => {
+                                const docComments = commentHistory.filter(comment => comment.documentId === doc.id)
+                                if (docComments.length > 0) {
+                                  return (
+                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                      {docComments.length} comment{docComments.length > 1 ? 's' : ''}
+                                    </span>
+                                  )
+                                }
+                                return null
+                              })()}
+                            </div>
+                            {expandedComments[doc.id] ? (
+                              <ChevronDown className="h-4 w-4 text-gray-600" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-gray-600" />
+                            )}
+                          </button>
+                          
+                          {expandedComments[doc.id] && (
+                            <div className="mt-3 space-y-3">
+                              {/* Comment History */}
+                              {(() => {
+                                const docComments = commentHistory
+                                  .filter(comment => comment.documentId === doc.id)
+                                  .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+                                
+                                if (docComments.length > 0) {
+                                  return (
+                                    <div className="bg-gray-50 rounded-md p-3 space-y-3">
+                                      <div className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                                        <MessageSquare className="h-3 w-3" />
+                                        Comment History
+                                      </div>
+                                      {docComments.map((comment) => (
+                                        <div key={comment.id} className={`p-3 rounded-md border-l-4 ${
+                                          comment.authorRole === 'evaluator' 
+                                            ? 'bg-blue-50 border-l-blue-500' 
+                                            : 'bg-green-50 border-l-green-500'
+                                        }`}>
+                                          <div className="flex items-start justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+                                                comment.authorRole === 'evaluator'
+                                                  ? 'bg-blue-500 text-white'
+                                                  : 'bg-green-500 text-white'
+                                              }`}>
+                                                {comment.authorRole === 'evaluator' ? 'E' : 'P'}
+                                              </div>
+                                              <div>
+                                                <div className="text-xs font-semibold text-gray-800">
+                                                  {comment.author}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                  {formatDate(comment.timestamp)}
+                                                </div>
+                                              </div>
+                                            </div>
+                                            <div className={`text-xs px-2 py-1 rounded-full ${
+                                              comment.authorRole === 'evaluator'
+                                                ? 'bg-blue-100 text-blue-800'
+                                                : 'bg-green-100 text-green-800'
+                                            }`}>
+                                              {comment.authorRole === 'evaluator' ? 'Evaluator' : 'Proponent'}
+                                            </div>
+                                          </div>
+                                          <p className="text-sm text-gray-700 leading-relaxed">
+                                            {comment.comment}
+                                          </p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )
+                                }
+                                return null
+                              })()}
+                              
+                              {/* Add New Comment */}
+                              <div className="p-3 bg-gray-50 rounded-md">
+                                <div className="flex items-center space-x-3">
+                                  <input
+                                    id={`comments-${doc.id}`}
+                                    type="text"
+                                    className="flex-1 p-2 border border-input rounded-md text-sm bg-background placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200"
+                                    placeholder="Add your comments or remarks about this document..."
+                                    value={projectEvaluations[doc.id]?.comments || ''}
+                                    onChange={(e) => 
+                                      handleDocumentEvaluationChange(doc.id, 'comments', e.target.value)
+                                    }
+                                    onKeyPress={(e) => {
+                                      if (e.key === 'Enter') {
+                                        const comment = projectEvaluations[doc.id]?.comments || ''
+                                        if (comment.trim()) {
+                                          submitComment(doc.id, comment)
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const comment = projectEvaluations[doc.id]?.comments || ''
+                                      if (comment.trim()) {
+                                        submitComment(doc.id, comment)
+                                      } else {
+                                        showToastNotification('Please add some comments before submitting.')
+                                      }
+                                    }}
+                                    className="text-xs px-3 py-1 h-8 whitespace-nowrap"
+                                  >
+                                    <Send className="h-3 w-3 mr-1" />
+                                    Submit
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </Card>
@@ -674,6 +878,16 @@ Document Content Preview:
       )}
 
       </Dialog>
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-4 right-4 z-[10000] animate-in slide-in-from-top-2 duration-300">
+          <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 max-w-sm">
+            <Check className="h-4 w-4 flex-shrink-0" />
+            <span className="text-sm font-medium">{toastMessage}</span>
+          </div>
+        </div>
+      )}
     </>
   )
 }

@@ -101,7 +101,13 @@ export function NewProjectModal({ isOpen, onClose, onProjectCreate }: NewProject
   }
 
   const handleInfraProjectCreate = (projectData: Record<string, unknown>) => {
-    onProjectCreate(projectData)
+    // Extract required fields from projectData
+    const extractedData = {
+      title: (projectData.title as string) || 'New Infrastructure Project',
+      type: (projectData.type as string) || 'Infrastructure',
+      description: (projectData.description as string) || 'New project description'
+    }
+    onProjectCreate(extractedData)
     setShowInfraModal(false)
     onClose()
   }

@@ -11,6 +11,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Bell, CheckCircle2 } from 'lucide-react'
 
+interface Notification {
+  id: string
+  message: string
+  type: 'approval' | 'remark' | 'monitoring' | 'update' | 'user_registration' | 'system' | 'maintenance' | 'compliance' | 'upload' | 'submission'
+  timestamp: string
+  isRead?: boolean
+}
+
 interface NotificationDropdownProps {
   raedRegion: string
   userRole?: string
@@ -373,7 +381,7 @@ const defaultNotifications = [
 ]
 
 export function NotificationDropdown({ raedRegion, userRole }: NotificationDropdownProps) {
-  const [notifications, setNotifications] = useState<Record<string, unknown>[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
@@ -473,7 +481,7 @@ export function NotificationDropdown({ raedRegion, userRole }: NotificationDropd
                   message={notification.message}
                   timestamp={notification.timestamp}
                   type={notification.type}
-                  isRead={notification.isRead}
+                  isRead={notification.isRead || false}
                   onClick={() => handleNotificationClick(notification.id)}
                 />
               </div>
