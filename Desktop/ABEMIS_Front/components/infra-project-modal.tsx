@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Building2 } from 'lucide-react'
+import { Building2, Upload } from 'lucide-react'
 import { SuccessToast } from './success-toast'
 
 interface InfraProjectModalProps {
@@ -396,6 +396,52 @@ const barangays = [
   'Barangay 20'
 ]
 
+// Required documents for infrastructure projects (from proposal stage)
+const requiredDocuments = [
+  {
+    id: 'DOC-001',
+    name: 'Letter of Intent',
+    type: 'PDF',
+    required: true
+  },
+  {
+    id: 'DOC-002', 
+    name: 'Validation Report',
+    type: 'PDF',
+    required: true
+  },
+  {
+    id: 'DOC-003',
+    name: 'FS/EFA (Feasibility Study/Environmental Impact Assessment)',
+    type: 'PDF',
+    required: true
+  },
+  {
+    id: 'DOC-004',
+    name: 'DED (Detailed Engineering Design)',
+    type: 'PDF',
+    required: true
+  },
+  {
+    id: 'DOC-005',
+    name: 'POW (Program of Work)',
+    type: 'PDF',
+    required: true
+  },
+  {
+    id: 'DOC-006',
+    name: 'Right of Way Documents',
+    type: 'PDF',
+    required: true
+  },
+  {
+    id: 'DOC-007',
+    name: 'Other Documents',
+    type: 'PDF',
+    required: false
+  }
+]
+
 export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraProjectModalProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -427,7 +473,6 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
   
   // Step 4: Document Upload
   const [documents, setDocuments] = useState<Array<{file: File, label: string, id: string}>>([])
-  const [documentLabel, setDocumentLabel] = useState('')
 
   const handleNext = () => {
     if (currentStep < 5) {
@@ -438,21 +483,6 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
-    }
-  }
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      const newDocument = {
-        file,
-        label: documentLabel || file.name,
-        id: Date.now().toString()
-      }
-      setDocuments(prev => [...prev, newDocument])
-      setDocumentLabel('')
-      // Reset the file input
-      event.target.value = ''
     }
   }
 
@@ -528,7 +558,6 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
     setDistrict('')
     setBarangay('')
     setDocuments([])
-    setDocumentLabel('')
     onClose()
   }
 
@@ -536,6 +565,7 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
   const isStep2Valid = implementationDays && prexcProgram && prexcSubProgram && budgetProcess && 
                       proposedFundSource && sourceAgency && bannerProgram && fundingYear && allocatedAmount
   const isStep3Valid = region && province && municipality && district && barangay
+  const isStep4Valid = true // Documents are optional during registration
 
   if (isSuccess) {
     return (
@@ -551,25 +581,27 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Create Infrastructure Project
-          </DialogTitle>
-          <DialogDescription>
-            Step {currentStep} of 5: {
-              currentStep === 1 ? 'Project Description' :
-              currentStep === 2 ? 'Budget Source' : 
-              currentStep === 3 ? 'Location' : 
-              currentStep === 4 ? 'Document Upload' : 'Summary'
-            }
-          </DialogDescription>
-        </DialogHeader>
-
-        {/* Progress Indicator */}
-        <div className="py-4 bg-muted/20 rounded-lg mx-2">
-          <div className="flex items-start justify-center w-full">
+      <DialogContent className="sm:max-w-[900px] max-h-[85vh] overflow-y-auto p-0">
+        {/* Fixed Header and Progress Indicator */}
+        <div className="sticky top-0 z-50 bg-background border-b p-6">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Create Infrastructure Project
+            </DialogTitle>
+            <DialogDescription>
+              Step {currentStep} of 5: {
+                currentStep === 1 ? 'Project Description' :
+                currentStep === 2 ? 'Budget Source' : 
+                currentStep === 3 ? 'Location' : 
+                currentStep === 4 ? 'Document Upload' : 'Summary'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Progress Indicator */}
+          <div className="pb-4">
+            <div className="flex items-start justify-center w-full">
             {[
               { step: 1, label: 'Project Description' },
               { step: 2, label: 'Budget Source' },
@@ -581,14 +613,17 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
                 <div className="flex items-center w-full justify-center mb-3">
                   <button
                     onClick={() => {
-                      setCurrentStep(step)
+                      // Locked stepper - only allow navigation to current step
+                      if (step === currentStep) {
+                        setCurrentStep(step)
+                      }
                     }}
-                    disabled={step > currentStep}
+                    disabled={step !== currentStep}
                     className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 flex-shrink-0 ${
                       step === currentStep
                         ? 'bg-green-600 text-white hover:bg-green-700 cursor-pointer ring-2 ring-green-300'
                         : step < currentStep
-                        ? 'bg-black text-white hover:bg-green-500 cursor-pointer'
+                        ? 'bg-black text-white cursor-default'
                         : 'bg-muted text-muted-foreground cursor-not-allowed'
                     }`}
                   >
@@ -611,10 +646,11 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
                 </span>
               </div>
             ))}
+            </div>
           </div>
         </div>
 
-        <div className="py-6">
+        <div className="px-6 py-6">
           {currentStep === 1 && (
             <div className="space-y-4">
               <div className="space-y-2">
@@ -891,65 +927,95 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
           {currentStep === 4 && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="documentLabel">Document Label</Label>
-                <Input
-                  id="documentLabel"
-                  value={documentLabel}
-                  onChange={(e) => setDocumentLabel(e.target.value)}
-                  placeholder="Enter document label (e.g., Project Proposal, Technical Specifications)"
-                />
+                <Label className="text-base font-semibold">Document Upload</Label>
+                <p className="text-sm text-muted-foreground">
+                  Upload documents from the proposal stage. Documents are optional during registration and can be uploaded later.
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <Label>Upload Document</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    id="documentUpload"
-                    className="hidden"
-                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                    onChange={handleFileUpload}
-                  />
-                  <label
-                    htmlFor="documentUpload"
-                    className="cursor-pointer flex flex-col items-center space-y-2"
-                  >
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    <span className="text-sm text-gray-600">Click to upload document</span>
-                    <span className="text-xs text-gray-400">PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX</span>
-                  </label>
-                </div>
-              </div>
-
-              {documents.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Uploaded Documents</Label>
-                  <div className="space-y-2">
-                    {documents.map((doc) => (
-                      <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          <span className="text-sm font-medium">{doc.label || doc.file.name}</span>
-                          <span className="text-xs text-gray-500">({(doc.file.size / 1024 / 1024).toFixed(2)} MB)</span>
+              <div className="space-y-3">
+                {requiredDocuments.map((doc) => {
+                  const uploadedDoc = documents.find(d => d.label === doc.name || d.id === doc.id)
+                  return (
+                    <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center space-x-3 flex-1">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          uploadedDoc 
+                            ? 'bg-green-100 text-green-600' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {uploadedDoc ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          )}
                         </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{doc.name}</span>
+                            {doc.required && (
+                              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Recommended</span>
+                            )}
+                          </div>
+                          {uploadedDoc && (
+                            <div className="text-sm text-muted-foreground">
+                              {uploadedDoc.file.name} • {(uploadedDoc.file.size / 1024 / 1024).toFixed(2)} MB
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {uploadedDoc && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRemoveDocument(uploadedDoc.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            Remove
+                          </Button>
+                        )}
+                        <input
+                          type="file"
+                          id={`upload-${doc.id}`}
+                          className="hidden"
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              const newDocument = {
+                                file,
+                                label: doc.name,
+                                id: doc.id
+                              }
+                              // Remove existing document with same id if any
+                              setDocuments(prev => prev.filter(d => d.id !== doc.id))
+                              setDocuments(prev => [...prev, newDocument])
+                              // Reset the file input
+                              e.target.value = ''
+                            }
+                          }}
+                        />
                         <Button
                           type="button"
-                          variant="outline"
+                          variant={uploadedDoc ? "outline" : "secondary"}
                           size="sm"
-                          onClick={() => handleRemoveDocument(doc.id)}
-                          className="text-red-600 hover:text-red-700"
+                          className={uploadedDoc ? "" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-800"}
+                          onClick={() => document.getElementById(`upload-${doc.id}`)?.click()}
                         >
-                          Remove
+                          <Upload className="h-4 w-4 mr-2" />
+                          {uploadedDoc ? 'Replace' : 'Upload'}
                         </Button>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
 
@@ -1081,7 +1147,7 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
           )}
         </div>
 
-        <DialogFooter className="flex gap-2">
+        <DialogFooter className="flex gap-2 px-6 pb-6 pt-4">
           {currentStep > 1 && (
             <Button variant="outline" onClick={handleBack}>
               Back
@@ -1096,7 +1162,8 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
               disabled={
                 (currentStep === 1 && !isStep1Valid) ||
                 (currentStep === 2 && !isStep2Valid) ||
-                (currentStep === 3 && !isStep3Valid)
+                (currentStep === 3 && !isStep3Valid) ||
+                (currentStep === 4 && !isStep4Valid)
               }
             >
               Next

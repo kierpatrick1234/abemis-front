@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { DocumentPreviewModal } from '@/components/document-preview-modal'
 import { Project } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
 
@@ -257,6 +258,8 @@ function ProposalStepContent({ projectType, currentStatus, project }: { projectT
   const evaluator: string = projectType === 'FMR' ? 'SEPD' : (project?.evaluator ? String(project.evaluator) : 'EPDSD')
   const isBeyondProposal = currentStatus && ['Procurement', 'Implementation', 'Completed'].includes(currentStatus)
   const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, any>>({})
+  const [previewDocument, setPreviewDocument] = useState<any>(null)
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
   
   // Required documents for EPDSD evaluation
   const requiredDocuments = [
@@ -459,11 +462,43 @@ function ProposalStepContent({ projectType, currentStatus, project }: { projectT
                         <div className="flex items-center justify-between">
                           <h4 className="font-medium text-sm">Uploaded Document</h4>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setPreviewDocument(uploadedDoc)
+                                setShowPreviewModal(true)
+                              }}
+                            >
                               <Eye className="h-3 w-3 mr-1" />
-                              View
+                              View Document
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                // Mock download functionality
+                                const content = `Document: ${uploadedDoc.name}
+Type: ${uploadedDoc.type}
+Size: ${uploadedDoc.size}
+Uploaded by: ${uploadedDoc.uploadedBy}
+Uploaded: ${formatDate(uploadedDoc.uploadedAt)}
+Status: ${uploadedDoc.status}
+
+This is a mock download. In a real application, this would download the actual PDF file.`
+
+                                const element = document.createElement('a')
+                                const file = new Blob([content], {type: 'text/plain'})
+                                element.href = URL.createObjectURL(file)
+                                element.download = `${uploadedDoc.name.replace(/[^a-zA-Z0-9]/g, '_')}.txt`
+                                document.body.appendChild(element)
+                                element.click()
+                                document.body.removeChild(element)
+                                
+                                // Clean up the object URL
+                                setTimeout(() => URL.revokeObjectURL(element.href), 100)
+                              }}
+                            >
                               <Download className="h-3 w-3 mr-1" />
                               Download
                             </Button>
@@ -513,35 +548,162 @@ function ProposalStepContent({ projectType, currentStatus, project }: { projectT
                       </div>
                     )}
 
-                    {/* Upload Section */}
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                      <input
-                        type="file"
-                        id={`upload-${doc.id}`}
-                        accept=".pdf,.doc,.docx"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            handleFileUpload(doc.id, file)
-                          }
-                        }}
-                        className="hidden"
-                      />
-                      <label htmlFor={`upload-${doc.id}`} className="cursor-pointer">
-                        <div className="space-y-2">
-                          <Upload className="h-6 w-6 text-gray-400 mx-auto" />
-                          <div className="text-xs text-gray-600">
-                            {uploadedDoc ? 'Replace document' : 'Upload document'}
+                    {/* Upload Section - Only show for Proposal status and documents that are not approved */}
+                    {!isBeyondProposal && !status.epdsdApproved && (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                        <input
+                          type="file"
+                          id={`upload-${doc.id}`}
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              handleFileUpload(doc.id, file)
+                            }
+                          }}
+                          className="hidden"
+                        />
+                        <label htmlFor={`upload-${doc.id}`} className="cursor-pointer">
+                          <div className="space-y-2">
+                            <Upload className="h-6 w-6 text-gray-400 mx-auto" />
+                            <div className="text-xs text-gray-600">
+                              {uploadedDoc ? 'Replace document' : 'Upload document'}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              PDF, DOC, DOCX up to 10MB
+                            </div>
+                            <Button variant="outline" size="sm" className="text-xs px-3 py-1 h-7" asChild>
+                              <span>Choose File</span>
+                            </Button>
                           </div>
-                          <div className="text-xs text-gray-500">
-                            PDF, DOC, DOCX up to 10MB
-                          </div>
-                          <Button variant="outline" size="sm" className="text-xs px-3 py-1 h-7" asChild>
-                            <span>Choose File</span>
-                          </Button>
+                        </label>
+                      </div>
+                    )}
+
+                    {/* Approved Document Section - Show for Proposal status when document is approved */}
+                    {!isBeyondProposal && status.epdsdApproved && uploadedDoc && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-sm text-green-800">Document Approved</h4>
                         </div>
-                      </label>
-                    </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-green-700">File:</span> 
+                            <span className="text-green-600 ml-1">{uploadedDoc.name}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-green-700">Size:</span> 
+                            <span className="text-green-600 ml-1">{uploadedDoc.size}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-green-700">Uploaded by:</span> 
+                            <span className="text-green-600 ml-1">{uploadedDoc.uploadedBy}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-green-700">Date:</span> 
+                            <span className="text-green-600 ml-1">{formatDate(uploadedDoc.uploadedAt)}</span>
+                          </div>
+                        </div>
+                        <div className="bg-green-100 border border-green-300 rounded p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-800">Document Approved</span>
+                          </div>
+                          <p className="text-xs text-green-700">
+                            This document has been reviewed and approved by the evaluator. No further action required.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Document Viewing Section - Show for non-Proposal status */}
+                    {isBeyondProposal && uploadedDoc && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-sm text-green-800">Final Approved Document</h4>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setPreviewDocument(uploadedDoc)
+                                setShowPreviewModal(true)
+                              }}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View Document
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                // Mock download functionality
+                                const content = `Document: ${uploadedDoc.name}
+Type: ${uploadedDoc.type}
+Size: ${uploadedDoc.size}
+Uploaded by: ${uploadedDoc.uploadedBy}
+Uploaded: ${formatDate(uploadedDoc.uploadedAt)}
+Status: ${uploadedDoc.status}
+
+This is a mock download. In a real application, this would download the actual PDF file.
+
+Document Content:
+- Project Proposal Details
+- Technical Specifications  
+- Budget Breakdown
+- Implementation Timeline
+- Environmental Impact Assessment
+- Community Consultation Report
+- Right of Way Documentation
+
+All documents have been reviewed and approved by the evaluator.`
+
+                                const element = document.createElement('a')
+                                const file = new Blob([content], {type: 'text/plain'})
+                                element.href = URL.createObjectURL(file)
+                                element.download = `${uploadedDoc.name.replace(/[^a-zA-Z0-9]/g, '_')}.txt`
+                                document.body.appendChild(element)
+                                element.click()
+                                document.body.removeChild(element)
+                                
+                                // Clean up the object URL
+                                setTimeout(() => URL.revokeObjectURL(element.href), 100)
+                              }}
+                            >
+                              <Download className="h-3 w-3 mr-1" />
+                              Download
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-green-700">File:</span> 
+                            <span className="text-green-600 ml-1">{uploadedDoc.name}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-green-700">Size:</span> 
+                            <span className="text-green-600 ml-1">{uploadedDoc.size}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-green-700">Uploaded by:</span> 
+                            <span className="text-green-600 ml-1">{uploadedDoc.uploadedBy}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-green-700">Date:</span> 
+                            <span className="text-green-600 ml-1">{formatDate(uploadedDoc.uploadedAt)}</span>
+                          </div>
+                        </div>
+                        <div className="bg-green-100 border border-green-300 rounded p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-800">Document Approved</span>
+                          </div>
+                          <p className="text-xs text-green-700">
+                            This document has been reviewed and approved by the evaluator. No further action required.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -569,6 +731,16 @@ function ProposalStepContent({ projectType, currentStatus, project }: { projectT
           </div>
         </div>
       )}
+
+      {/* Document Preview Modal */}
+      <DocumentPreviewModal
+        document={previewDocument}
+        isOpen={showPreviewModal}
+        onClose={() => {
+          setShowPreviewModal(false)
+          setPreviewDocument(null)
+        }}
+      />
     </div>
   )
 }
