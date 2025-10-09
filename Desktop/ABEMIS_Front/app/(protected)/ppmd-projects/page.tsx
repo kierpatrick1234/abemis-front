@@ -118,7 +118,7 @@ export default function PPMDProjectsPage() {
   const avgCompletionTime = 45 // Mock data - average days to completion
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">PPMD Project Monitoring</h1>
         <p className="text-muted-foreground">
@@ -203,18 +203,21 @@ export default function PPMDProjectsPage() {
       </Card>
 
       {/* Projects Table */}
-      <Card>
-        <CardHeader>
+      <Card className="overflow-hidden flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle>Completed Projects ({filteredProjects.length})</CardTitle>
           <CardDescription>
             Monitor and track performance of completed projects
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 flex-1 flex flex-col">
           <DataTable
             data={filteredProjects}
             columns={columns}
             onRowClick={handleRowClick}
+            enablePagination={true}
+            pageSize={5}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
           />
         </CardContent>
       </Card>

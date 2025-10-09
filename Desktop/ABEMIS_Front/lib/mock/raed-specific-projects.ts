@@ -118,7 +118,7 @@ function getRandomBudget(): number {
 
 // Generate projects for a specific region
 function generateProjectsForRegion(region: string, startIndex: number = 1): Project[] {
-  const projectCount = Math.floor(Math.random() * 8) + 15 // 15-22 projects
+  const projectCount = Math.floor(Math.random() * 16) + 25 // 25-40 projects
   const projects: Project[] = []
   const provinces = regionProvinces[region as keyof typeof regionProvinces] || ['Unknown Province']
   

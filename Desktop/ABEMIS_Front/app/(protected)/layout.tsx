@@ -34,6 +34,9 @@ export default function ProtectedLayout({
     const newState = !isSidebarCollapsed
     setIsSidebarCollapsed(newState)
     localStorage.setItem('sidebar-collapsed', JSON.stringify(newState))
+    
+    // Dispatch custom event for immediate updates in same tab
+    window.dispatchEvent(new CustomEvent('sidebar-toggle'))
   }, [isSidebarCollapsed])
 
   if (loading) {

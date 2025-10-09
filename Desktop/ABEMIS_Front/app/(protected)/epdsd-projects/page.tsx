@@ -1114,7 +1114,7 @@ export default function EPDSDProjectsPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">EPDSD Project Evaluation</h1>
         <p className="text-muted-foreground">
@@ -1187,18 +1187,21 @@ export default function EPDSDProjectsPage() {
       </Card>
 
       {/* Projects Table */}
-      <Card>
-        <CardHeader>
+      <Card className="overflow-hidden flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle>Projects Pending Evaluation ({filteredProjects.length})</CardTitle>
           <CardDescription>
             Infrastructure and Machinery projects requiring EPDSD evaluation
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 flex-1 flex flex-col">
           <DataTable
             data={filteredProjects}
             columns={columns}
             onRowClick={(row) => handleRowClick(row as Record<string, unknown>)}
+            enablePagination={true}
+            pageSize={5}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
           />
         </CardContent>
       </Card>

@@ -117,6 +117,7 @@ export default function ProjectsPage() {
     return matchesSearch && matchesType && matchesStage && matchesRegion
   }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
 
+
   const columns = [
     {
       key: 'title',
@@ -168,7 +169,7 @@ export default function ProjectsPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
@@ -277,15 +278,22 @@ export default function ProjectsPage() {
       </div>
 
       {/* Projects Table */}
-      <Card>
-        <CardHeader>
+      <Card className="overflow-hidden flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle>Projects ({filteredProjects.length})</CardTitle>
           <CardDescription>
             Infrastructure and FMR project listings
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <DataTable columns={columns} data={filteredProjects} onRowClick={handleRowClick} />
+        <CardContent className="p-0 flex-1 flex flex-col">
+          <DataTable 
+            columns={columns} 
+            data={filteredProjects} 
+            onRowClick={handleRowClick}
+            enablePagination={true}
+            pageSize={5}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
+          />
         </CardContent>
       </Card>
 
