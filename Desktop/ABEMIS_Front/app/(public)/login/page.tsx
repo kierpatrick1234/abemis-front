@@ -371,25 +371,20 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with Back Button */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Button 
-              variant="ghost" 
-              onClick={() => router.push('/landing')}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Landing Page
-            </Button>
-            <AbemisLogo size="md" textSize="sm" showText={true} />
-          </div>
-        </div>
+      {/* Back to Landing Button */}
+      <div className="absolute top-4 left-4 z-10">
+        <Button 
+          variant="ghost" 
+          onClick={() => router.push('/landing')}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 shadow-sm border border-border/50 bg-background/80 backdrop-blur-sm"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Landing Page
+        </Button>
       </div>
 
       {/* Main Content */}
-      <div className="flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8 pt-20">
+      <div className="flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
         <div className={`w-full space-y-8 ${isSignUp ? 'max-w-4xl' : 'max-w-md'}`}>
 
         <div className="text-center">

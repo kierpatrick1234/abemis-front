@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { AppSidebar } from '@/components/app-sidebar'
 import { Topbar } from '@/components/topbar'
+import { AnnouncementPopup } from '@/components/announcement-popup'
 import { useAuth } from '@/lib/contexts/auth-context'
 
 export default function ProtectedLayout({
@@ -14,12 +15,25 @@ export default function ProtectedLayout({
   const { user, loading } = useAuth()
   const router = useRouter()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [showAnnouncement, setShowAnnouncement] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login')
     }
   }, [user, loading, router])
+
+  useEffect(() => {
+    // Show announcement for RAED users on every login
+    if (user && user.role === 'RAED') {
+      // Small delay to ensure smooth user experience after login
+      const timer = setTimeout(() => {
+        setShowAnnouncement(true)
+      }, 500)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [user])
 
   useEffect(() => {
     // Load sidebar state from localStorage
@@ -39,6 +53,11 @@ export default function ProtectedLayout({
     window.dispatchEvent(new CustomEvent('sidebar-toggle'))
   }, [isSidebarCollapsed])
 
+  const handleCloseAnnouncement = () => {
+    setShowAnnouncement(false)
+    // Don't store the "seen" status - we want it to show every login
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -52,17 +71,28 @@ export default function ProtectedLayout({
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <AppSidebar 
-        isCollapsed={isSidebarCollapsed} 
-        onToggle={toggleSidebar}
-      />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
-        <main className="flex-1 overflow-auto p-6">
-          {children}
-        </main>
+    <>
+      <div className="flex h-screen bg-background">
+        <AppSidebar 
+          isCollapsed={isSidebarCollapsed} 
+          onToggle={toggleSidebar}
+        />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar />
+          <main className="flex-1 overflow-auto p-6">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+      
+      {/* Announcement Popup for RAED users */}
+      {user && user.role === 'RAED' && (
+        <AnnouncementPopup
+          isOpen={showAnnouncement}
+          onClose={handleCloseAnnouncement}
+          userRole={user.role}
+        />
+      )}
+    </>
   )
 }

@@ -54,10 +54,20 @@ export default function LandingPage() {
   const [isLoginHovered, setIsLoginHovered] = useState(false)
   const [trackingCode, setTrackingCode] = useState('')
   const [trackingResult, setTrackingResult] = useState<TrackingResult | null>(null)
-  // const [isTrackingOpen, setIsTrackingOpen] = useState(false)
 
-  const handleLoginClick = () => {
-    router.push('/login')
+  const handleLoginClick = (buttonType = 'unknown') => {
+    console.log(`${buttonType} button clicked!`) // Debug log
+    console.log('Router object:', router) // Debug router
+    try {
+      console.log('Attempting to navigate to /login...')
+      router.push('/login')
+      console.log('Router.push called successfully')
+    } catch (error) {
+      console.error('Router push failed:', error)
+      // Fallback to window location
+      console.log('Using fallback navigation...')
+      window.location.href = '/login'
+    }
   }
 
   const generateMilestones = (project: Project): ProjectMilestone[] => {
@@ -233,7 +243,6 @@ export default function LandingPage() {
     ]
   }
 
-
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -242,28 +251,21 @@ export default function LandingPage() {
           <div className="flex justify-between items-center h-16">
             <AbemisLogo size="md" textSize="sm" />
             <Button 
-              onClick={handleLoginClick}
-              onMouseEnter={() => setIsLoginHovered(true)}
-              onMouseLeave={() => setIsLoginHovered(false)}
-              className="transition-all duration-200 transform hover:scale-105"
+              onClick={() => handleLoginClick('Top Navigation')}
+              className="transition-all duration-200 transform hover:scale-105 relative z-10"
+              type="button"
             >
-              <span className="flex items-center gap-2">
-                Login
-                <ArrowRight className={`h-4 w-4 transition-transform duration-200 ${isLoginHovered ? 'translate-x-1' : ''}`} />
-              </span>
+              Login
+              <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto w-full">
           <div className="text-center space-y-8">
-            <Badge variant="secondary" className="mb-6">
-              <Star className="h-3 w-3 mr-1" />
-              Government Information System
-            </Badge>
             <div className="space-y-6">
               <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight">
                 Agricultural & Biosystems Engineering
@@ -280,9 +282,10 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Button 
-                onClick={handleLoginClick}
+                onClick={() => handleLoginClick('Access System')}
                 size="lg" 
                 className="transition-all duration-200 transform hover:scale-105"
+                type="button"
               >
                 Access System
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -672,10 +675,11 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
             <Button 
-              onClick={handleLoginClick}
+              onClick={() => handleLoginClick('Login to System')}
               size="lg" 
               variant="secondary"
               className="transition-all duration-200 transform hover:scale-105"
+              type="button"
             >
               Login to System
               <ArrowRight className="ml-2 h-5 w-5" />
