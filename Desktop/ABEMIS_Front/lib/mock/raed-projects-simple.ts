@@ -23,7 +23,13 @@ export function generateSimpleRAEDProjects(): Project[] {
         type: i % 3 === 0 ? 'FMR' : i % 3 === 1 ? 'Infrastructure' : 'Machinery',
         province: `Sample Province ${i + 1}`,
         region: region,
-        status: i % 4 === 0 ? 'Proposal' : i % 4 === 1 ? 'Procurement' : i % 4 === 2 ? 'Implementation' : 'Completed',
+        status: (() => {
+          const projectType = i % 3 === 0 ? 'FMR' : i % 3 === 1 ? 'Infrastructure' : 'Machinery'
+          if (projectType === 'Machinery') {
+            return i % 4 === 0 ? 'Proposal' : i % 4 === 1 ? 'Procurement' : i % 4 === 2 ? 'For Delivery' : 'Delivered'
+          }
+          return i % 4 === 0 ? 'Proposal' : i % 4 === 1 ? 'Procurement' : i % 4 === 2 ? 'Implementation' : 'Completed'
+        })(),
         description: `This is a sample project for ${region} to test the system functionality.`,
         budget: 10000000 + (i * 1000000), // 10M + increment
         startDate: '2024-01-01',
