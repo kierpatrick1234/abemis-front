@@ -87,9 +87,35 @@ const regionProvinces = {
 //   'Proposal', 'Procurement', 'Implementation', 'Completed'
 // ]
 
-// Generate random status with realistic distribution
-function getRandomStatus(): 'Draft' | 'Proposal' | 'Procurement' | 'Implementation' | 'Completed' | 'Inventory' {
-  const random = Math.random()
+// Simple seeded random number generator for consistent results
+class SeededRandom {
+  private seed: number
+  
+  constructor(seed: number) {
+    this.seed = seed
+  }
+  
+  next(): number {
+    this.seed = (this.seed * 9301 + 49297) % 233280
+    return this.seed / 233280
+  }
+}
+
+// Generate deterministic status with realistic distribution, with special handling for machinery projects
+function getRandomStatus(projectType?: 'FMR' | 'Infrastructure' | 'Machinery', seed?: number): 'Draft' | 'Proposal' | 'Procurement' | 'Implementation' | 'Completed' | 'Inventory' | 'For Delivery' | 'Delivered' {
+  const random = seed !== undefined ? new SeededRandom(seed).next() : Math.random()
+  
+  // For machinery projects, use delivery-specific statuses
+  if (projectType === 'Machinery') {
+    if (random < 0.05) return 'Draft'
+    if (random < 0.20) return 'Proposal'
+    if (random < 0.40) return 'Procurement'
+    if (random < 0.80) return 'For Delivery'
+    if (random < 0.95) return 'Delivered'
+    return 'Inventory'
+  }
+  
+  // For non-machinery projects, use regular statuses
   if (random < 0.05) return 'Draft'
   if (random < 0.20) return 'Proposal'
   if (random < 0.40) return 'Procurement'
@@ -129,26 +155,30 @@ function getRandomBudget(): number {
 
 // Generate projects for a specific region
 function generateProjectsForRegion(region: string, startIndex: number = 1): Project[] {
-  const projectCount = Math.floor(Math.random() * 16) + 25 // 25-40 projects
+  // Use a deterministic seed based on region name to ensure consistent results
+  const regionSeed = region.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const seededRandom = new SeededRandom(regionSeed)
+  
+  const projectCount = Math.floor(seededRandom.next() * 16) + 25 // 25-40 projects
   const projects: Project[] = []
   const provinces = regionProvinces[region as keyof typeof regionProvinces] || ['Unknown Province']
   
   for (let i = 0; i < projectCount; i++) {
     const projectIndex = startIndex + i
-    const projectType = Object.keys(projectTemplates)[Math.floor(Math.random() * 3)] as 'FMR' | 'Infrastructure' | 'Machinery'
-    const template = projectTemplates[projectType][Math.floor(Math.random() * projectTemplates[projectType].length)]
-    const province = provinces[Math.floor(Math.random() * provinces.length)]
-    const status = getRandomStatus()
+    const projectType = Object.keys(projectTemplates)[Math.floor(seededRandom.next() * 3)] as 'FMR' | 'Infrastructure' | 'Machinery'
+    const template = projectTemplates[projectType][Math.floor(seededRandom.next() * projectTemplates[projectType].length)]
+    const province = provinces[Math.floor(seededRandom.next() * provinces.length)]
+    const status = getRandomStatus(projectType, regionSeed + i)
     const startDate = getRandomDate()
     const budget = getRandomBudget()
     
-    // Generate end date for completed projects or some implementation projects
+    // Generate end date for completed/delivered projects or some implementation/for delivery projects
     let endDate: string | undefined
-    if (status === 'Completed' || (status === 'Implementation' && Math.random() > 0.6)) {
+    if (status === 'Completed' || status === 'Delivered' || (status === 'Implementation' && seededRandom.next() > 0.6) || (status === 'For Delivery' && seededRandom.next() > 0.6)) {
       const start = new Date(startDate)
       const maxEndDate = new Date('2025-10-05')
       const maxDuration = Math.floor((maxEndDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-      const duration = Math.floor(Math.random() * Math.min(maxDuration, 365)) + 30 // 1 month to 1 year, but not exceeding Oct 5, 2025
+      const duration = Math.floor(seededRandom.next() * Math.min(maxDuration, 365)) + 30 // 1 month to 1 year, but not exceeding Oct 5, 2025
       const calculatedEndDate = new Date(start.getTime() + duration * 24 * 60 * 60 * 1000)
       
       // Ensure end date doesn't exceed October 5, 2025
@@ -161,7 +191,7 @@ function generateProjectsForRegion(region: string, startIndex: number = 1): Proj
     const startTime = new Date(startDate).getTime()
     const endTime = new Date('2025-10-05').getTime()
     const timeDiff = endTime - startTime
-    const randomUpdateTime = startTime + Math.random() * timeDiff
+    const randomUpdateTime = startTime + seededRandom.next() * timeDiff
     const updatedAt = new Date(randomUpdateTime).toISOString()
     
     // const regionNumber = region === 'Region 4B' ? '4B' : region.split(' ')[1]
@@ -184,25 +214,25 @@ function generateProjectsForRegion(region: string, startIndex: number = 1): Proj
       assignedTo: getRAEDLabel(region),
       // Add evaluator for proposal stage projects (Infrastructure and Machinery)
       ...(status === 'Proposal' && (projectType === 'Infrastructure' || projectType === 'Machinery') ? {
-        evaluator: epdsdEvaluators[Math.floor(Math.random() * epdsdEvaluators.length)]
+        evaluator: epdsdEvaluators[Math.floor(seededRandom.next() * epdsdEvaluators.length)]
       } : {}),
-      // Add procurement fields for projects in Procurement, Implementation, or Completed status
-      ...(status === 'Procurement' || status === 'Implementation' || status === 'Completed' ? {
-        budgetYear: ['2023', '2024', '2025', '2026'][Math.floor(Math.random() * 4)],
-        bidOpeningDate: status === 'Implementation' || status === 'Completed' ? 
-          new Date(new Date(startDate).getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
-        noticeOfAwardDate: status === 'Implementation' || status === 'Completed' ? 
-          new Date(new Date(startDate).getTime() + (30 + Math.random() * 15) * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
-        noticeToProceedDate: status === 'Implementation' || status === 'Completed' ? 
-          new Date(new Date(startDate).getTime() + (45 + Math.random() * 10) * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
-        procurementDocuments: status === 'Implementation' || status === 'Completed' ? {
+      // Add procurement fields for projects in Procurement, Implementation, For Delivery, or Completed/Delivered status
+      ...(status === 'Procurement' || status === 'Implementation' || status === 'For Delivery' || status === 'Completed' || status === 'Delivered' ? {
+        budgetYear: ['2023', '2024', '2025', '2026'][Math.floor(seededRandom.next() * 4)],
+        bidOpeningDate: status === 'Implementation' || status === 'For Delivery' || status === 'Completed' || status === 'Delivered' ? 
+          new Date(new Date(startDate).getTime() + seededRandom.next() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
+        noticeOfAwardDate: status === 'Implementation' || status === 'For Delivery' || status === 'Completed' || status === 'Delivered' ? 
+          new Date(new Date(startDate).getTime() + (30 + seededRandom.next() * 15) * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
+        noticeToProceedDate: status === 'Implementation' || status === 'For Delivery' || status === 'Completed' || status === 'Delivered' ? 
+          new Date(new Date(startDate).getTime() + (45 + seededRandom.next() * 10) * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
+        procurementDocuments: status === 'Implementation' || status === 'For Delivery' || status === 'Completed' || status === 'Delivered' ? {
           bidOpening: 'bid-opening-document.pdf',
           noticeOfAward: 'notice-of-award-document.pdf',
           noticeToProceed: 'notice-to-proceed-document.pdf'
         } : undefined
       } : {}),
-      // Add completed stage fields for completed projects - empty for RAED to fill
-      ...(status === 'Completed' ? {
+      // Add completed stage fields for completed/delivered projects - empty for RAED to fill
+      ...(status === 'Completed' || status === 'Delivered' ? {
         // Dates and files will be empty initially - RAED needs to upload them
         dateCompleted: undefined,
         dateTurnedOver: undefined,

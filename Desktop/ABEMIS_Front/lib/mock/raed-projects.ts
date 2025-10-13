@@ -80,9 +80,43 @@ const statuses: Array<'Proposal' | 'Procurement' | 'Implementation' | 'Completed
 
 const statusWeights = [0.15, 0.25, 0.45, 0.15] // More projects in Implementation
 
-// Generate random status based on weights
-function getRandomStatus(): 'Proposal' | 'Procurement' | 'Implementation' | 'Completed' {
-  const random = Math.random()
+// Simple seeded random number generator for consistent results
+class SeededRandom {
+  private seed: number
+  
+  constructor(seed: number) {
+    this.seed = seed
+  }
+  
+  next(): number {
+    this.seed = (this.seed * 9301 + 49297) % 233280
+    return this.seed / 233280
+  }
+}
+
+// Generate random status based on weights, with special handling for machinery projects
+function getRandomStatus(projectType?: 'FMR' | 'Infrastructure' | 'Machinery', seed?: number): 'Proposal' | 'Procurement' | 'Implementation' | 'Completed' | 'For Delivery' | 'Delivered' {
+  const random = seed !== undefined ? new SeededRandom(seed).next() : Math.random()
+  
+  // For machinery projects, use delivery-specific statuses
+  if (projectType === 'Machinery') {
+    const machineryStatuses: Array<'Proposal' | 'Procurement' | 'For Delivery' | 'Delivered'> = [
+      'Proposal', 'Procurement', 'For Delivery', 'Delivered'
+    ]
+    const machineryWeights = [0.15, 0.25, 0.45, 0.15] // More projects in For Delivery
+    
+    let cumulative = 0
+    
+    for (let i = 0; i < machineryStatuses.length; i++) {
+      cumulative += machineryWeights[i]
+      if (random <= cumulative) {
+        return machineryStatuses[i]
+      }
+    }
+    return 'For Delivery'
+  }
+  
+  // For non-machinery projects, use regular statuses
   let cumulative = 0
   
   for (let i = 0; i < statuses.length; i++) {
@@ -115,23 +149,27 @@ function generateProjectId(index: number): string {
 
 // Generate projects for a specific region
 export function generateProjectsForRegion(region: string, startIndex: number = 1): Project[] {
-  const projectCount = Math.floor(Math.random() * 6) + 16 // 16-21 projects
+  // Use a deterministic seed based on region name to ensure consistent results
+  const regionSeed = region.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const seededRandom = new SeededRandom(regionSeed)
+  
+  const projectCount = Math.floor(seededRandom.next() * 6) + 16 // 16-21 projects
   const projects: Project[] = []
   
   for (let i = 0; i < projectCount; i++) {
     const projectIndex = startIndex + i
-    const projectType = Object.keys(projectTemplates)[Math.floor(Math.random() * 3)] as 'FMR' | 'Infrastructure' | 'Machinery'
-    const template = projectTemplates[projectType][Math.floor(Math.random() * projectTemplates[projectType].length)]
-    const province = provinces[Math.floor(Math.random() * provinces.length)]
-    const status = getRandomStatus()
+    const projectType = Object.keys(projectTemplates)[Math.floor(seededRandom.next() * 3)] as 'FMR' | 'Infrastructure' | 'Machinery'
+    const template = projectTemplates[projectType][Math.floor(seededRandom.next() * projectTemplates[projectType].length)]
+    const province = provinces[Math.floor(seededRandom.next() * provinces.length)]
+    const status = getRandomStatus(projectType, regionSeed + i)
     const startDate = getRandomDate()
     const budget = getRandomBudget()
     
-    // Generate end date for completed projects or projects in implementation
+    // Generate end date for completed/delivered projects or projects in implementation/for delivery
     let endDate: string | undefined
-    if (status === 'Completed' || (status === 'Implementation' && Math.random() > 0.5)) {
+    if (status === 'Completed' || status === 'Delivered' || (status === 'Implementation' && seededRandom.next() > 0.5) || (status === 'For Delivery' && seededRandom.next() > 0.5)) {
       const start = new Date(startDate)
-      const duration = Math.floor(Math.random() * 365) + 30 // 1 month to 1 year
+      const duration = Math.floor(seededRandom.next() * 365) + 30 // 1 month to 1 year
       endDate = new Date(start.getTime() + duration * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     }
     
@@ -139,7 +177,7 @@ export function generateProjectsForRegion(region: string, startIndex: number = 1
     const startTime = new Date(startDate).getTime()
     const now = Date.now()
     const timeDiff = now - startTime
-    const randomUpdateTime = startTime + Math.random() * timeDiff
+    const randomUpdateTime = startTime + seededRandom.next() * timeDiff
     const updatedAt = new Date(randomUpdateTime).toISOString()
     
     const project: Project = {
