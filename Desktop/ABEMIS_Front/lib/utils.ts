@@ -24,6 +24,14 @@ export function formatDateTime(date: string | Date): string {
   })
 }
 
+export function formatDateForDisplay(date: string | Date): string {
+  const dateObj = new Date(date)
+  const month = dateObj.toLocaleDateString('en-US', { month: 'short' })
+  const day = dateObj.getDate()
+  const year = dateObj.getFullYear()
+  return `${month}-${day}-${year}`
+}
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-PH', {
     style: 'currency',
