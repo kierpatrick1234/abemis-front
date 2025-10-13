@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Check, FileText, ShoppingCart, Wrench, CheckCircle, Package, Upload, XCircle, Eye, Download, MessageSquare } from 'lucide-react'
+import { Check, FileText, ShoppingCart, Wrench, CheckCircle, Package, Upload, XCircle, Eye, Download, MessageSquare, Calendar, Clock, Plus, FileCheck, ArrowRight, Edit2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -11,6 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { DocumentPreviewModal } from '@/components/document-preview-modal'
 import { Project } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
+import { useAuth } from '@/lib/contexts/auth-context'
 
 interface ProjectStepperProps {
   currentStatus: string
@@ -1199,32 +1200,503 @@ function ProcurementStepContent({ currentStatus, project, onStepClick, onStagePr
 }
 
 function ImplementationStepContent() {
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <h4 className="font-medium mb-2">Contractor</h4>
-          <span className="text-sm">ABC Construction Corp.</span>
-        </div>
-        <div>
-          <h4 className="font-medium mb-2">Progress</h4>
-          <Badge variant="secondary">65% Complete</Badge>
-        </div>
-      </div>
+  const { user } = useAuth()
+  const isRAED = user?.role === 'RAED'
+  
+  // State for implementation details
+  const [contractEffectivity, setContractEffectivity] = useState('')
+  const [contractExpiry, setContractExpiry] = useState('')
+  const [actualStartDate, setActualStartDate] = useState('')
+  const [targetCompletionDate, setTargetCompletionDate] = useState('')
+  const [initialTargetCompletionDate, setInitialTargetCompletionDate] = useState('2025-03-31') // Store initial date
+  const [showExtensionModal, setShowExtensionModal] = useState(false)
+  const [newTargetDate, setNewTargetDate] = useState('')
+  const [extensionReason, setExtensionReason] = useState('')
+  
+  // State for accomplishments and progress
+  const [accomplishments, setAccomplishments] = useState<Array<{
+    id: string
+    date: string
+    description: string
+    progress: number
+    documents: File[]
+  }>>([])
+  const [showAccomplishmentModal, setShowAccomplishmentModal] = useState(false)
+  const [editingAccomplishment, setEditingAccomplishment] = useState<string | null>(null)
+  const [newAccomplishment, setNewAccomplishment] = useState({
+    date: '',
+    description: '',
+    progress: 0
+  })
+  
+  // Calculate overall project progress based on accomplishments
+  const calculateOverallProgress = () => {
+    if (accomplishments.length === 0) {
+      return 0 // Start at 0% when no accomplishments in implementation stage
+    }
+    
+    // Sum up all accomplishment progress percentages
+    const totalProgress = accomplishments.reduce((sum, acc) => sum + acc.progress, 0)
+    
+    // Cap at 100% maximum
+    return Math.min(totalProgress, 100)
+  }
+  
+  const currentProgress = calculateOverallProgress()
+  const isProgressComplete = currentProgress >= 100
+  
+  const handleApplyExtension = () => {
+    if (newTargetDate && extensionReason) {
+      setTargetCompletionDate(newTargetDate)
+      setShowExtensionModal(false)
+      setNewTargetDate('')
+      setExtensionReason('')
+      alert('Contract extension request submitted successfully!')
+    }
+  }
+  
+  const handleAddAccomplishment = () => {
+    if (newAccomplishment.date && newAccomplishment.description) {
+      if (editingAccomplishment) {
+        // Update existing accomplishment
+        setAccomplishments(prev => prev.map(acc => 
+          acc.id === editingAccomplishment 
+            ? { ...acc, ...newAccomplishment }
+            : acc
+        ))
+        setEditingAccomplishment(null)
+        // Calculate new total progress after update
+        const updatedAccomplishments = accomplishments.map(acc => 
+          acc.id === editingAccomplishment 
+            ? { ...acc, ...newAccomplishment }
+            : acc
+        )
+        const newTotalProgress = Math.min(updatedAccomplishments.reduce((sum, acc) => sum + acc.progress, 0), 100)
+        alert(`Accomplishment updated! Project progress updated to ${newTotalProgress}%.`)
+      } else {
+        // Add new accomplishment
+        const accomplishment = {
+          id: Date.now().toString(),
+          ...newAccomplishment,
+          documents: []
+        }
+        setAccomplishments(prev => [...prev, accomplishment])
+        // Calculate new total progress after adding
+        const newTotalProgress = Math.min([...accomplishments, accomplishment].reduce((sum, acc) => sum + acc.progress, 0), 100)
+        alert(`Accomplishment added! Project progress updated to ${newTotalProgress}%.`)
+      }
       
-      <div>
-        <h4 className="font-medium mb-2">Implementation Timeline</h4>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Start Date</span>
-            <span className="text-muted-foreground">Jan 1, 2025</span>
+      setShowAccomplishmentModal(false)
+      setNewAccomplishment({ date: '', description: '', progress: 0 })
+    }
+  }
+  
+  const handleEditAccomplishment = (accomplishmentId: string) => {
+    const accomplishment = accomplishments.find(acc => acc.id === accomplishmentId)
+    if (accomplishment) {
+      setNewAccomplishment({
+        date: accomplishment.date,
+        description: accomplishment.description,
+        progress: accomplishment.progress
+      })
+      setEditingAccomplishment(accomplishmentId)
+      setShowAccomplishmentModal(true)
+    }
+  }
+  
+  const handleDeleteAccomplishment = (accomplishmentId: string) => {
+    if (confirm('Are you sure you want to delete this accomplishment?')) {
+      const accomplishmentToDelete = accomplishments.find(acc => acc.id === accomplishmentId)
+      setAccomplishments(prev => prev.filter(acc => acc.id !== accomplishmentId))
+      
+      // Calculate new total progress after deletion
+      const remainingAccomplishments = accomplishments.filter(acc => acc.id !== accomplishmentId)
+      const newTotalProgress = remainingAccomplishments.length > 0 
+        ? Math.min(remainingAccomplishments.reduce((sum, acc) => sum + acc.progress, 0), 100)
+        : 0
+      
+      alert(`Accomplishment deleted successfully! Project progress updated to ${newTotalProgress}%.`)
+    }
+  }
+  
+  const handleMoveToNextStage = () => {
+    // In a real app, this would update the project status in the backend
+    console.log('Moving project to completed stage')
+    alert('Project has been successfully moved to the Completed stage!')
+    // Here you would typically call an API to update the project status
+    // For now, we'll just show a success message
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Implementation Details Section */}
+      <div className="space-y-4">
+        <h4 className="font-medium text-lg">Implementation Details</h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 className="font-medium mb-2">Contractor</h4>
+            <span className="text-sm">ABC Construction Corp.</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span>Expected Completion</span>
-            <span className="text-muted-foreground">Mar 31, 2025</span>
+          <div>
+            <h4 className="font-medium mb-2">Progress</h4>
+            <Badge variant={isProgressComplete ? "default" : "secondary"}>
+              {currentProgress}% Complete
+            </Badge>
           </div>
         </div>
+
+        {/* Progress Bar Section */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium">Project Progress</h4>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {currentProgress}% of 100%
+              </span>
+              {accomplishments.length > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  {accomplishments.length} accomplishment{accomplishments.length !== 1 ? 's' : ''}
+                </Badge>
+              )}
+            </div>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-3">
+            <div 
+              className={`h-3 rounded-full transition-all duration-500 ${
+                isProgressComplete 
+                  ? 'bg-green-500' 
+                  : currentProgress >= 80 
+                    ? 'bg-yellow-500' 
+                    : 'bg-blue-500'
+              }`}
+              style={{ width: `${Math.min(currentProgress, 100)}%` }}
+            ></div>
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>0%</span>
+            <div className="flex items-center gap-2">
+              {accomplishments.length > 0 && (
+                <span className="text-xs text-blue-600">
+                  Sum of all accomplishments
+                </span>
+              )}
+              <span className={`font-medium ${
+                isProgressComplete ? 'text-green-600' : 'text-blue-600'
+              }`}>
+                Target: 100%
+              </span>
+            </div>
+          </div>
+          
+          {/* Move to Next Stage Button - RAED Only when progress is 100% */}
+          {isRAED && isProgressComplete && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <div>
+                    <h5 className="font-medium text-green-800">Project Ready for Completion</h5>
+                    <p className="text-sm text-green-700">
+                      All implementation work has been completed. You can now move this project to the Completed stage.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleMoveToNextStage}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  Move to Completed
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Contract and Timeline Information - RAED Only */}
+        {isRAED && (
+          <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="h-5 w-5 text-blue-600" />
+              <h5 className="font-medium text-blue-800">Contract & Timeline Information</h5>
+              <Badge variant="outline" className="text-blue-600 border-blue-300">RAED Only</Badge>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Contract Effectivity</label>
+                <input
+                  type="date"
+                  value={contractEffectivity}
+                  onChange={(e) => setContractEffectivity(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Contract Expiry</label>
+                <input
+                  type="date"
+                  value={contractExpiry}
+                  onChange={(e) => setContractExpiry(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Actual Start Date</label>
+                <input
+                  type="date"
+                  value={actualStartDate}
+                  onChange={(e) => setActualStartDate(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Target Completion Date</label>
+                <div className="flex gap-2">
+                  <input
+                    type="date"
+                    value={targetCompletionDate}
+                    onChange={(e) => setTargetCompletionDate(e.target.value)}
+                    className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowExtensionModal(true)}
+                    className="px-3"
+                  >
+                    <Clock className="h-4 w-4 mr-1" />
+                    Extension
+                  </Button>
+                </div>
+                {initialTargetCompletionDate && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Initial target: {new Date(initialTargetCompletionDate).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Contract Extension Modal */}
+        <Dialog open={showExtensionModal} onOpenChange={setShowExtensionModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Apply for Contract Extension</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Initial Target Completion Date</label>
+                <div className="p-2 bg-gray-50 border rounded-md text-sm">
+                  {new Date(initialTargetCompletionDate).toLocaleDateString()}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">New Target Completion Date</label>
+                <input
+                  type="date"
+                  value={newTargetDate}
+                  onChange={(e) => setNewTargetDate(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Reason for Extension</label>
+                <textarea
+                  value={extensionReason}
+                  onChange={(e) => setExtensionReason(e.target.value)}
+                  placeholder="Please provide a detailed reason for the contract extension..."
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3 justify-end">
+                <Button variant="outline" onClick={() => setShowExtensionModal(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleApplyExtension} disabled={!newTargetDate || !extensionReason}>
+                  Apply Extension
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
+
+      {/* Accomplishments Section - RAED Only */}
+      {isRAED && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileCheck className="h-4 w-4 text-green-600" />
+              <div>
+                <h4 className="font-medium">Project Accomplishments</h4>
+                {accomplishments.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Total: {accomplishments.reduce((sum, acc) => sum + acc.progress, 0)}% ({accomplishments.length} items)
+                  </p>
+                )}
+              </div>
+              <Badge variant="outline" className="text-green-600 border-green-300 text-xs">RAED Only</Badge>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAccomplishmentModal(true)}
+              className="text-xs px-3 py-1 h-7"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add
+            </Button>
+          </div>
+
+          {accomplishments.length > 0 ? (
+            <div className="space-y-3">
+              {accomplishments.map((accomplishment) => (
+                <div key={accomplishment.id} className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                        <span className="text-sm font-medium">
+                          {new Date(accomplishment.date).toLocaleDateString()}
+                        </span>
+                        <Badge variant={accomplishment.progress >= 100 ? "default" : "secondary"} className="text-xs">
+                          {accomplishment.progress}%
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed">{accomplishment.description}</p>
+                      {accomplishment.documents.length > 0 && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <FileText className="h-3 w-3 text-blue-500" />
+                          <span className="text-xs text-blue-600">
+                            {accomplishment.documents.length} doc{accomplishment.documents.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditAccomplishment(accomplishment.id)}
+                        className="h-6 w-6 p-0 hover:bg-blue-100"
+                      >
+                        <Edit2 className="h-3 w-3 text-blue-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteAccomplishment(accomplishment.id)}
+                        className="h-6 w-6 p-0 hover:bg-red-100"
+                      >
+                        <Trash2 className="h-3 w-3 text-red-600" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-gray-500">
+              <FileCheck className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+              <p className="text-sm">No accomplishments recorded yet</p>
+              <p className="text-xs text-gray-400">Click "Add Accomplishment" to start tracking progress</p>
+            </div>
+          )}
+
+          {/* Add/Edit Accomplishment Modal */}
+          <Dialog open={showAccomplishmentModal} onOpenChange={(open) => {
+            setShowAccomplishmentModal(open)
+            if (!open) {
+              setEditingAccomplishment(null)
+              setNewAccomplishment({ date: '', description: '', progress: 0 })
+            }
+          }}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingAccomplishment ? 'Edit Project Accomplishment' : 'Add Project Accomplishment'}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Date</label>
+                  <input
+                    type="date"
+                    value={newAccomplishment.date}
+                    onChange={(e) => setNewAccomplishment(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Progress Percentage</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={newAccomplishment.progress}
+                    onChange={(e) => setNewAccomplishment(prev => ({ ...prev, progress: parseInt(e.target.value) || 0 }))}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Accomplishment Description</label>
+                  <textarea
+                    value={newAccomplishment.description}
+                    onChange={(e) => setNewAccomplishment(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe what was accomplished on this date..."
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Supporting Documents (Optional)</label>
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Upload photos, reports, or other supporting documents
+                  </p>
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <Button variant="outline" onClick={() => setShowAccomplishmentModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleAddAccomplishment} disabled={!newAccomplishment.date || !newAccomplishment.description}>
+                    {editingAccomplishment ? 'Update Accomplishment' : 'Add Accomplishment'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+
+      {/* Implementation Timeline - Read Only for Non-RAED */}
+      {!isRAED && (
+        <div>
+          <h4 className="font-medium mb-2">Implementation Timeline</h4>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Start Date</span>
+              <span className="text-muted-foreground">Jan 1, 2025</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Expected Completion</span>
+              <span className="text-muted-foreground">Mar 31, 2025</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
