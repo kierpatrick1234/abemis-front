@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, LogIn, UserPlus, ChevronDown, ChevronUp, CheckCircle, XCircle, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, LogIn, UserPlus, ChevronDown, ChevronUp, CheckCircle, XCircle, ArrowLeft, Zap } from 'lucide-react'
 import { AbemisLogo } from '@/components/abemis-logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -788,19 +788,38 @@ export default function LoginPage() {
                         <div 
                           key={index} 
                           className="text-xs space-y-1 p-2 bg-background rounded border cursor-pointer hover:bg-accent transition-colors"
-                          onClick={() => {
-                            // Auto-fill the form
-                            const emailInput = document.getElementById('email') as HTMLInputElement
-                            const passwordInput = document.getElementById('password') as HTMLInputElement
-                            if (emailInput) emailInput.value = cred.email
-                            if (passwordInput) passwordInput.value = cred.password
-                            // Trigger form validation
-                            emailInput?.dispatchEvent(new Event('input', { bubbles: true }))
-                            passwordInput?.dispatchEvent(new Event('input', { bubbles: true }))
+                          onClick={async () => {
+                            // Auto-login with test credentials
+                            setIsLoading(true)
+                            setError(null)
+                            
+                            try {
+                              console.log('Auto-login with:', cred.email, cred.password)
+                              const result = await signIn(cred.email, cred.password)
+                              console.log('Auto-login result:', result)
+                              
+                              if (result.success) {
+                                console.log('Auto-login successful, redirecting to dashboard')
+                                // Reset failed attempts on successful login
+                                setFailedAttempts(0)
+                                router.push('/dashboard')
+                              } else {
+                                console.log('Auto-login failed:', result.error)
+                                setError(result.error || 'Auto-login failed')
+                                setIsLoading(false)
+                              }
+                            } catch (error) {
+                              console.error('Auto-login error:', error)
+                              setError('An unexpected error occurred during auto-login')
+                              setIsLoading(false)
+                            }
                           }}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-medium text-foreground">{cred.role}</span>
+                            <span className="font-medium text-foreground flex items-center gap-1">
+                              <Zap className="h-3 w-3 text-yellow-500" />
+                              {cred.role}
+                            </span>
                             <span className="text-muted-foreground">{cred.description}</span>
                           </div>
                           <div className="grid grid-cols-2 gap-2 text-xs">
@@ -817,7 +836,7 @@ export default function LoginPage() {
                       ))}
                     </div>
                     <p className="text-xs text-muted-foreground mt-3">
-                      Click on any credential to auto-fill the login form
+                      Click on any credential to automatically log in
                     </p>
                   </div>
                 )}
