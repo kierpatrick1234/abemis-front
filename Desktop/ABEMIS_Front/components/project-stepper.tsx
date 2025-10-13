@@ -1,16 +1,18 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
-import { Check, FileText, ShoppingCart, Wrench, CheckCircle, Package, Upload, XCircle, Eye, Download, MessageSquare, Calendar, Clock, Plus, FileCheck, ArrowRight, Edit2, Trash2 } from 'lucide-react'
+import { Check, FileText, ShoppingCart, Wrench, CheckCircle, Package, Upload, XCircle, Eye, Download, MessageSquare, Calendar, Clock, Plus, FileCheck, ArrowRight, Edit2, Trash2, Image, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { DocumentPreviewModal } from '@/components/document-preview-modal'
 import { Project } from '@/lib/types'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatDateForDisplay } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
 
 interface ProjectStepperProps {
@@ -59,7 +61,8 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
     'Proposal': 'proposal',
     'Procurement': 'procurement', 
     'Implementation': 'implementation',
-    'Completed': 'completed'
+    'Completed': 'completed',
+    'Inventory': 'inventory'
   }
   
   const mappedCurrentStatus = statusToStepMap[currentStatus] || 'proposal'
@@ -94,7 +97,8 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
         'proposal': 'Proposal',
         'procurement': 'Procurement',
         'implementation': 'Implementation',
-        'completed': 'Completed'
+        'completed': 'Completed',
+        'inventory': 'Inventory'
       }
       // Only update currentStepStatus if clicking on current stage or forward
       if (stepIndex >= currentStepIndex) {
@@ -114,7 +118,8 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
         'proposal': 'Proposal',
         'procurement': 'Procurement',
         'implementation': 'Implementation',
-        'completed': 'Completed'
+        'completed': 'Completed',
+        'inventory': 'Inventory'
       }
       setCurrentStepStatus(stepToStatusMap[nextStep] || nextStep)
       onStepClick(nextStep)
@@ -243,7 +248,7 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
             <ImplementationStepContent />
           )}
           {activeStep === 'completed' && (
-            <CompletedStepContent />
+            <CompletedStepContent project={project} onStepClick={onStepClick} />
           )}
           {activeStep === 'inventory' && (
             <InventoryStepContent />
@@ -1415,7 +1420,7 @@ function ImplementationStepContent() {
       setExtensionReason('')
       
       // Show success toast
-      showToast("Extension Applied", `Target completion date extended to ${new Date(newTargetDate).toLocaleDateString()}.`, "success")
+      showToast("Extension Applied", `Target completion date extended to ${formatDateForDisplay(newTargetDate)}.`, "success")
     }
   }
   
@@ -1828,26 +1833,30 @@ function ImplementationStepContent() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Contract Effectivity *</label>
-                <input
-                  type="date"
-                  value={contractEffectivity}
-                  onChange={(e) => {
-                    setContractEffectivity(e.target.value)
-                    if (contractValidationErrors.contractEffectivity) {
-                      setContractValidationErrors(prev => ({ ...prev, contractEffectivity: false }))
-                    }
-                  }}
-                  disabled={isContractSaved && !isEditMode}
-                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    contractValidationErrors.contractEffectivity ? 'border-red-500 bg-red-50' : 
-                    isContractSaved && !isEditMode ? 'border-green-300 bg-green-50 text-green-800' : 'border-gray-300'
-                  } ${isContractSaved && !isEditMode ? 'cursor-not-allowed' : ''}`}
-                />
+                {isContractSaved && !isEditMode ? (
+                  <div className="w-full p-2 border border-green-300 bg-green-50 text-green-800 rounded-md cursor-not-allowed">
+                    {formatDateForDisplay(contractEffectivity)}
+                  </div>
+                ) : (
+                  <input
+                    type="date"
+                    value={contractEffectivity}
+                    onChange={(e) => {
+                      setContractEffectivity(e.target.value)
+                      if (contractValidationErrors.contractEffectivity) {
+                        setContractValidationErrors(prev => ({ ...prev, contractEffectivity: false }))
+                      }
+                    }}
+                    className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      contractValidationErrors.contractEffectivity ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
+                  />
+                )}
                 {contractValidationErrors.contractEffectivity && (
                   <p className="text-xs text-red-600 mt-1">Contract effectivity date is required</p>
                 )}
                 {isContractSaved && !isEditMode && (
-                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {new Date().toLocaleDateString()}</p>
+                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {formatDateForDisplay(new Date())}</p>
                 )}
                 {isContractSaved && isEditMode && (
                   <p className="text-xs text-orange-600 mt-1">✏️ Edit mode - Make your changes and save</p>
@@ -1855,26 +1864,30 @@ function ImplementationStepContent() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Contract Expiry *</label>
-                <input
-                  type="date"
-                  value={contractExpiry}
-                  onChange={(e) => {
-                    setContractExpiry(e.target.value)
-                    if (contractValidationErrors.contractExpiry) {
-                      setContractValidationErrors(prev => ({ ...prev, contractExpiry: false }))
-                    }
-                  }}
-                  disabled={isContractSaved && !isEditMode}
-                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    contractValidationErrors.contractExpiry ? 'border-red-500 bg-red-50' : 
-                    isContractSaved && !isEditMode ? 'border-green-300 bg-green-50 text-green-800' : 'border-gray-300'
-                  } ${isContractSaved && !isEditMode ? 'cursor-not-allowed' : ''}`}
-                />
+                {isContractSaved && !isEditMode ? (
+                  <div className="w-full p-2 border border-green-300 bg-green-50 text-green-800 rounded-md cursor-not-allowed">
+                    {formatDateForDisplay(contractExpiry)}
+                  </div>
+                ) : (
+                  <input
+                    type="date"
+                    value={contractExpiry}
+                    onChange={(e) => {
+                      setContractExpiry(e.target.value)
+                      if (contractValidationErrors.contractExpiry) {
+                        setContractValidationErrors(prev => ({ ...prev, contractExpiry: false }))
+                      }
+                    }}
+                    className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      contractValidationErrors.contractExpiry ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
+                  />
+                )}
                 {contractValidationErrors.contractExpiry && (
                   <p className="text-xs text-red-600 mt-1">Contract expiry date is required</p>
                 )}
                 {isContractSaved && !isEditMode && (
-                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {new Date().toLocaleDateString()}</p>
+                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {formatDateForDisplay(new Date())}</p>
                 )}
                 {isContractSaved && isEditMode && (
                   <p className="text-xs text-orange-600 mt-1">✏️ Edit mode - Make your changes and save</p>
@@ -1885,26 +1898,30 @@ function ImplementationStepContent() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Actual Start Date *</label>
-                <input
-                  type="date"
-                  value={actualStartDate}
-                  onChange={(e) => {
-                    setActualStartDate(e.target.value)
-                    if (contractValidationErrors.actualStartDate) {
-                      setContractValidationErrors(prev => ({ ...prev, actualStartDate: false }))
-                    }
-                  }}
-                  disabled={isContractSaved && !isEditMode}
-                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    contractValidationErrors.actualStartDate ? 'border-red-500 bg-red-50' : 
-                    isContractSaved && !isEditMode ? 'border-green-300 bg-green-50 text-green-800' : 'border-gray-300'
-                  } ${isContractSaved && !isEditMode ? 'cursor-not-allowed' : ''}`}
-                />
+                {isContractSaved && !isEditMode ? (
+                  <div className="w-full p-2 border border-green-300 bg-green-50 text-green-800 rounded-md cursor-not-allowed">
+                    {formatDateForDisplay(actualStartDate)}
+                  </div>
+                ) : (
+                  <input
+                    type="date"
+                    value={actualStartDate}
+                    onChange={(e) => {
+                      setActualStartDate(e.target.value)
+                      if (contractValidationErrors.actualStartDate) {
+                        setContractValidationErrors(prev => ({ ...prev, actualStartDate: false }))
+                      }
+                    }}
+                    className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      contractValidationErrors.actualStartDate ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
+                  />
+                )}
                 {contractValidationErrors.actualStartDate && (
                   <p className="text-xs text-red-600 mt-1">Actual start date is required</p>
                 )}
                 {isContractSaved && !isEditMode && (
-                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {new Date().toLocaleDateString()}</p>
+                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {formatDateForDisplay(new Date())}</p>
                 )}
                 {isContractSaved && isEditMode && (
                   <p className="text-xs text-orange-600 mt-1">✏️ Edit mode - Make your changes and save</p>
@@ -1913,25 +1930,29 @@ function ImplementationStepContent() {
               <div>
                 <label className="block text-sm font-medium mb-2">Target Completion Date *</label>
                 <div className="flex gap-2">
-                  <input
-                    type="date"
-                    value={targetCompletionDate}
-                    onChange={(e) => {
-                      setTargetCompletionDate(e.target.value)
-                      // Set initial target date if it's the first time RAED inputs it
-                      if (!initialTargetCompletionDate && e.target.value) {
-                        setInitialTargetCompletionDate(e.target.value)
-                      }
-                      if (contractValidationErrors.targetCompletionDate) {
-                        setContractValidationErrors(prev => ({ ...prev, targetCompletionDate: false }))
-                      }
-                    }}
-                    disabled={isContractSaved && !isEditMode}
-                    className={`flex-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      contractValidationErrors.targetCompletionDate ? 'border-red-500 bg-red-50' : 
-                      isContractSaved && !isEditMode ? 'border-green-300 bg-green-50 text-green-800' : 'border-gray-300'
-                    } ${isContractSaved && !isEditMode ? 'cursor-not-allowed' : ''}`}
-                  />
+                  {isContractSaved && !isEditMode ? (
+                    <div className="flex-1 p-2 border border-green-300 bg-green-50 text-green-800 rounded-md cursor-not-allowed">
+                      {formatDateForDisplay(targetCompletionDate)}
+                    </div>
+                  ) : (
+                    <input
+                      type="date"
+                      value={targetCompletionDate}
+                      onChange={(e) => {
+                        setTargetCompletionDate(e.target.value)
+                        // Set initial target date if it's the first time RAED inputs it
+                        if (!initialTargetCompletionDate && e.target.value) {
+                          setInitialTargetCompletionDate(e.target.value)
+                        }
+                        if (contractValidationErrors.targetCompletionDate) {
+                          setContractValidationErrors(prev => ({ ...prev, targetCompletionDate: false }))
+                        }
+                      }}
+                      className={`flex-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        contractValidationErrors.targetCompletionDate ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      }`}
+                    />
+                  )}
                   {(!isContractSaved || isEditMode) && (
                     <Button
                       variant="outline"
@@ -1949,11 +1970,11 @@ function ImplementationStepContent() {
                 )}
                 {initialTargetCompletionDate && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Initial target: {new Date(initialTargetCompletionDate).toLocaleDateString()}
+                    Initial target: {formatDateForDisplay(initialTargetCompletionDate)}
                   </p>
                 )}
                 {isContractSaved && !isEditMode && (
-                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {new Date().toLocaleDateString()}</p>
+                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {formatDateForDisplay(new Date())}</p>
                 )}
                 {isContractSaved && isEditMode && (
                   <p className="text-xs text-orange-600 mt-1">✏️ Edit mode - Make your changes and save</p>
@@ -1963,17 +1984,13 @@ function ImplementationStepContent() {
           </div>
         )}
 
-        {/* Contract Extension Modal - Available when not saved or in edit mode */}
-        <Dialog open={showExtensionModal && (!isContractSaved || isEditMode)} onOpenChange={(open) => {
-          if (!isContractSaved || isEditMode) {
-            setShowExtensionModal(open)
-          }
-        }}>
+        {/* Contract Extension Modal - Always available */}
+        <Dialog open={showExtensionModal} onOpenChange={setShowExtensionModal}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Apply for Contract Extension</DialogTitle>
               <p className="text-sm text-muted-foreground">
-                Note: Extensions can be applied when not saved or in edit mode.
+                Apply for an extension to update the target completion date.
               </p>
             </DialogHeader>
             <div className="space-y-4">
@@ -1981,7 +1998,7 @@ function ImplementationStepContent() {
                 <label className="block text-sm font-medium mb-2">Initial Target Completion Date</label>
                 <div className="p-2 bg-gray-50 border rounded-md text-sm">
                   {initialTargetCompletionDate 
-                    ? new Date(initialTargetCompletionDate).toLocaleDateString()
+                    ? formatDateForDisplay(initialTargetCompletionDate)
                     : 'Not set yet'
                   }
                 </div>
@@ -1989,7 +2006,7 @@ function ImplementationStepContent() {
               <div>
                 <label className="block text-sm font-medium mb-2">Current Target Completion Date</label>
                 <div className="p-2 bg-blue-50 border border-blue-200 rounded-md text-sm">
-                  {new Date(targetCompletionDate).toLocaleDateString()}
+                  {formatDateForDisplay(targetCompletionDate)}
                 </div>
               </div>
               <div>
@@ -2002,7 +2019,7 @@ function ImplementationStepContent() {
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Must be after current target date: {new Date(targetCompletionDate).toLocaleDateString()}
+                  Must be after current target date: {formatDateForDisplay(targetCompletionDate)}
                 </p>
               </div>
               <div>
@@ -2024,8 +2041,8 @@ function ImplementationStepContent() {
                     {extensionHistory.map((extension, index) => (
                       <div key={extension.id} className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs">
                         <div className="font-medium">Extension #{index + 1}</div>
-                        <div>From: {new Date(extension.previousDate).toLocaleDateString()}</div>
-                        <div>To: {new Date(extension.newDate).toLocaleDateString()}</div>
+                        <div>From: {formatDateForDisplay(extension.previousDate)}</div>
+                        <div>To: {formatDateForDisplay(extension.newDate)}</div>
                         <div className="text-gray-600 mt-1">{extension.reason}</div>
                       </div>
                     ))}
@@ -2064,25 +2081,26 @@ function ImplementationStepContent() {
             </div>
             <Button
               variant="outline"
-              size="sm"
               onClick={() => setShowAccomplishmentModal(true)}
-              className="text-xs px-3 py-1 h-7"
+              className="text-sm px-4 py-2 h-10 font-medium border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50"
             >
-              <Plus className="h-3 w-3 mr-1" />
-              Add
+              <Plus className="h-4 w-4 mr-2" />
+              Add Accomplishment
             </Button>
           </div>
 
           {accomplishments.length > 0 ? (
             <div className="space-y-3">
-              {accomplishments.map((accomplishment) => (
+              {accomplishments
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .map((accomplishment) => (
                 <div key={accomplishment.id} className="p-3 border border-gray-200 rounded-lg bg-gray-50">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
                         <span className="text-sm font-medium">
-                          {new Date(accomplishment.date).toLocaleDateString()}
+                          {formatDateForDisplay(accomplishment.date)}
                         </span>
                         <Badge variant={accomplishment.progress >= 100 ? "default" : "secondary"} className="text-xs">
                           {accomplishment.progress}%
@@ -2164,13 +2182,13 @@ function ImplementationStepContent() {
                   )}
                   {actualStartDate && targetCompletionDate && (
                     <p className="text-xs text-gray-500 mt-1">
-                      Must be on or after {new Date(actualStartDate).toLocaleDateString()}. 
-                      Dates beyond {new Date(targetCompletionDate).toLocaleDateString()} will show slippage.
+                      Must be on or after {formatDateForDisplay(actualStartDate)}. 
+                      Dates beyond {formatDateForDisplay(targetCompletionDate)} will show slippage.
                     </p>
                   )}
                   {actualStartDate && !targetCompletionDate && (
                     <p className="text-xs text-gray-500 mt-1">
-                      Must be on or after {new Date(actualStartDate).toLocaleDateString()}. 
+                      Must be on or after {formatDateForDisplay(actualStartDate)}. 
                       Set target completion date first to enable slippage detection.
                     </p>
                   )}
@@ -2303,26 +2321,475 @@ function ImplementationStepContent() {
   )
 }
 
-function CompletedStepContent() {
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <h4 className="font-medium mb-2">Completion Date</h4>
-          <span className="text-sm">March 15, 2025</span>
-        </div>
-        <div>
-          <h4 className="font-medium mb-2">Final Inspection</h4>
-          <Badge variant="default">Passed</Badge>
-        </div>
-      </div>
+function CompletedStepContent({ project, onStepClick }: { project?: Project, onStepClick?: (step: string) => void }) {
+  const { user } = useAuth()
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedProject, setEditedProject] = useState<Project | null>(null)
+  
+  // File upload refs
+  const cadFileRef = useRef<HTMLInputElement>(null)
+  const pdfFileRef = useRef<HTMLInputElement>(null)
+  const photoFileRef = useRef<HTMLInputElement>(null)
+
+  const currentProject = editedProject || project
+
+  const handleEdit = () => {
+    setIsEditing(true)
+    setEditedProject({ ...project } as Project)
+  }
+
+  const handleSave = () => {
+    // In a real app, this would update the project in the backend
+    console.log('Project updated:', editedProject)
+    
+    // Temporarily update the project to show the changes
+    if (editedProject) {
+      // Update the project object with the edited data
+      Object.assign(project as Project, editedProject)
+    }
+    
+    setIsEditing(false)
+    setEditedProject(null)
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    setEditedProject(null)
+  }
+
+  const handleDateChange = (field: 'dateCompleted' | 'dateTurnedOver', value: string) => {
+    if (editedProject) {
+      setEditedProject({
+        ...editedProject,
+        [field]: value
+      })
+    }
+  }
+
+  const handleFileUpload = (type: 'cad' | 'pdf' | 'photo') => {
+    const ref = type === 'cad' ? cadFileRef : type === 'pdf' ? pdfFileRef : photoFileRef
+    ref.current?.click()
+  }
+
+  const handleFileSelect = (type: 'cad' | 'pdf' | 'photo', event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !editedProject) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const fileUrl = e.target?.result as string
       
-      <div>
-        <h4 className="font-medium mb-2">Project Summary</h4>
-        <p className="text-sm text-muted-foreground">
-          Project completed successfully with all deliverables met according to specifications.
-        </p>
+      if (type === 'cad' || type === 'pdf') {
+        setEditedProject({
+          ...editedProject,
+          asBuiltPlans: {
+            ...editedProject.asBuiltPlans,
+            [type]: fileUrl
+          }
+        })
+      } else if (type === 'photo') {
+        setEditedProject({
+          ...editedProject,
+          postGeotaggedPhotos: [
+            ...(editedProject.postGeotaggedPhotos || []),
+            fileUrl
+          ]
+        })
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removeFile = (type: 'cad' | 'pdf' | 'photo', index?: number) => {
+    if (!editedProject) return
+
+    if (type === 'cad' || type === 'pdf') {
+      setEditedProject({
+        ...editedProject,
+        asBuiltPlans: {
+          ...editedProject.asBuiltPlans,
+          [type]: undefined
+        }
+      })
+    } else if (type === 'photo' && index !== undefined) {
+      setEditedProject({
+        ...editedProject,
+        postGeotaggedPhotos: editedProject.postGeotaggedPhotos?.filter((_, i) => i !== index)
+      })
+    }
+  }
+
+  const canMoveToInventory = () => {
+    return currentProject?.asBuiltPlans?.cad && 
+           currentProject?.asBuiltPlans?.pdf && 
+           currentProject?.postGeotaggedPhotos && 
+           currentProject.postGeotaggedPhotos.length > 0
+  }
+
+  const handleMoveToInventory = () => {
+    if (!editedProject) return
+    
+    const updatedProject = {
+      ...editedProject,
+      status: 'Inventory' as const,
+      updatedAt: new Date().toISOString()
+    }
+    
+    // In a real app, this would update the project status in the backend
+    console.log('Moving project to inventory:', updatedProject)
+    
+    // Call the step click handler to update the UI
+    if (onStepClick) {
+      onStepClick('inventory')
+    }
+    
+    alert('Project has been successfully moved to the Inventory stage!')
+  }
+
+  const hasRequiredUploads = canMoveToInventory()
+  const isRAED = user?.role === 'RAED'
+
+  return (
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-muted">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+          </div>
+          <div>
+            <h4 className="text-lg font-semibold">Project Completion Details</h4>
+            <p className="text-sm text-muted-foreground">Manage completion documentation and inventory transfer</p>
+          </div>
+        </div>
+        {isRAED && !isEditing && (
+          <Button onClick={handleEdit} variant="outline" size="sm">
+            <Edit2 className="h-4 w-4 mr-2" />
+            Edit Details
+          </Button>
+        )}
+        {isEditing && (
+          <div className="flex gap-2">
+            <Button onClick={handleSave} size="sm">
+              <Check className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+            <Button onClick={handleCancel} variant="outline" size="sm">
+              Cancel
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Date Fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Date Completed</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isEditing ? (
+              <Input
+                type="date"
+                value={currentProject?.dateCompleted || ''}
+                onChange={(e) => handleDateChange('dateCompleted', e.target.value)}
+              />
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-sm">
+                  {currentProject?.dateCompleted ? formatDate(currentProject.dateCompleted) : 'Not specified'}
+                </span>
+                {!currentProject?.dateCompleted && (
+                  <Badge variant="secondary" className="text-xs">
+                    Required
+                  </Badge>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Date Turned Over</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isEditing ? (
+              <Input
+                type="date"
+                value={currentProject?.dateTurnedOver || ''}
+                onChange={(e) => handleDateChange('dateTurnedOver', e.target.value)}
+              />
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-sm">
+                  {currentProject?.dateTurnedOver ? formatDate(currentProject.dateTurnedOver) : 'Not specified'}
+                </span>
+                {!currentProject?.dateTurnedOver && (
+                  <Badge variant="secondary" className="text-xs">
+                    Required
+                  </Badge>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* As-Built Plans Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardTitle>As-Built Plans</CardTitle>
+          </div>
+          <p className="text-sm text-muted-foreground">Upload CAD and PDF files of the completed project</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* CAD File Upload */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">CAD</Badge>
+                <Label className="text-sm font-medium">CAD Files</Label>
+              </div>
+              {currentProject?.asBuiltPlans?.cad ? (
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">CAD file uploaded</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => window.open(currentProject.asBuiltPlans?.cad, '_blank')}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => window.open(currentProject.asBuiltPlans?.cad, '_blank')}>
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    {isEditing && (
+                      <Button size="sm" variant="ghost" onClick={() => removeFile('cad')}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${isEditing ? 'border-primary/50 hover:border-primary hover:bg-muted/50' : 'border-muted bg-muted/30 cursor-not-allowed'}`}
+                  onClick={() => isEditing && handleFileUpload('cad')}
+                >
+                  <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm font-medium">Upload CAD File</p>
+                  <p className="text-xs text-muted-foreground">.dwg, .dxf, .cad files</p>
+                  {!isEditing && (
+                    <Badge variant="secondary" className="mt-2 text-xs">
+                      Edit mode required
+                    </Badge>
+                  )}
+                </div>
+              )}
+              <input
+                ref={cadFileRef}
+                type="file"
+                accept=".dwg,.dxf,.cad"
+                className="hidden"
+                onChange={(e) => handleFileSelect('cad', e)}
+              />
+            </div>
+
+            {/* PDF File Upload */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">PDF</Badge>
+                <Label className="text-sm font-medium">PDF Files</Label>
+              </div>
+              {currentProject?.asBuiltPlans?.pdf ? (
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">PDF file uploaded</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => window.open(currentProject.asBuiltPlans?.pdf, '_blank')}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => window.open(currentProject.asBuiltPlans?.pdf, '_blank')}>
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    {isEditing && (
+                      <Button size="sm" variant="ghost" onClick={() => removeFile('pdf')}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${isEditing ? 'border-primary/50 hover:border-primary hover:bg-muted/50' : 'border-muted bg-muted/30 cursor-not-allowed'}`}
+                  onClick={() => isEditing && handleFileUpload('pdf')}
+                >
+                  <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm font-medium">Upload PDF File</p>
+                  <p className="text-xs text-muted-foreground">.pdf files</p>
+                  {!isEditing && (
+                    <Badge variant="secondary" className="mt-2 text-xs">
+                      Edit mode required
+                    </Badge>
+                  )}
+                </div>
+              )}
+              <input
+                ref={pdfFileRef}
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => handleFileSelect('pdf', e)}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Post-Geotagged Photos Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Image className="h-4 w-4 text-muted-foreground" />
+              <CardTitle>Post-Geotagged Photos</CardTitle>
+            </div>
+            {isEditing && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleFileUpload('photo')}
+              >
+                <Image className="h-4 w-4 mr-2" />
+                Add Photos
+              </Button>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">Upload photos with GPS location data</p>
+        </CardHeader>
+        <CardContent>
+          <input
+            ref={photoFileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFileSelect('photo', e)}
+          />
+
+          {/* Photo Grid */}
+          {currentProject?.postGeotaggedPhotos && currentProject.postGeotaggedPhotos.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {currentProject.postGeotaggedPhotos.map((photo, index) => (
+                <div key={index} className="relative group aspect-square">
+                  <img
+                    src={photo}
+                    alt={`Post-geotagged photo ${index + 1}`}
+                    className="w-full h-full object-cover rounded-lg border"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors rounded-lg flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
+                      <Button size="sm" variant="secondary" className="h-7 w-7 p-0" onClick={() => window.open(photo, '_blank')}>
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                      {isEditing && (
+                        <Button size="sm" variant="destructive" className="h-7 w-7 p-0" onClick={() => removeFile('photo', index)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="absolute top-1 left-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded text-[10px]">
+                    #{index + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div 
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isEditing ? 'border-primary/50 hover:border-primary hover:bg-muted/50' : 'border-muted bg-muted/30 cursor-not-allowed'}`}
+              onClick={() => isEditing && handleFileUpload('photo')}
+            >
+              <Image className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-sm font-medium mb-1">No photos uploaded yet</p>
+              <p className="text-xs text-muted-foreground mb-3">Upload photos with GPS location data</p>
+              {!isEditing && (
+                <Badge variant="secondary" className="text-xs">
+                  Edit mode required
+                </Badge>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Move to Inventory Section - RAED Only */}
+      {isRAED && (
+        <Card className={hasRequiredUploads ? "border-green-200 bg-green-50/50" : "border-orange-200 bg-orange-50/50"}>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${hasRequiredUploads ? 'bg-green-100' : 'bg-orange-100'}`}>
+                  <Package className={`h-5 w-5 ${hasRequiredUploads ? 'text-green-600' : 'text-orange-600'}`} />
+                </div>
+                <div>
+                  <h4 className="font-semibold">Move to Inventory Stage</h4>
+                  <p className="text-sm text-muted-foreground">Transfer project to inventory management</p>
+                </div>
+              </div>
+              <Button 
+                onClick={handleMoveToInventory}
+                disabled={!hasRequiredUploads}
+                className={hasRequiredUploads ? "" : "opacity-50 cursor-not-allowed"}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Move to Inventory
+              </Button>
+            </div>
+            
+            {/* Validation Status */}
+            {!hasRequiredUploads && (
+              <div className="p-3 rounded-lg bg-orange-100 border border-orange-200">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-orange-800 mb-1">Requirements Not Met</p>
+                    <div className="text-xs text-orange-700">
+                      <p className="mb-1">To proceed to inventory stage, please ensure:</p>
+                      <ul className="list-disc list-inside space-y-0.5 ml-2">
+                        <li>CAD as-built plan is uploaded</li>
+                        <li>PDF as-built plan is uploaded</li>
+                        <li>At least one post-geotagged photo is uploaded</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {hasRequiredUploads && (
+              <div className="p-3 rounded-lg bg-green-100 border border-green-200">
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-green-800">All Requirements Met</p>
+                    <p className="text-xs text-green-700">Project is ready to be moved to inventory stage.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
