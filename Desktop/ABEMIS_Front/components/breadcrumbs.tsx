@@ -13,6 +13,18 @@ interface BreadcrumbsProps {
 }
 
 export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
+  // If only one item and it's Dashboard, show just the home icon
+  if (items.length === 1 && items[0].label === 'Dashboard') {
+    return (
+      <nav className={cn('flex items-center space-x-1 text-sm text-muted-foreground', className)}>
+        <Link href="/dashboard" className="flex items-center hover:text-foreground">
+          <Home className="h-4 w-4" />
+          <span className="ml-2 text-foreground font-medium">Dashboard</span>
+        </Link>
+      </nav>
+    )
+  }
+
   return (
     <nav className={cn('flex items-center space-x-1 text-sm text-muted-foreground', className)}>
       <Link href="/dashboard" className="flex items-center hover:text-foreground">
