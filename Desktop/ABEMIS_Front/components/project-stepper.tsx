@@ -1207,11 +1207,27 @@ function ImplementationStepContent() {
   const [contractEffectivity, setContractEffectivity] = useState('')
   const [contractExpiry, setContractExpiry] = useState('')
   const [actualStartDate, setActualStartDate] = useState('')
-  const [targetCompletionDate, setTargetCompletionDate] = useState('')
-  const [initialTargetCompletionDate, setInitialTargetCompletionDate] = useState('2025-03-31') // Store initial date
+  const [targetCompletionDate, setTargetCompletionDate] = useState('') // RAED must input this first
+  const [initialTargetCompletionDate, setInitialTargetCompletionDate] = useState('') // Set when RAED first inputs target date
   const [showExtensionModal, setShowExtensionModal] = useState(false)
   const [newTargetDate, setNewTargetDate] = useState('')
   const [extensionReason, setExtensionReason] = useState('')
+  const [extensionHistory, setExtensionHistory] = useState<Array<{
+    id: string
+    previousDate: string
+    newDate: string
+    reason: string
+    dateRequested: string
+  }>>([])
+  
+  // State for validation errors
+  const [contractValidationErrors, setContractValidationErrors] = useState<{[key: string]: boolean}>({})
+  
+  // State for save functionality
+  const [isContractSaved, setIsContractSaved] = useState(false)
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isInitialSave, setIsInitialSave] = useState(false)
   
   // State for accomplishments and progress
   const [accomplishments, setAccomplishments] = useState<Array<{
@@ -1229,6 +1245,92 @@ function ImplementationStepContent() {
     progress: 0
   })
   
+  // State for accomplishment validation
+  const [accomplishmentValidationErrors, setAccomplishmentValidationErrors] = useState<{[key: string]: string}>({})
+  
+  // State for toast notifications
+  const [toastMessage, setToastMessage] = useState<{title: string, description: string, variant: 'default' | 'success' | 'error'} | null>(null)
+  
+  // Toast notification function
+  const showToast = (title: string, description: string, variant: 'default' | 'success' | 'error' = 'default') => {
+    setToastMessage({ title, description, variant })
+    // Auto-hide toast after 3 seconds
+    setTimeout(() => setToastMessage(null), 3000)
+  }
+  
+  // Save contract and timeline information
+  const handleSaveContractInfo = () => {
+    // Validate required fields before saving
+    const validationErrors: {[key: string]: boolean} = {}
+    const missingFields = []
+    
+    if (!contractEffectivity) {
+      validationErrors.contractEffectivity = true
+      missingFields.push('Contract Effectivity')
+    }
+    if (!contractExpiry) {
+      validationErrors.contractExpiry = true
+      missingFields.push('Contract Expiry')
+    }
+    if (!actualStartDate) {
+      validationErrors.actualStartDate = true
+      missingFields.push('Actual Start Date')
+    }
+    if (!targetCompletionDate) {
+      validationErrors.targetCompletionDate = true
+      missingFields.push('Target Completion Date')
+    }
+    
+    if (missingFields.length > 0) {
+      setContractValidationErrors(validationErrors)
+      alert(`Please complete the following fields before saving:\n\n${missingFields.join('\n')}`)
+      return
+    }
+    
+    // Clear validation errors if all fields are filled
+    setContractValidationErrors({})
+    
+    // Check if this is initial save or saving changes
+    const wasInitialSave = !isContractSaved
+    
+    // Save the contract information
+    setIsContractSaved(true)
+    setIsEditMode(false) // Exit edit mode after saving
+    setIsInitialSave(wasInitialSave) // Track if this was initial save
+    setShowSaveSuccess(true)
+    
+    // Hide success message after 3 seconds
+    setTimeout(() => {
+      setShowSaveSuccess(false)
+    }, 3000)
+    
+    // In a real app, this would save to the backend
+    console.log('Contract and timeline information saved:', {
+      contractEffectivity,
+      contractExpiry,
+      actualStartDate,
+      targetCompletionDate,
+      initialTargetCompletionDate
+    })
+    
+    // Different toast messages based on whether it's initial save or saving changes
+    if (wasInitialSave) {
+      showToast("Contract Information Saved", "Contract and timeline information has been saved successfully. Click Edit to modify.", "success")
+    } else {
+      showToast("Changes Saved", "Contract and timeline information has been updated successfully.", "success")
+    }
+  }
+  
+  // Toggle edit mode
+  const handleToggleEditMode = () => {
+    setIsEditMode(!isEditMode)
+    if (!isEditMode) {
+      showToast("Edit Mode", "Contract information is now editable. Make your changes and save.", "default")
+    } else {
+      showToast("View Mode", "Contract information is now in view mode.", "default")
+    }
+  }
+  
   // Calculate overall project progress based on accomplishments
   const calculateOverallProgress = () => {
     if (accomplishments.length === 0) {
@@ -1245,50 +1347,156 @@ function ImplementationStepContent() {
   const currentProgress = calculateOverallProgress()
   const isProgressComplete = currentProgress >= 100
   
+  // Calculate slippage when any accomplishment is beyond the current target completion date
+  const calculateSlippage = () => {
+    // Must have target completion date and accomplishments to check for slippage
+    if (!targetCompletionDate || accomplishments.length === 0) {
+      return null
+    }
+    
+    const currentTargetDate = new Date(targetCompletionDate)
+    const slippagePercentage = 100 - currentProgress
+    
+    // Check if any accomplishment is beyond the current target completion date
+    const overdueAccomplishments = accomplishments.filter(acc => {
+      const accDate = new Date(acc.date)
+      return accDate > currentTargetDate
+    })
+    
+    if (overdueAccomplishments.length > 0) {
+      // Find the furthest overdue accomplishment
+      const furthestOverdue = overdueAccomplishments.reduce((furthest, acc) => {
+        const accDate = new Date(acc.date)
+        const furthestDate = new Date(furthest.date)
+        return accDate > furthestDate ? acc : furthest
+      })
+      
+      const furthestOverdueDate = new Date(furthestOverdue.date)
+      const daysOverdue = Math.ceil((furthestOverdueDate.getTime() - currentTargetDate.getTime()) / (1000 * 60 * 60 * 24))
+      
+      return {
+        percentage: slippagePercentage,
+        daysOverdue: daysOverdue,
+        isOverdue: true,
+        reason: overdueAccomplishments.length === 1 
+          ? 'Accomplishment date is beyond current target completion date'
+          : `${overdueAccomplishments.length} accomplishments are beyond current target completion date`,
+        overdueCount: overdueAccomplishments.length,
+        hasExtension: extensionHistory.length > 0,
+        isProgressComplete: isProgressComplete
+      }
+    }
+    
+    return null
+  }
+  
+  const slippageInfo = calculateSlippage()
+  
   const handleApplyExtension = () => {
     if (newTargetDate && extensionReason) {
+      // Create extension record
+      const extensionRecord = {
+        id: Date.now().toString(),
+        previousDate: targetCompletionDate,
+        newDate: newTargetDate,
+        reason: extensionReason,
+        dateRequested: new Date().toISOString()
+      }
+      
+      // Add to extension history
+      setExtensionHistory(prev => [...prev, extensionRecord])
+      
+      // Update target completion date
       setTargetCompletionDate(newTargetDate)
+      
+      // Close modal and reset form
       setShowExtensionModal(false)
       setNewTargetDate('')
       setExtensionReason('')
-      alert('Contract extension request submitted successfully!')
+      
+      // Show success toast
+      showToast("Extension Applied", `Target completion date extended to ${new Date(newTargetDate).toLocaleDateString()}.`, "success")
     }
   }
   
-  const handleAddAccomplishment = () => {
-    if (newAccomplishment.date && newAccomplishment.description) {
-      if (editingAccomplishment) {
-        // Update existing accomplishment
-        setAccomplishments(prev => prev.map(acc => 
-          acc.id === editingAccomplishment 
-            ? { ...acc, ...newAccomplishment }
-            : acc
-        ))
-        setEditingAccomplishment(null)
-        // Calculate new total progress after update
-        const updatedAccomplishments = accomplishments.map(acc => 
-          acc.id === editingAccomplishment 
-            ? { ...acc, ...newAccomplishment }
-            : acc
-        )
-        const newTotalProgress = Math.min(updatedAccomplishments.reduce((sum, acc) => sum + acc.progress, 0), 100)
-        alert(`Accomplishment updated! Project progress updated to ${newTotalProgress}%.`)
-      } else {
-        // Add new accomplishment
-        const accomplishment = {
-          id: Date.now().toString(),
-          ...newAccomplishment,
-          documents: []
-        }
-        setAccomplishments(prev => [...prev, accomplishment])
-        // Calculate new total progress after adding
-        const newTotalProgress = Math.min([...accomplishments, accomplishment].reduce((sum, acc) => sum + acc.progress, 0), 100)
-        alert(`Accomplishment added! Project progress updated to ${newTotalProgress}%.`)
-      }
-      
-      setShowAccomplishmentModal(false)
-      setNewAccomplishment({ date: '', description: '', progress: 0 })
+  const validateAccomplishmentDate = (date: string) => {
+    if (!actualStartDate) {
+      return null // No validation if actual start date not set
     }
+    
+    const accomplishmentDate = new Date(date)
+    const startDate = new Date(actualStartDate)
+    
+    // Only prevent dates before the actual start date
+    if (accomplishmentDate < startDate) {
+      return 'Date is before the actual start date'
+    }
+    
+    return null
+  }
+  
+  const handleAddAccomplishment = () => {
+    // Clear previous validation errors
+    setAccomplishmentValidationErrors({})
+    
+    const validationErrors: {[key: string]: string} = {}
+    
+    // Validate required fields
+    if (!newAccomplishment.date) {
+      validationErrors.date = 'Date is required'
+    } else {
+      // Validate date range
+      const dateValidationError = validateAccomplishmentDate(newAccomplishment.date)
+      if (dateValidationError) {
+        validationErrors.date = dateValidationError
+      }
+    }
+    
+    if (!newAccomplishment.description.trim()) {
+      validationErrors.description = 'Description is required'
+    }
+    
+    if (newAccomplishment.progress < 0 || newAccomplishment.progress > 100) {
+      validationErrors.progress = 'Progress must be between 0 and 100'
+    }
+    
+    // If there are validation errors, show them and return
+    if (Object.keys(validationErrors).length > 0) {
+      setAccomplishmentValidationErrors(validationErrors)
+      return
+    }
+    
+    if (editingAccomplishment) {
+      // Update existing accomplishment
+      setAccomplishments(prev => prev.map(acc => 
+        acc.id === editingAccomplishment 
+          ? { ...acc, ...newAccomplishment }
+          : acc
+      ))
+      setEditingAccomplishment(null)
+      // Calculate new total progress after update
+      const updatedAccomplishments = accomplishments.map(acc => 
+        acc.id === editingAccomplishment 
+          ? { ...acc, ...newAccomplishment }
+          : acc
+      )
+      const newTotalProgress = Math.min(updatedAccomplishments.reduce((sum, acc) => sum + acc.progress, 0), 100)
+      showToast("Accomplishment Updated", `Project progress updated to ${newTotalProgress}%.`, "success")
+    } else {
+      // Add new accomplishment
+      const accomplishment = {
+        id: Date.now().toString(),
+        ...newAccomplishment,
+        documents: []
+      }
+      setAccomplishments(prev => [...prev, accomplishment])
+      // Calculate new total progress after adding
+      const newTotalProgress = Math.min([...accomplishments, accomplishment].reduce((sum, acc) => sum + acc.progress, 0), 100)
+      showToast("Accomplishment Added", `Project progress updated to ${newTotalProgress}%.`, "success")
+    }
+    
+    setShowAccomplishmentModal(false)
+    setNewAccomplishment({ date: '', description: '', progress: 0 })
   }
   
   const handleEditAccomplishment = (accomplishmentId: string) => {
@@ -1315,11 +1523,41 @@ function ImplementationStepContent() {
         ? Math.min(remainingAccomplishments.reduce((sum, acc) => sum + acc.progress, 0), 100)
         : 0
       
-      alert(`Accomplishment deleted successfully! Project progress updated to ${newTotalProgress}%.`)
+      showToast("Accomplishment Deleted", `Project progress updated to ${newTotalProgress}%.`, "success")
     }
   }
   
   const handleMoveToNextStage = () => {
+    // Validate contract and timeline information before moving to completed stage
+    const validationErrors: {[key: string]: boolean} = {}
+    const missingFields = []
+    
+    if (!contractEffectivity) {
+      validationErrors.contractEffectivity = true
+      missingFields.push('Contract Effectivity')
+    }
+    if (!contractExpiry) {
+      validationErrors.contractExpiry = true
+      missingFields.push('Contract Expiry')
+    }
+    if (!actualStartDate) {
+      validationErrors.actualStartDate = true
+      missingFields.push('Actual Start Date')
+    }
+    if (!targetCompletionDate) {
+      validationErrors.targetCompletionDate = true
+      missingFields.push('Target Completion Date')
+    }
+    
+    if (missingFields.length > 0) {
+      setContractValidationErrors(validationErrors)
+      alert(`Please complete the following contract and timeline information before moving to the completed stage:\n\n${missingFields.join('\n')}`)
+      return
+    }
+    
+    // Clear validation errors if all fields are filled
+    setContractValidationErrors({})
+    
     // In a real app, this would update the project status in the backend
     console.log('Moving project to completed stage')
     alert('Project has been successfully moved to the Completed stage!')
@@ -1340,9 +1578,16 @@ function ImplementationStepContent() {
           </div>
           <div>
             <h4 className="font-medium mb-2">Progress</h4>
-            <Badge variant={isProgressComplete ? "default" : "secondary"}>
-              {currentProgress}% Complete
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant={isProgressComplete ? "default" : "secondary"}>
+                {currentProgress}% Complete
+              </Badge>
+              {slippageInfo && slippageInfo.isOverdue && (
+                <Badge variant="destructive" className="animate-pulse bg-red-500 hover:bg-red-600 text-white">
+                  {slippageInfo.percentage}% Behind
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1389,26 +1634,115 @@ function ImplementationStepContent() {
             </div>
           </div>
           
+          {/* Slippage Information */}
+          {slippageInfo && slippageInfo.isOverdue && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <h5 className="font-medium text-red-800 text-sm">Project Slippage Detected</h5>
+              </div>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-red-700">Days Overdue:</span>
+                  <span className="font-medium text-red-800">{slippageInfo.daysOverdue} days</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-red-700">Progress Slippage:</span>
+                  <span className="font-medium text-red-800">{slippageInfo.percentage}% behind target</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-red-700">Current Progress:</span>
+                  <span className="font-medium text-red-800">{currentProgress}% of 100%</span>
+                </div>
+                <div className="mt-2 p-2 bg-red-100 rounded border border-red-300">
+                  <p className="text-xs text-red-800">
+                    <strong>Note:</strong> {slippageInfo.reason}. 
+                    {slippageInfo.overdueCount === 1 
+                      ? ` Accomplishment was ${slippageInfo.daysOverdue} days beyond target completion date`
+                      : ` Furthest accomplishment was ${slippageInfo.daysOverdue} days beyond target completion date`
+                    }
+                    {slippageInfo.isProgressComplete ? (
+                      <span className="block mt-1">
+                        Although project is 100% complete, extension is required due to late completion.
+                      </span>
+                    ) : (
+                      <span> with {slippageInfo.percentage}% work remaining to reach 100% completion.</span>
+                    )}
+                    {slippageInfo.hasExtension && (
+                      <span className="block mt-1 text-orange-700">
+                        <strong>Extension Applied:</strong> Target completion date has been extended. Apply for another extension if needed.
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Move to Next Stage Button - RAED Only when progress is 100% */}
           {isRAED && isProgressComplete && (
-            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className={`mt-4 p-4 border rounded-lg ${
+              slippageInfo && slippageInfo.isOverdue 
+                ? 'bg-orange-50 border-orange-200' 
+                : 'bg-green-50 border-green-200'
+            }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  {slippageInfo && slippageInfo.isOverdue ? (
+                    <XCircle className="h-5 w-5 text-orange-600" />
+                  ) : (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  )}
                   <div>
-                    <h5 className="font-medium text-green-800">Project Ready for Completion</h5>
-                    <p className="text-sm text-green-700">
-                      All implementation work has been completed. You can now move this project to the Completed stage.
+                    <h5 className={`font-medium ${
+                      slippageInfo && slippageInfo.isOverdue ? 'text-orange-800' : 'text-green-800'
+                    }`}>
+                      {slippageInfo && slippageInfo.isOverdue 
+                        ? 'Project Cannot Proceed - Slippage Detected' 
+                        : 'Project Ready for Completion'
+                      }
+                    </h5>
+                    <p className={`text-sm ${
+                      slippageInfo && slippageInfo.isOverdue ? 'text-orange-700' : 'text-green-700'
+                    }`}>
+                      {slippageInfo && slippageInfo.isOverdue 
+                        ? slippageInfo.isProgressComplete 
+                          ? 'Project is 100% complete but has slippage. Apply for extension to update target completion date before proceeding.'
+                          : 'Project has slippage. Apply for extension to update target completion date before proceeding.'
+                        : 'All implementation work has been completed. You can move this project to the Completed stage.'
+                      }
                     </p>
+                    {(!contractEffectivity || !contractExpiry || !actualStartDate || !targetCompletionDate) && (
+                      <p className="text-xs text-orange-600 mt-1">
+                        ℹ️ Contract and timeline information will be validated when moving to the completed stage
+                      </p>
+                    )}
                   </div>
                 </div>
-                <Button
-                  onClick={handleMoveToNextStage}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <ArrowRight className="h-4 w-4 mr-2" />
-                  Move to Completed
-                </Button>
+                <div className="flex gap-2">
+                  {slippageInfo && slippageInfo.isOverdue && (
+                    <Button
+                      onClick={() => setShowExtensionModal(true)}
+                      variant="outline"
+                      className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      Request Extension
+                    </Button>
+                  )}
+                  <Button
+                    onClick={handleMoveToNextStage}
+                    className={`${
+                      slippageInfo && slippageInfo.isOverdue 
+                        ? 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed' 
+                        : 'bg-green-600 hover:bg-green-700'
+                    } text-white`}
+                    disabled={!!(slippageInfo && slippageInfo.isOverdue)}
+                  >
+                    <ArrowRight className="h-4 w-4 mr-2" />
+                    Move to Completed
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -1416,97 +1750,263 @@ function ImplementationStepContent() {
 
         {/* Contract and Timeline Information - RAED Only */}
         {isRAED && (
-          <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar className="h-5 w-5 text-blue-600" />
-              <h5 className="font-medium text-blue-800">Contract & Timeline Information</h5>
-              <Badge variant="outline" className="text-blue-600 border-blue-300">RAED Only</Badge>
+          <div className={`space-y-4 p-4 rounded-lg border ${
+            isContractSaved 
+              ? 'bg-green-50 border-green-200' 
+              : 'bg-blue-50 border-blue-200'
+          }`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Calendar className={`h-5 w-5 ${isContractSaved ? 'text-green-600' : 'text-blue-600'}`} />
+                <h5 className={`font-medium ${isContractSaved ? 'text-green-800' : 'text-blue-800'}`}>
+                  Contract & Timeline Information
+                </h5>
+                <Badge variant="outline" className={`${isContractSaved ? 'text-green-600 border-green-300' : 'text-blue-600 border-blue-300'}`}>
+                  RAED Only
+                </Badge>
+                {isContractSaved && (
+                  <Badge variant="default" className="bg-green-600 hover:bg-green-700 text-white">
+                    Saved
+                  </Badge>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {!isContractSaved && (
+                  <Button
+                    onClick={handleSaveContractInfo}
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Save Contract Info
+                  </Button>
+                )}
+                {isContractSaved && (
+                  <>
+                    <Button
+                      onClick={handleToggleEditMode}
+                      variant={isEditMode ? "default" : "outline"}
+                      size="sm"
+                      className={isEditMode ? "bg-orange-600 hover:bg-orange-700 text-white" : ""}
+                    >
+                      {isEditMode ? "Cancel Edit" : "Edit"}
+                    </Button>
+                    {isEditMode && (
+                      <Button
+                        onClick={handleSaveContractInfo}
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        Save Changes
+                      </Button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
+            
+            {/* Save Success Message */}
+            {showSaveSuccess && (
+              <div className="bg-green-100 border border-green-300 rounded-lg p-3 mb-4 animate-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-800">
+                    {isInitialSave 
+                      ? "Contract and timeline information saved successfully!" 
+                      : "Changes saved successfully!"
+                    }
+                  </span>
+                </div>
+                <p className="text-xs text-green-700 mt-1">
+                  {isInitialSave
+                    ? "Contract information saved. Click Edit to modify fields."
+                    : "Fields are now locked. Click Edit to modify again."
+                  }
+                </p>
+              </div>
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Contract Effectivity</label>
+                <label className="block text-sm font-medium mb-2">Contract Effectivity *</label>
                 <input
                   type="date"
                   value={contractEffectivity}
-                  onChange={(e) => setContractEffectivity(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => {
+                    setContractEffectivity(e.target.value)
+                    if (contractValidationErrors.contractEffectivity) {
+                      setContractValidationErrors(prev => ({ ...prev, contractEffectivity: false }))
+                    }
+                  }}
+                  disabled={isContractSaved && !isEditMode}
+                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    contractValidationErrors.contractEffectivity ? 'border-red-500 bg-red-50' : 
+                    isContractSaved && !isEditMode ? 'border-green-300 bg-green-50 text-green-800' : 'border-gray-300'
+                  } ${isContractSaved && !isEditMode ? 'cursor-not-allowed' : ''}`}
                 />
+                {contractValidationErrors.contractEffectivity && (
+                  <p className="text-xs text-red-600 mt-1">Contract effectivity date is required</p>
+                )}
+                {isContractSaved && !isEditMode && (
+                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {new Date().toLocaleDateString()}</p>
+                )}
+                {isContractSaved && isEditMode && (
+                  <p className="text-xs text-orange-600 mt-1">✏️ Edit mode - Make your changes and save</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Contract Expiry</label>
+                <label className="block text-sm font-medium mb-2">Contract Expiry *</label>
                 <input
                   type="date"
                   value={contractExpiry}
-                  onChange={(e) => setContractExpiry(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => {
+                    setContractExpiry(e.target.value)
+                    if (contractValidationErrors.contractExpiry) {
+                      setContractValidationErrors(prev => ({ ...prev, contractExpiry: false }))
+                    }
+                  }}
+                  disabled={isContractSaved && !isEditMode}
+                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    contractValidationErrors.contractExpiry ? 'border-red-500 bg-red-50' : 
+                    isContractSaved && !isEditMode ? 'border-green-300 bg-green-50 text-green-800' : 'border-gray-300'
+                  } ${isContractSaved && !isEditMode ? 'cursor-not-allowed' : ''}`}
                 />
+                {contractValidationErrors.contractExpiry && (
+                  <p className="text-xs text-red-600 mt-1">Contract expiry date is required</p>
+                )}
+                {isContractSaved && !isEditMode && (
+                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {new Date().toLocaleDateString()}</p>
+                )}
+                {isContractSaved && isEditMode && (
+                  <p className="text-xs text-orange-600 mt-1">✏️ Edit mode - Make your changes and save</p>
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Actual Start Date</label>
+                <label className="block text-sm font-medium mb-2">Actual Start Date *</label>
                 <input
                   type="date"
                   value={actualStartDate}
-                  onChange={(e) => setActualStartDate(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => {
+                    setActualStartDate(e.target.value)
+                    if (contractValidationErrors.actualStartDate) {
+                      setContractValidationErrors(prev => ({ ...prev, actualStartDate: false }))
+                    }
+                  }}
+                  disabled={isContractSaved && !isEditMode}
+                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    contractValidationErrors.actualStartDate ? 'border-red-500 bg-red-50' : 
+                    isContractSaved && !isEditMode ? 'border-green-300 bg-green-50 text-green-800' : 'border-gray-300'
+                  } ${isContractSaved && !isEditMode ? 'cursor-not-allowed' : ''}`}
                 />
+                {contractValidationErrors.actualStartDate && (
+                  <p className="text-xs text-red-600 mt-1">Actual start date is required</p>
+                )}
+                {isContractSaved && !isEditMode && (
+                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {new Date().toLocaleDateString()}</p>
+                )}
+                {isContractSaved && isEditMode && (
+                  <p className="text-xs text-orange-600 mt-1">✏️ Edit mode - Make your changes and save</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Target Completion Date</label>
+                <label className="block text-sm font-medium mb-2">Target Completion Date *</label>
                 <div className="flex gap-2">
                   <input
                     type="date"
                     value={targetCompletionDate}
-                    onChange={(e) => setTargetCompletionDate(e.target.value)}
-                    className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onChange={(e) => {
+                      setTargetCompletionDate(e.target.value)
+                      // Set initial target date if it's the first time RAED inputs it
+                      if (!initialTargetCompletionDate && e.target.value) {
+                        setInitialTargetCompletionDate(e.target.value)
+                      }
+                      if (contractValidationErrors.targetCompletionDate) {
+                        setContractValidationErrors(prev => ({ ...prev, targetCompletionDate: false }))
+                      }
+                    }}
+                    disabled={isContractSaved && !isEditMode}
+                    className={`flex-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      contractValidationErrors.targetCompletionDate ? 'border-red-500 bg-red-50' : 
+                      isContractSaved && !isEditMode ? 'border-green-300 bg-green-50 text-green-800' : 'border-gray-300'
+                    } ${isContractSaved && !isEditMode ? 'cursor-not-allowed' : ''}`}
                   />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowExtensionModal(true)}
-                    className="px-3"
-                  >
-                    <Clock className="h-4 w-4 mr-1" />
-                    Extension
-                  </Button>
+                  {(!isContractSaved || isEditMode) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowExtensionModal(true)}
+                      className="px-3"
+                    >
+                      <Clock className="h-4 w-4 mr-1" />
+                      Extension
+                    </Button>
+                  )}
                 </div>
+                {contractValidationErrors.targetCompletionDate && (
+                  <p className="text-xs text-red-600 mt-1">Target completion date is required</p>
+                )}
                 {initialTargetCompletionDate && (
                   <p className="text-xs text-muted-foreground mt-1">
                     Initial target: {new Date(initialTargetCompletionDate).toLocaleDateString()}
                   </p>
+                )}
+                {isContractSaved && !isEditMode && (
+                  <p className="text-xs text-green-600 mt-1">✓ Locked - Saved on {new Date().toLocaleDateString()}</p>
+                )}
+                {isContractSaved && isEditMode && (
+                  <p className="text-xs text-orange-600 mt-1">✏️ Edit mode - Make your changes and save</p>
                 )}
               </div>
             </div>
           </div>
         )}
 
-        {/* Contract Extension Modal */}
-        <Dialog open={showExtensionModal} onOpenChange={setShowExtensionModal}>
+        {/* Contract Extension Modal - Available when not saved or in edit mode */}
+        <Dialog open={showExtensionModal && (!isContractSaved || isEditMode)} onOpenChange={(open) => {
+          if (!isContractSaved || isEditMode) {
+            setShowExtensionModal(open)
+          }
+        }}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Apply for Contract Extension</DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                Note: Extensions can be applied when not saved or in edit mode.
+              </p>
             </DialogHeader>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Initial Target Completion Date</label>
                 <div className="p-2 bg-gray-50 border rounded-md text-sm">
-                  {new Date(initialTargetCompletionDate).toLocaleDateString()}
+                  {initialTargetCompletionDate 
+                    ? new Date(initialTargetCompletionDate).toLocaleDateString()
+                    : 'Not set yet'
+                  }
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">New Target Completion Date</label>
+                <label className="block text-sm font-medium mb-2">Current Target Completion Date</label>
+                <div className="p-2 bg-blue-50 border border-blue-200 rounded-md text-sm">
+                  {new Date(targetCompletionDate).toLocaleDateString()}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">New Extended Target Completion Date *</label>
                 <input
                   type="date"
                   value={newTargetDate}
                   onChange={(e) => setNewTargetDate(e.target.value)}
+                  min={targetCompletionDate} // New date must be after current target date
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Must be after current target date: {new Date(targetCompletionDate).toLocaleDateString()}
+                </p>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Reason for Extension</label>
+                <label className="block text-sm font-medium mb-2">Reason for Extension *</label>
                 <textarea
                   value={extensionReason}
                   onChange={(e) => setExtensionReason(e.target.value)}
@@ -1515,11 +2015,29 @@ function ImplementationStepContent() {
                   rows={3}
                 />
               </div>
+              
+              {/* Extension History */}
+              {extensionHistory.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Previous Extensions</label>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {extensionHistory.map((extension, index) => (
+                      <div key={extension.id} className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs">
+                        <div className="font-medium">Extension #{index + 1}</div>
+                        <div>From: {new Date(extension.previousDate).toLocaleDateString()}</div>
+                        <div>To: {new Date(extension.newDate).toLocaleDateString()}</div>
+                        <div className="text-gray-600 mt-1">{extension.reason}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="flex gap-3 justify-end">
                 <Button variant="outline" onClick={() => setShowExtensionModal(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleApplyExtension} disabled={!newTargetDate || !extensionReason}>
+                <Button onClick={handleApplyExtension} disabled={!newTargetDate || !extensionReason || new Date(newTargetDate) <= new Date(targetCompletionDate)}>
                   Apply Extension
                 </Button>
               </div>
@@ -1616,6 +2134,7 @@ function ImplementationStepContent() {
             if (!open) {
               setEditingAccomplishment(null)
               setNewAccomplishment({ date: '', description: '', progress: 0 })
+              setAccomplishmentValidationErrors({})
             }
           }}>
             <DialogContent className="sm:max-w-md">
@@ -1626,34 +2145,76 @@ function ImplementationStepContent() {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Date</label>
+                  <label className="block text-sm font-medium mb-2">Date *</label>
                   <input
                     type="date"
                     value={newAccomplishment.date}
-                    onChange={(e) => setNewAccomplishment(prev => ({ ...prev, date: e.target.value }))}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onChange={(e) => {
+                      setNewAccomplishment(prev => ({ ...prev, date: e.target.value }))
+                      if (accomplishmentValidationErrors.date) {
+                        setAccomplishmentValidationErrors(prev => ({ ...prev, date: '' }))
+                      }
+                    }}
+                    className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      accomplishmentValidationErrors.date ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                   />
+                  {accomplishmentValidationErrors.date && (
+                    <p className="text-xs text-red-600 mt-1">{accomplishmentValidationErrors.date}</p>
+                  )}
+                  {actualStartDate && targetCompletionDate && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Must be on or after {new Date(actualStartDate).toLocaleDateString()}. 
+                      Dates beyond {new Date(targetCompletionDate).toLocaleDateString()} will show slippage.
+                    </p>
+                  )}
+                  {actualStartDate && !targetCompletionDate && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Must be on or after {new Date(actualStartDate).toLocaleDateString()}. 
+                      Set target completion date first to enable slippage detection.
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Progress Percentage</label>
+                  <label className="block text-sm font-medium mb-2">Progress Percentage *</label>
                   <input
                     type="number"
                     min="0"
                     max="100"
                     value={newAccomplishment.progress}
-                    onChange={(e) => setNewAccomplishment(prev => ({ ...prev, progress: parseInt(e.target.value) || 0 }))}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onChange={(e) => {
+                      setNewAccomplishment(prev => ({ ...prev, progress: parseInt(e.target.value) || 0 }))
+                      if (accomplishmentValidationErrors.progress) {
+                        setAccomplishmentValidationErrors(prev => ({ ...prev, progress: '' }))
+                      }
+                    }}
+                    className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      accomplishmentValidationErrors.progress ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                   />
+                  {accomplishmentValidationErrors.progress && (
+                    <p className="text-xs text-red-600 mt-1">{accomplishmentValidationErrors.progress}</p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Accomplishment Description</label>
+                  <label className="block text-sm font-medium mb-2">Accomplishment Description *</label>
                   <textarea
                     value={newAccomplishment.description}
-                    onChange={(e) => setNewAccomplishment(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) => {
+                      setNewAccomplishment(prev => ({ ...prev, description: e.target.value }))
+                      if (accomplishmentValidationErrors.description) {
+                        setAccomplishmentValidationErrors(prev => ({ ...prev, description: '' }))
+                      }
+                    }}
                     placeholder="Describe what was accomplished on this date..."
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none ${
+                      accomplishmentValidationErrors.description ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                     rows={3}
                   />
+                  {accomplishmentValidationErrors.description && (
+                    <p className="text-xs text-red-600 mt-1">{accomplishmentValidationErrors.description}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Supporting Documents (Optional)</label>
@@ -1693,6 +2254,47 @@ function ImplementationStepContent() {
             <div className="flex justify-between text-sm">
               <span>Expected Completion</span>
               <span className="text-muted-foreground">Mar 31, 2025</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right-full duration-300">
+          <div className={`p-4 rounded-lg shadow-lg border max-w-sm ${
+            toastMessage.variant === 'success' 
+              ? 'bg-green-50 border-green-200 text-green-800' 
+              : toastMessage.variant === 'error'
+              ? 'bg-red-50 border-red-200 text-red-800'
+              : 'bg-white border-gray-200 text-gray-800'
+          }`}>
+            <div className="flex items-start gap-3">
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                toastMessage.variant === 'success' 
+                  ? 'bg-green-500 text-white' 
+                  : toastMessage.variant === 'error'
+                  ? 'bg-red-500 text-white'
+                  : 'bg-blue-500 text-white'
+              }`}>
+                {toastMessage.variant === 'success' ? (
+                  <Check className="h-3 w-3" />
+                ) : toastMessage.variant === 'error' ? (
+                  <XCircle className="h-3 w-3" />
+                ) : (
+                  <CheckCircle className="h-3 w-3" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium text-sm">{toastMessage.title}</h4>
+                <p className="text-xs mt-1 opacity-90">{toastMessage.description}</p>
+              </div>
+              <button
+                onClick={() => setToastMessage(null)}
+                className="flex-shrink-0 p-1 hover:bg-black/5 rounded-full transition-colors"
+              >
+                <XCircle className="h-4 w-4 opacity-60" />
+              </button>
             </div>
           </div>
         </div>
