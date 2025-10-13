@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,13 +12,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Building2, Upload } from 'lucide-react'
+import { Building2, Upload, Save } from 'lucide-react'
 import { SuccessToast } from './success-toast'
 
 interface InfraProjectModalProps {
   isOpen: boolean
   onClose: () => void
   onProjectCreate: (projectData: Record<string, unknown>) => void
+  editingDraft?: any // Project being edited
 }
 
 // Mock data for dropdowns
@@ -442,7 +443,7 @@ const requiredDocuments = [
   }
 ]
 
-export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraProjectModalProps) {
+export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDraft }: InfraProjectModalProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [isSuccess, setIsSuccess] = useState(false)
   const [countdown, setCountdown] = useState(10)
@@ -473,6 +474,62 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
   
   // Step 4: Document Upload
   const [documents, setDocuments] = useState<Array<{file: File, label: string, id: string}>>([])
+  
+  // Project Status
+  const [projectStatus, setProjectStatus] = useState<'Draft' | 'Proposal'>('Draft')
+  
+  // Track if there are unsaved changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false)
+
+  // Pre-populate form when editing a draft
+  React.useEffect(() => {
+    if (editingDraft && isOpen) {
+      setProjectTitle(editingDraft.title || '')
+      setProjectDescription(editingDraft.description || '')
+      setProjectStatus('Draft') // Always set to Draft for editing
+      setRegion(editingDraft.region || '')
+      setProvince(editingDraft.province || '')
+      // Set other fields based on available data
+      if (editingDraft.budget) {
+        setAllocatedAmount(editingDraft.budget.toString())
+      }
+      
+      // Generate random current step (1-5) when editing a draft
+      const randomStep = Math.floor(Math.random() * 5) + 1
+      setCurrentStep(randomStep)
+      setHasUnsavedChanges(false) // Reset unsaved changes when opening existing draft
+    } else if (!editingDraft && isOpen) {
+      // Reset to step 1 for new projects
+      setCurrentStep(1)
+      setHasUnsavedChanges(false) // Reset unsaved changes for new projects
+    }
+  }, [editingDraft, isOpen])
+
+  // Track form changes to detect unsaved changes
+  React.useEffect(() => {
+    if (isOpen && !editingDraft) {
+      // For new projects, any change indicates unsaved changes
+      const hasChanges = !!(projectTitle || projectDescription || projectClassification || 
+                        projectType || implementationDays || prexcProgram || 
+                        prexcSubProgram || region || province || municipality || 
+                        district || barangay || allocatedAmount || documents.length > 0)
+      setHasUnsavedChanges(hasChanges)
+    } else if (isOpen && editingDraft) {
+      // For editing drafts, compare with original values
+      const hasChanges = !!(
+        projectTitle !== (editingDraft.title || '') ||
+        projectDescription !== (editingDraft.description || '') ||
+        region !== (editingDraft.region || '') ||
+        province !== (editingDraft.province || '') ||
+        allocatedAmount !== (editingDraft.budget ? editingDraft.budget.toString() : '') ||
+        documents.length > 0
+      )
+      setHasUnsavedChanges(hasChanges)
+    }
+  }, [projectTitle, projectDescription, projectClassification, projectType, 
+      implementationDays, prexcProgram, prexcSubProgram, region, province, 
+      municipality, district, barangay, allocatedAmount, documents, isOpen, editingDraft])
 
   const handleNext = () => {
     if (currentStep < 5) {
@@ -514,7 +571,9 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
       district,
       barangay,
       // Step 4
-      documents
+      documents,
+      // Status
+      status: 'Proposal' // Always create as Proposal when using Create Project
     }
 
     onProjectCreate(projectData)
@@ -534,7 +593,50 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
     }, 1000)
   }
 
+  const handleSaveAsDraft = () => {
+    const projectData = {
+      // Step 1
+      projectClassification,
+      projectType,
+      projectTitle,
+      projectDescription,
+      // Step 2
+      implementationDays,
+      prexcProgram,
+      prexcSubProgram,
+      budgetProcess,
+      proposedFundSource,
+      sourceAgency,
+      bannerProgram,
+      fundingYear,
+      allocatedAmount,
+      // Step 3
+      region,
+      province,
+      municipality,
+      district,
+      barangay,
+      // Step 4
+      documents,
+      // Status
+      status: 'Draft', // Always save as Draft when using Save as Draft
+      isDraftSave: true // Flag to indicate this is a draft save
+    }
+
+    onProjectCreate(projectData)
+    // Don't show success toast here - let the parent component handle it
+    performClose() // Close immediately after saving
+  }
+
   const handleClose = () => {
+    if (hasUnsavedChanges) {
+      setShowUnsavedChangesDialog(true)
+    } else {
+      performClose()
+    }
+  }
+
+  const performClose = () => {
     // Reset all form data
     setCurrentStep(1)
     setIsSuccess(false)
@@ -558,7 +660,22 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
     setDistrict('')
     setBarangay('')
     setDocuments([])
+    setProjectStatus('Draft')
+    setHasUnsavedChanges(false)
+    setShowUnsavedChangesDialog(false)
     onClose()
+  }
+
+  const handleSaveAndClose = () => {
+    // Auto-save as draft and close
+    handleSaveAsDraft()
+    setShowUnsavedChangesDialog(false)
+  }
+
+  const handleDiscardChanges = () => {
+    // Close without saving
+    setShowUnsavedChangesDialog(false)
+    performClose()
   }
 
   const isStep1Valid = projectClassification && projectType && projectTitle && projectDescription
@@ -580,8 +697,9 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[900px] max-h-[85vh] overflow-y-auto p-0">
+    <>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[900px] max-h-[85vh] overflow-y-auto p-0">
         {/* Fixed Header and Progress Indicator */}
         <div className="sticky top-0 z-50 bg-background border-b p-6">
           <DialogHeader className="pb-4">
@@ -703,6 +821,7 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
                   className="w-full min-h-[100px] px-3 py-2 border border-input bg-background rounded-md text-sm resize-none"
                 />
               </div>
+
             </div>
           )}
 
@@ -1147,36 +1266,70 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate }: InfraPro
           )}
         </div>
 
-        <DialogFooter className="flex gap-2 px-6 pb-6 pt-4">
-          {currentStep > 1 && (
-            <Button variant="outline" onClick={handleBack}>
-              Back
-            </Button>
-          )}
-          <Button variant="outline" onClick={handleClose}>
-            Cancel
+        <DialogFooter className="flex justify-between items-center px-6 pb-6 pt-4">
+          {/* Left side - Save as Draft button (full left) */}
+          <Button 
+            variant="outline" 
+            onClick={handleSaveAsDraft}
+            className="text-sm"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save as Draft
           </Button>
-          {currentStep < 5 ? (
-            <Button 
-              onClick={handleNext}
-              disabled={
-                (currentStep === 1 && !isStep1Valid) ||
-                (currentStep === 2 && !isStep2Valid) ||
-                (currentStep === 3 && !isStep3Valid) ||
-                (currentStep === 4 && !isStep4Valid)
-              }
-            >
-              Next
+          
+          {/* Right side - Navigation buttons */}
+          <div className="flex gap-2">
+            {currentStep > 1 && (
+              <Button variant="outline" onClick={handleBack}>
+                Back
+              </Button>
+            )}
+            <Button variant="outline" onClick={handleClose}>
+              Cancel
             </Button>
-          ) : (
-            <Button 
-              onClick={handleSubmit}
-            >
-              Create Project
-            </Button>
-          )}
+            {currentStep < 5 ? (
+              <Button 
+                onClick={handleNext}
+                disabled={
+                  (currentStep === 1 && !isStep1Valid) ||
+                  (currentStep === 2 && !isStep2Valid) ||
+                  (currentStep === 3 && !isStep3Valid) ||
+                  (currentStep === 4 && !isStep4Valid)
+                }
+              >
+                Next
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleSubmit}
+              >
+                Create Project
+              </Button>
+            )}
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      {/* Unsaved Changes Confirmation Dialog */}
+      <Dialog open={showUnsavedChangesDialog} onOpenChange={setShowUnsavedChangesDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Unsaved Changes</DialogTitle>
+            <DialogDescription>
+              You have unsaved changes. Do you want to save them as a draft before closing?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={handleDiscardChanges}>
+              Discard Changes
+            </Button>
+            <Button onClick={handleSaveAndClose}>
+              Save as Draft
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

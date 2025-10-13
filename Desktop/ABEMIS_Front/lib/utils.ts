@@ -72,12 +72,55 @@ export function getStatusColor(status: string): string {
 
 export function generateBreadcrumbs(pathname: string): Array<{ label: string; href: string }> {
   const segments = pathname.split('/').filter(Boolean)
-  const breadcrumbs = [{ label: 'Dashboard', href: '/dashboard' }]
+  const breadcrumbs: Array<{ label: string; href: string }> = []
 
-  if (segments.length > 1) {
+  // Handle protected routes
+  if (segments.includes('protected')) {
+    const protectedIndex = segments.indexOf('protected')
+    const remainingSegments = segments.slice(protectedIndex + 1)
+    
+    if (remainingSegments.length > 0) {
+      const currentPage = remainingSegments[remainingSegments.length - 1]
+      
+      // Map specific routes to better labels
+      const routeLabels: Record<string, string> = {
+        'dashboard': 'Dashboard',
+        'projects': 'Projects',
+        'documents': 'Documents',
+        'document-manager': 'Document Manager',
+        'analytics': 'Analytics',
+        'notifications': 'Notifications',
+        'profile': 'Profile',
+        'settings': 'Settings',
+        'users': 'Users',
+        'raed-projects': 'RAED Projects',
+        'ppmd-projects': 'PPMD Projects',
+        'sepd-projects': 'SEPD Projects',
+        'epdsd-projects': 'EPDSD Projects'
+      }
+      
+      const label = routeLabels[currentPage] || currentPage.charAt(0).toUpperCase() + currentPage.slice(1)
+      
+      // Only add current page if it's not dashboard (to avoid "Dashboard > Dashboard")
+      if (currentPage !== 'dashboard') {
+        breadcrumbs.push({ label: 'Dashboard', href: '/dashboard' })
+        breadcrumbs.push({ label, href: pathname })
+      } else {
+        breadcrumbs.push({ label: 'Dashboard', href: '/dashboard' })
+      }
+    } else {
+      // If we're at /protected, show just Dashboard
+      breadcrumbs.push({ label: 'Dashboard', href: '/dashboard' })
+    }
+  } else if (segments.length > 0) {
+    // Handle other routes
     const currentPage = segments[segments.length - 1]
     const capitalized = currentPage.charAt(0).toUpperCase() + currentPage.slice(1)
+    breadcrumbs.push({ label: 'Dashboard', href: '/dashboard' })
     breadcrumbs.push({ label: capitalized, href: pathname })
+  } else {
+    // Root path
+    breadcrumbs.push({ label: 'Dashboard', href: '/dashboard' })
   }
 
   return breadcrumbs

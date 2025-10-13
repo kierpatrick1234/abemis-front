@@ -8,27 +8,28 @@ interface SuccessToastProps {
   isVisible: boolean
   onClose: () => void
   countdown: number
+  message?: string
 }
 
-export function SuccessToast({ isVisible, onClose, countdown }: SuccessToastProps) {
+export function SuccessToast({ isVisible, onClose, countdown, message = 'Project Created Successfully!' }: SuccessToastProps) {
   if (!isVisible) return null
 
   return (
     <div className="fixed top-4 right-4 z-50">
-      <Toast variant="success" onClose={onClose}>
+      <div className="bg-white border border-green-200 rounded-lg shadow-lg p-4 max-w-sm cursor-pointer" onClick={onClose}>
         <div className="flex items-center space-x-3">
           <CheckCircle className="h-6 w-6 text-green-600" />
           <div>
-            <h4 className="font-semibold text-green-800">Project Created Successfully!</h4>
+            <h4 className="font-semibold text-green-800">{message}</h4>
             <p className="text-sm text-green-700">
-              Your infrastructure project has been added to the list.
+              {message.includes('draft') ? 'Your project has been saved as draft.' : 'Your infrastructure project has been added to the list.'}
             </p>
             <p className="text-xs text-green-600 mt-1">
-              Auto-closes in {countdown} seconds
+              Auto-closes in {countdown} seconds (click to close)
             </p>
           </div>
         </div>
-      </Toast>
+      </div>
     </div>
   )
 }

@@ -7,13 +7,14 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { NewProjectModal } from '@/components/new-project-modal'
+import { InfraProjectModal } from '@/components/infra-project-modal'
 import { SuccessToast } from '@/components/success-toast'
 import { ProjectDetailsModal } from '@/components/project-details-modal'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { Project } from '@/lib/types'
-import { Search, Filter, Plus } from 'lucide-react'
+import { Search, Filter, Plus, FileText, ShoppingCart, Hammer, CheckCircle, Package, Edit3 } from 'lucide-react'
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -23,8 +24,11 @@ export default function ProjectsPage() {
   const [newProjects, setNewProjects] = useState<Project[]>([])
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [toastCountdown, setToastCountdown] = useState(10)
+  const [toastMessage, setToastMessage] = useState('Project created successfully!')
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
+  const [editingDraft, setEditingDraft] = useState<Project | null>(null)
+  const [showInfraCreationModal, setShowInfraCreationModal] = useState(false)
   const { user } = useAuth()
 
   const handleEditProject = useCallback((projectId: string) => {
@@ -39,8 +43,21 @@ export default function ProjectsPage() {
   }, [])
 
   const handleRowClick = useCallback((project: Project) => {
-    setSelectedProject(project)
-    setShowProjectModal(true)
+    if (project.status === 'Draft') {
+      // For draft projects, open the InfraProjectModal directly for editing
+      setEditingDraft(project)
+      // Open the appropriate modal based on project type
+      if (project.type === 'Infrastructure') {
+        setShowInfraCreationModal(true)
+      } else {
+        // For other types, open the type selection modal
+        setIsNewProjectModalOpen(true)
+      }
+    } else {
+      // For non-draft projects, open the project details modal
+      setSelectedProject(project)
+      setShowProjectModal(true)
+    }
   }, [])
 
   const handleClearFilters = useCallback(() => {
@@ -50,24 +67,95 @@ export default function ProjectsPage() {
   }, [])
 
   const handleCreateProject = useCallback((projectData: any) => {
-    console.log('Creating new project:', projectData)
-    
-    // Create a new project object with proper structure
-    const newProject: Project = {
-      id: `PROJ-${Date.now()}`, // Generate unique ID
-      title: projectData.title || 'New Infrastructure Project',
-      type: (projectData.type as Project['type']) || 'Infrastructure',
-      status: 'Proposal',
-      budget: projectData.allocatedAmount ? parseFloat(projectData.allocatedAmount) : 0,
-      province: projectData.province || 'Unknown',
-      region: projectData.region || 'Unknown',
-      description: projectData.description || 'New project description',
-      startDate: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString(),
+    if (editingDraft) {
+      // Update existing draft project
+      console.log('Updating draft project:', editingDraft.id, projectData)
+      
+      const updatedProject: Project = {
+        ...editingDraft,
+        title: projectData.projectTitle || projectData.title || editingDraft.title,
+        type: (projectData.type as Project['type']) || editingDraft.type,
+        status: projectData.status || editingDraft.status,
+        budget: projectData.allocatedAmount ? parseFloat(projectData.allocatedAmount) : editingDraft.budget,
+        province: projectData.province || editingDraft.province,
+        region: projectData.region || editingDraft.region,
+        description: projectData.projectDescription || projectData.description || editingDraft.description,
+        // Infrastructure project specific fields
+        projectClassification: projectData.projectClassification || editingDraft.projectClassification,
+        projectType: projectData.projectType || editingDraft.projectType,
+        implementationDays: projectData.implementationDays || editingDraft.implementationDays,
+        prexcProgram: projectData.prexcProgram || editingDraft.prexcProgram,
+        prexcSubProgram: projectData.prexcSubProgram || editingDraft.prexcSubProgram,
+        budgetProcess: projectData.budgetProcess || editingDraft.budgetProcess,
+        proposedFundSource: projectData.proposedFundSource || editingDraft.proposedFundSource,
+        sourceAgency: projectData.sourceAgency || editingDraft.sourceAgency,
+        bannerProgram: projectData.bannerProgram || editingDraft.bannerProgram,
+        fundingYear: projectData.fundingYear || editingDraft.fundingYear,
+        municipality: projectData.municipality || editingDraft.municipality,
+        district: projectData.district || editingDraft.district,
+        barangay: projectData.barangay || editingDraft.barangay,
+        documents: projectData.documents || editingDraft.documents,
+        updatedAt: new Date().toISOString(),
+      }
+      
+      // Update the project in the list
+      setNewProjects(prev => prev.map(p => p.id === editingDraft.id ? updatedProject : p))
+      
+      // Clear editing draft
+      setEditingDraft(null)
+      
+      // Set appropriate toast message
+      if (projectData.isDraftSave) {
+        setToastMessage('Project saved as draft!')
+      } else {
+        setToastMessage('Project updated successfully!')
+      }
+    } else {
+      // Create a new project object with proper structure
+      console.log('Creating new project:', projectData)
+      
+      const newProject: Project = {
+        id: `PROJ-${Date.now()}`, // Generate unique ID
+        title: projectData.projectTitle || projectData.title || 'New Infrastructure Project',
+        type: (projectData.type as Project['type']) || 'Infrastructure',
+        status: projectData.status || (projectData.isDraftSave ? 'Draft' : 'Proposal'),
+        budget: projectData.allocatedAmount ? parseFloat(projectData.allocatedAmount) : 0,
+        province: projectData.province || 'Unknown',
+        region: projectData.region || 'Unknown',
+        description: projectData.projectDescription || projectData.description || 'New project description',
+        startDate: new Date().toISOString().split('T')[0],
+        updatedAt: new Date().toISOString(),
+        // Infrastructure project specific fields
+        projectClassification: projectData.projectClassification,
+        projectType: projectData.projectType,
+        implementationDays: projectData.implementationDays,
+        prexcProgram: projectData.prexcProgram,
+        prexcSubProgram: projectData.prexcSubProgram,
+        budgetProcess: projectData.budgetProcess,
+        proposedFundSource: projectData.proposedFundSource,
+        sourceAgency: projectData.sourceAgency,
+        bannerProgram: projectData.bannerProgram,
+        fundingYear: projectData.fundingYear,
+        municipality: projectData.municipality,
+        district: projectData.district,
+        barangay: projectData.barangay,
+        documents: projectData.documents,
+      }
+      
+      // Add to new projects list
+      setNewProjects(prev => [newProject, ...prev])
+      
+      // Set appropriate toast message
+      if (projectData.isDraftSave) {
+        setToastMessage('Project saved as draft!')
+      } else {
+        setToastMessage('Project created successfully!')
+      }
     }
     
-    // Add to new projects list
-    setNewProjects(prev => [newProject, ...prev])
+    // Close modals
+    setIsNewProjectModalOpen(false)
+    setShowInfraCreationModal(false)
     
     // Show success toast
     setShowSuccessToast(true)
@@ -85,28 +173,31 @@ export default function ProjectsPage() {
       })
     }, 1000)
     
-    // TODO: Implement actual project creation logic
-    // This would typically involve API calls to create the project
-  }, [])
+    // TODO: Implement actual project creation/update logic
+    // This would typically involve API calls to create or update the project
+  }, [editingDraft])
 
   // Combine mock projects with new projects
   const allProjects = [...newProjects, ...mockProjects]
   
   const filteredProjects = allProjects.filter(project => {
-    const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.id.toLowerCase().includes(searchQuery.toLowerCase())
+    const searchLower = searchQuery.toLowerCase()
+    const matchesSearch = project.title.toLowerCase().includes(searchLower) ||
+                         project.id.toLowerCase().includes(searchLower) ||
+                         project.description.toLowerCase().includes(searchLower) ||
+                         project.province.toLowerCase().includes(searchLower) ||
+                         (project.region && project.region.toLowerCase().includes(searchLower)) ||
+                         (project.municipality && project.municipality.toLowerCase().includes(searchLower)) ||
+                         (project.barangay && project.barangay.toLowerCase().includes(searchLower)) ||
+                         (project.projectClassification && project.projectClassification.toLowerCase().includes(searchLower)) ||
+                         (project.projectType && project.projectType.toLowerCase().includes(searchLower))
+    
     const matchesType = typeFilter === 'all' || project.type === typeFilter
     
     // Handle stage filtering
     let matchesStage = true
     if (stageFilter !== 'all') {
-      if (stageFilter === 'Inventory') {
-        // For now, treat Inventory as a special case - could be projects that need inventory management
-        // This could be projects that are completed and need inventory tracking
-        matchesStage = project.status === 'Completed'
-      } else {
-        matchesStage = project.status === stageFilter
-      }
+      matchesStage = project.status === stageFilter
     }
     
     // For RAED users, filter by their assigned region
@@ -117,7 +208,6 @@ export default function ProjectsPage() {
     
     return matchesSearch && matchesType && matchesStage && matchesRegion
   }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-
 
   const columns = [
     {
@@ -225,13 +315,14 @@ export default function ProjectsPage() {
         
         {/* Stage Filter Buttons - Centered */}
         <div className="flex justify-center">
-          <div className="inline-flex rounded-lg border border-input bg-background p-1">
+          <div className="inline-flex rounded-lg border border-input bg-background p-1 flex-wrap gap-1">
             <Button
               variant={stageFilter === 'all' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setStageFilter('all')}
               className="rounded-md"
             >
+              <Package className="h-4 w-4 mr-1" />
               All Stages
             </Button>
             <Button
@@ -240,6 +331,7 @@ export default function ProjectsPage() {
               onClick={() => setStageFilter('Proposal')}
               className="rounded-md"
             >
+              <FileText className="h-4 w-4 mr-1" />
               Proposal
             </Button>
             <Button
@@ -248,6 +340,7 @@ export default function ProjectsPage() {
               onClick={() => setStageFilter('Procurement')}
               className="rounded-md"
             >
+              <ShoppingCart className="h-4 w-4 mr-1" />
               Procurement
             </Button>
             <Button
@@ -256,6 +349,7 @@ export default function ProjectsPage() {
               onClick={() => setStageFilter('Implementation')}
               className="rounded-md"
             >
+              <Hammer className="h-4 w-4 mr-1" />
               Implementation
             </Button>
             <Button
@@ -264,6 +358,7 @@ export default function ProjectsPage() {
               onClick={() => setStageFilter('Completed')}
               className="rounded-md"
             >
+              <CheckCircle className="h-4 w-4 mr-1" />
               Completed
             </Button>
             <Button
@@ -272,7 +367,17 @@ export default function ProjectsPage() {
               onClick={() => setStageFilter('Inventory')}
               className="rounded-md"
             >
+              <Package className="h-4 w-4 mr-1" />
               Inventory
+            </Button>
+            <Button
+              variant={stageFilter === 'Draft' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setStageFilter('Draft')}
+              className="rounded-md"
+            >
+              <Edit3 className="h-4 w-4 mr-1" />
+              Draft
             </Button>
           </div>
         </div>
@@ -301,8 +406,23 @@ export default function ProjectsPage() {
       {/* New Project Modal */}
       <NewProjectModal
         isOpen={isNewProjectModalOpen}
-        onClose={() => setIsNewProjectModalOpen(false)}
+        onClose={() => {
+          setIsNewProjectModalOpen(false)
+          setEditingDraft(null)
+        }}
         onProjectCreate={handleCreateProject}
+        editingDraft={editingDraft}
+      />
+
+      {/* Infrastructure Project Modal */}
+      <InfraProjectModal
+        isOpen={showInfraCreationModal}
+        onClose={() => {
+          setShowInfraCreationModal(false)
+          setEditingDraft(null)
+        }}
+        onProjectCreate={handleCreateProject}
+        editingDraft={editingDraft}
       />
 
       {/* Success Toast */}
@@ -310,6 +430,7 @@ export default function ProjectsPage() {
         isVisible={showSuccessToast}
         onClose={() => setShowSuccessToast(false)}
         countdown={toastCountdown}
+        message={toastMessage}
       />
 
       {/* Project Details Modal */}

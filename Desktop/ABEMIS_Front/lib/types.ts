@@ -27,7 +27,7 @@ export interface Project {
   type: 'FMR' | 'Infrastructure' | 'Machinery'
   province: string
   region?: string
-  status: 'Proposal' | 'Procurement' | 'Implementation' | 'Completed'
+  status: 'Draft' | 'Proposal' | 'Procurement' | 'Implementation' | 'Completed' | 'Inventory'
   description: string
   budget: number
   startDate: string
@@ -45,6 +45,33 @@ export interface Project {
     noticeOfAward?: string
     noticeToProceed?: string
   }
+  // Completed stage fields for RAED
+  dateCompleted?: string
+  dateTurnedOver?: string
+  asBuiltPlans?: {
+    cad?: string
+    pdf?: string
+  }
+  postGeotaggedPhotos?: string[]
+  // Infrastructure project specific fields
+  projectClassification?: string
+  projectType?: string
+  implementationDays?: string
+  prexcProgram?: string
+  prexcSubProgram?: string
+  budgetProcess?: string
+  proposedFundSource?: string
+  sourceAgency?: string
+  bannerProgram?: string
+  fundingYear?: string
+  municipality?: string
+  district?: string
+  barangay?: string
+  documents?: Array<{
+    file: File
+    label: string
+    id: string
+  }>
 }
 
 export interface Document {

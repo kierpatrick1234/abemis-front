@@ -2795,31 +2795,96 @@ function CompletedStepContent({ project, onStepClick }: { project?: Project, onS
 }
 
 function InventoryStepContent() {
+  // Generate random data for inventory details
+  const generateRandomAuditResult = () => {
+    const isAudited = Math.random() > 0.4 // 60% chance of being audited
+    if (isAudited) {
+      const auditDate = new Date()
+      auditDate.setDate(auditDate.getDate() - Math.floor(Math.random() * 90)) // Random date within last 90 days
+      return {
+        status: 'Audited',
+        date: auditDate.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        }),
+        badgeVariant: 'default' as const
+      }
+    } else {
+      return {
+        status: 'Not Audited',
+        date: null,
+        badgeVariant: 'outline' as const
+      }
+    }
+  }
+
+  const generateRandomRating = () => {
+    const isRated = Math.random() > 0.3 // 70% chance of being rated
+    if (isRated) {
+      const score = Math.floor(Math.random() * 40) + 60 // Score between 60-100
+      let rating = ''
+      if (score >= 90) rating = 'Excellent'
+      else if (score >= 80) rating = 'Very Good'
+      else if (score >= 70) rating = 'Good'
+      else if (score >= 60) rating = 'Satisfactory'
+      
+      return {
+        status: 'Rated',
+        score: score,
+        rating: rating,
+        badgeVariant: 'default' as const
+      }
+    } else {
+      return {
+        status: 'Not Rated',
+        score: null,
+        rating: null,
+        badgeVariant: 'outline' as const
+      }
+    }
+  }
+
+  const auditResult = generateRandomAuditResult()
+  const ratingResult = generateRandomRating()
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <h4 className="font-medium mb-2">Inventory Status</h4>
-          <Badge variant="outline">Pending</Badge>
-        </div>
-        <div>
-          <h4 className="font-medium mb-2">Asset Count</h4>
-          <span className="text-sm">0 items</span>
-        </div>
+      <div>
+        <h4 className="font-medium mb-2">Inventory Status</h4>
+        <Badge variant="outline">Pending</Badge>
       </div>
       
       <div>
-        <h4 className="font-medium mb-2">Monitoring Evaluator</h4>
+        <h4 className="font-medium mb-2">Monitoring Evaluator (PPMD)</h4>
         <div className="flex items-center gap-2">
           <Badge variant="outline">PPMD</Badge>
+          <span className="text-sm text-muted-foreground">Pending Assignment</span>
         </div>
       </div>
       
       <div>
-        <h4 className="font-medium mb-2">Next Steps</h4>
-        <p className="text-sm text-muted-foreground">
-          Complete asset inventory and update the system with all project deliverables.
-        </p>
+        <h4 className="font-medium mb-2">Audit Result as of</h4>
+        <div className="flex items-center gap-2">
+          <Badge variant={auditResult.badgeVariant}>
+            {auditResult.status}
+          </Badge>
+          <span className="text-sm text-muted-foreground">
+            {auditResult.date ? `Audited on ${auditResult.date}` : 'No audit date available'}
+          </span>
+        </div>
+      </div>
+      
+      <div>
+        <h4 className="font-medium mb-2">Score and IMAS Rating</h4>
+        <div className="flex items-center gap-2">
+          <Badge variant={ratingResult.badgeVariant}>
+            {ratingResult.status}
+          </Badge>
+          <span className="text-sm text-muted-foreground">
+            {ratingResult.score ? `Score: ${ratingResult.score} (${ratingResult.rating})` : 'Pending evaluation'}
+          </span>
+        </div>
       </div>
     </div>
   )

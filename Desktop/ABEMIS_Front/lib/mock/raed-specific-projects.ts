@@ -88,12 +88,14 @@ const regionProvinces = {
 // ]
 
 // Generate random status with realistic distribution
-function getRandomStatus(): 'Proposal' | 'Procurement' | 'Implementation' | 'Completed' {
+function getRandomStatus(): 'Draft' | 'Proposal' | 'Procurement' | 'Implementation' | 'Completed' | 'Inventory' {
   const random = Math.random()
-  if (random < 0.15) return 'Proposal'
-  if (random < 0.35) return 'Procurement'
-  if (random < 0.85) return 'Implementation'
-  return 'Completed'
+  if (random < 0.05) return 'Draft'
+  if (random < 0.20) return 'Proposal'
+  if (random < 0.40) return 'Procurement'
+  if (random < 0.80) return 'Implementation'
+  if (random < 0.95) return 'Completed'
+  return 'Inventory'
 }
 
 // Generate random date between January 1, 2025 and October 5, 2025
@@ -198,6 +200,17 @@ function generateProjectsForRegion(region: string, startIndex: number = 1): Proj
           noticeOfAward: 'notice-of-award-document.pdf',
           noticeToProceed: 'notice-to-proceed-document.pdf'
         } : undefined
+      } : {}),
+      // Add completed stage fields for completed projects - empty for RAED to fill
+      ...(status === 'Completed' ? {
+        // Dates and files will be empty initially - RAED needs to upload them
+        dateCompleted: undefined,
+        dateTurnedOver: undefined,
+        asBuiltPlans: {
+          cad: undefined,
+          pdf: undefined
+        },
+        postGeotaggedPhotos: []
       } : {})
     }
     
@@ -227,5 +240,78 @@ export function generateAllRAEDProjects(): Project[] {
   return allProjects
 }
 
-// Export the generated projects
-export const raedSpecificProjects = generateAllRAEDProjects()
+// Create some specific draft projects for testing
+function createDraftProjects(): Project[] {
+  const draftProjects: Project[] = [
+    {
+      id: 'DRAFT-001',
+      title: 'Community Health Center - Region 1',
+      type: 'Infrastructure',
+      province: 'Ilocos Norte',
+      region: 'Region 1',
+      status: 'Draft',
+      description: 'Draft proposal for a new community health center in Ilocos Norte',
+      budget: 12000000,
+      startDate: '2025-03-01',
+      updatedAt: '2025-01-15T10:30:00Z',
+      assignedTo: 'RAED - Region 1'
+    },
+    {
+      id: 'DRAFT-002',
+      title: 'Agricultural Training Facility - Region 3',
+      type: 'FMR',
+      province: 'Nueva Ecija',
+      region: 'Region 3',
+      status: 'Draft',
+      description: 'Draft proposal for agricultural training facility in Nueva Ecija',
+      budget: 8500000,
+      startDate: '2025-04-01',
+      updatedAt: '2025-01-18T14:20:00Z',
+      assignedTo: 'RAED - Region 3'
+    },
+    {
+      id: 'DRAFT-003',
+      title: 'Heavy Equipment Program - Region 7',
+      type: 'Machinery',
+      province: 'Cebu',
+      region: 'Region 7',
+      status: 'Draft',
+      description: 'Draft proposal for heavy equipment procurement program in Cebu',
+      budget: 25000000,
+      startDate: '2025-05-01',
+      updatedAt: '2025-01-22T09:15:00Z',
+      assignedTo: 'RAED - Region 7'
+    },
+    {
+      id: 'DRAFT-004',
+      title: 'Rural Water System - Region 11',
+      type: 'Infrastructure',
+      province: 'Davao del Sur',
+      region: 'Region 11',
+      status: 'Draft',
+      description: 'Draft proposal for rural water supply system in Davao del Sur',
+      budget: 18000000,
+      startDate: '2025-06-01',
+      updatedAt: '2025-01-25T16:45:00Z',
+      assignedTo: 'RAED - Region 11'
+    },
+    {
+      id: 'DRAFT-005',
+      title: 'Farm-to-Market Road - Region 5',
+      type: 'FMR',
+      province: 'Albay',
+      region: 'Region 5',
+      status: 'Draft',
+      description: 'Draft proposal for farm-to-market road construction in Albay',
+      budget: 15000000,
+      startDate: '2025-07-01',
+      updatedAt: '2025-01-28T11:30:00Z',
+      assignedTo: 'RAED - Region 5'
+    }
+  ]
+  
+  return draftProjects
+}
+
+// Export the generated projects combined with draft projects
+export const raedSpecificProjects = [...generateAllRAEDProjects(), ...createDraftProjects()]

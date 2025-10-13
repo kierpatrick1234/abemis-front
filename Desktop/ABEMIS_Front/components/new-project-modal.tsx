@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,6 +24,7 @@ interface NewProjectModalProps {
     type: string
     description: string
   }) => void
+  editingDraft?: any // Project being edited
 }
 
 const projectTypes = [
@@ -50,16 +51,24 @@ const projectTypes = [
   }
 ]
 
-export function NewProjectModal({ isOpen, onClose, onProjectCreate }: NewProjectModalProps) {
+export function NewProjectModal({ isOpen, onClose, onProjectCreate, editingDraft }: NewProjectModalProps) {
   const [selectedType, setSelectedType] = useState<string>('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [step, setStep] = useState<'type' | 'details'>('type')
   const [showInfraModal, setShowInfraModal] = useState(false)
 
+  // Auto-open InfraProjectModal if editing any draft project
+  React.useEffect(() => {
+    if (editingDraft && isOpen) {
+      setShowInfraModal(true)
+    }
+  }, [editingDraft, isOpen])
+
   const handleTypeSelect = (typeId: string) => {
     if (typeId === 'infra') {
       setShowInfraModal(true)
+      onClose() // Close the modal when selecting Infrastructure
       return
     }
     setSelectedType(typeId)
@@ -116,7 +125,7 @@ export function NewProjectModal({ isOpen, onClose, onProjectCreate }: NewProject
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={handleClose}>
+      <Dialog open={isOpen && !showInfraModal} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
@@ -213,8 +222,15 @@ export function NewProjectModal({ isOpen, onClose, onProjectCreate }: NewProject
       {/* Infra Project Modal */}
       <InfraProjectModal
         isOpen={showInfraModal}
-        onClose={() => setShowInfraModal(false)}
+        onClose={() => {
+          setShowInfraModal(false)
+          // Also close the main modal if needed
+          if (!editingDraft) {
+            onClose()
+          }
+        }}
         onProjectCreate={handleInfraProjectCreate}
+        editingDraft={editingDraft}
       />
     </>
   )

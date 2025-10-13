@@ -253,6 +253,12 @@ export const navigationItems: NavItem[] = [
     roles: ['admin', 'engineer', 'stakeholder', 'read', 'manager', 'supervisor', 'superadmin', 'EPDSD', 'PPMD', 'SEPD'],
   },
   {
+    title: 'Document Manager',
+    href: '/document-manager',
+    icon: 'FileText',
+    roles: ['RAED'],
+  },
+  {
     title: 'Analytics',
     href: '/analytics',
     icon: 'BarChart3',
