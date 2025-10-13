@@ -172,9 +172,12 @@ export function StatusBadge({ status }: { status: string }) {
     switch (status) {
       case 'Completed':
       case 'Validated':
+      case 'Delivered':
+      case 'Inventory':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
       case 'Implementation':
       case 'For Review':
+      case 'For Delivery':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       case 'Procurement':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'

@@ -55,9 +55,52 @@ const steps = [
   }
 ]
 
+// Machinery-specific steps
+const machinerySteps = [
+  {
+    key: 'proposal',
+    label: 'Proposal',
+    icon: FileText,
+    description: 'Project proposal submitted'
+  },
+  {
+    key: 'procurement',
+    label: 'Procurement',
+    icon: ShoppingCart,
+    description: 'Procurement process'
+  },
+  {
+    key: 'for-delivery',
+    label: 'For Delivery',
+    icon: Upload,
+    description: 'Ready for delivery'
+  },
+  {
+    key: 'delivered',
+    label: 'Delivered',
+    icon: CheckCircle,
+    description: 'Project delivered'
+  },
+  {
+    key: 'inventory',
+    label: 'Inventory',
+    icon: Package,
+    description: 'Inventory management'
+  }
+]
+
 export function ProjectStepper({ currentStatus, onStepClick, projectType, project }: ProjectStepperProps) {
+  // Determine which steps to use based on project type
+  const currentSteps = projectType === 'Machinery' ? machinerySteps : steps
+  
   // Map currentStatus to the correct step key
-  const statusToStepMap: { [key: string]: string } = {
+  const statusToStepMap: { [key: string]: string } = projectType === 'Machinery' ? {
+    'Proposal': 'proposal',
+    'Procurement': 'procurement',
+    'For Delivery': 'for-delivery',
+    'Delivered': 'delivered',
+    'Inventory': 'inventory'
+  } : {
     'Proposal': 'proposal',
     'Procurement': 'procurement', 
     'Implementation': 'implementation',
@@ -71,7 +114,7 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
 
   const getStepIndex = (step: string) => {
     const mappedStep = statusToStepMap[step] || step
-    const index = steps.findIndex(s => s.key === mappedStep)
+    const index = currentSteps.findIndex(s => s.key === mappedStep)
     return index >= 0 ? index : 0
   }
 
@@ -93,7 +136,13 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
       setActiveStep(step)
       // Only update the current step status when clicking on the current stage or forward
       // Don't update when clicking on previous stages to maintain accessibility
-      const stepToStatusMap: { [key: string]: string } = {
+      const stepToStatusMap: { [key: string]: string } = projectType === 'Machinery' ? {
+        'proposal': 'Proposal',
+        'procurement': 'Procurement',
+        'for-delivery': 'For Delivery',
+        'delivered': 'Delivered',
+        'inventory': 'Inventory'
+      } : {
         'proposal': 'Proposal',
         'procurement': 'Procurement',
         'implementation': 'Implementation',
@@ -110,11 +159,17 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
 
   // Handle stage progression from procurement to implementation
   const handleStageProgression = (nextStep: string) => {
-    const stepIndex = steps.findIndex(s => s.key === nextStep)
+    const stepIndex = currentSteps.findIndex(s => s.key === nextStep)
     if (stepIndex >= 0) {
       setActiveStep(nextStep)
       // Update the current step status to reflect the progression
-      const stepToStatusMap: { [key: string]: string } = {
+      const stepToStatusMap: { [key: string]: string } = projectType === 'Machinery' ? {
+        'proposal': 'Proposal',
+        'procurement': 'Procurement',
+        'for-delivery': 'For Delivery',
+        'delivered': 'Delivered',
+        'inventory': 'Inventory'
+      } : {
         'proposal': 'Proposal',
         'procurement': 'Procurement',
         'implementation': 'Implementation',
@@ -135,7 +190,7 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
   return (
     <div className="w-full">
       <div className="flex items-center justify-center mb-8 px-4">
-        {steps.map((step, index) => {
+        {currentSteps.map((step, index) => {
           const Icon = step.icon
           const stepStatus = getStepStatus(index)
           const isAccessible = isStepAccessible(index)
@@ -228,10 +283,20 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            {steps.find(s => s.key === activeStep)?.icon && (
-              React.createElement(steps.find(s => s.key === activeStep)!.icon, { className: "h-5 w-5" })
+            {currentSteps.find(s => s.key === activeStep)?.icon && (
+              React.createElement(currentSteps.find(s => s.key === activeStep)!.icon, { className: "h-5 w-5" })
             )}
-            {steps.find(s => s.key === activeStep)?.label} Details
+            {projectType === 'Machinery' ? (
+              <>
+                {activeStep === 'proposal' && 'Step 1: Proposal Details'}
+                {activeStep === 'procurement' && 'Step 2: Procurement Details'}
+                {activeStep === 'for-delivery' && 'Step 3: For Delivery Details'}
+                {activeStep === 'delivered' && 'Step 4: Delivered Details'}
+                {activeStep === 'inventory' && 'Step 5: Inventory Details'}
+              </>
+            ) : (
+              `${currentSteps.find(s => s.key === activeStep)?.label} Details`
+            )}
             {activeStep === mappedCurrentStatus && (
               <Badge variant="secondary" className="ml-2">Current</Badge>
             )}
@@ -253,6 +318,12 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
           {activeStep === 'inventory' && (
             <InventoryStepContent />
           )}
+          {activeStep === 'for-delivery' && (
+            <ForDeliveryStepContent project={project} onStepClick={onStepClick} />
+          )}
+          {activeStep === 'delivered' && (
+            <DeliveredStepContent project={project} onStepClick={onStepClick} />
+          )}
         </CardContent>
       </Card>
     </div>
@@ -267,8 +338,51 @@ function ProposalStepContent({ projectType, currentStatus, project }: { projectT
   const [previewDocument, setPreviewDocument] = useState<any>(null)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   
-  // Required documents for EPDSD evaluation
-  const requiredDocuments = [
+  // Required documents based on project type
+  const requiredDocuments = projectType === 'Machinery' ? [
+    {
+      id: 'DOC-001',
+      name: 'Letter/Resolution',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-002', 
+      name: 'UTILIZATION PROPOSAL (BUSINESS PLAN)',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-003',
+      name: 'VALIDATION REPORT',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-004',
+      name: 'FS/EFA',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-005',
+      name: 'TECHNICAL SPECIFICATIONS',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-006',
+      name: 'MARKET ANALYSIS',
+      type: 'PDF',
+      required: true
+    },
+    {
+      id: 'DOC-007',
+      name: 'Others',
+      type: 'PDF',
+      required: false
+    }
+  ] : [
     {
       id: 'DOC-001',
       name: 'Letter of Intent',
@@ -380,6 +494,13 @@ function ProposalStepContent({ projectType, currentStatus, project }: { projectT
   
   return (
     <div className="space-y-6">
+      {/* Step Number for Machinery Projects */}
+      {projectType === 'Machinery' && (
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-semibold text-blue-600">Step 1: Proposal</h3>
+        </div>
+      )}
+      
       {/* Proposal Details Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-muted/30 rounded-lg">
         <div>
@@ -608,7 +729,7 @@ This is a mock download. In a real application, this would download the actual P
                           <div>
                             <span className="font-medium text-green-700">Date:</span> 
                             <span className="text-green-600 ml-1">{formatDate(uploadedDoc.uploadedAt)}</span>
-                          </div>
+                          </div>      
                         </div>
                         <div className="bg-green-100 border border-green-300 rounded p-3">
                           <div className="flex items-center gap-2 mb-1">
@@ -795,6 +916,11 @@ function ProcurementStepContent({ currentStatus, project, onStepClick, onStagePr
   
   return (
     <div className="space-y-6">
+      {/* Step Number for Machinery Projects */}
+      <div className="text-center mb-4">
+        <h3 className="text-lg font-semibold text-blue-600">Step 2: Procurement</h3>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <h4 className="font-medium mb-2">Procurement Method</h4>
@@ -2850,6 +2976,11 @@ function InventoryStepContent() {
 
   return (
     <div className="space-y-4">
+      {/* Step Number for Machinery Projects */}
+      <div className="text-center mb-4">
+        <h3 className="text-lg font-semibold text-blue-600">Step 5: Inventory</h3>
+      </div>
+      
       <div>
         <h4 className="font-medium mb-2">Inventory Status</h4>
         <Badge variant="outline">Pending</Badge>
@@ -2885,6 +3016,291 @@ function InventoryStepContent() {
             {ratingResult.score ? `Score: ${ratingResult.score} (${ratingResult.rating})` : 'Pending evaluation'}
           </span>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Machinery-specific stage components
+function ForDeliveryStepContent({ project, onStepClick }: { project?: Project, onStepClick: (step: string) => void }) {
+  const [formData, setFormData] = useState({
+    deliveryDate: project?.deliveryDate || '',
+    inspectionDate: project?.inspectionDate || '',
+    inspectorName: project?.inspectorName || '',
+    machineBrand: project?.machineBrand || '',
+    engineType: project?.engineType || '',
+    engineSerialNumber: project?.engineSerialNumber || '',
+    chasisSerialNumber: project?.chasisSerialNumber || '',
+    ratedPower: project?.ratedPower || '',
+    capacity: project?.capacity || '',
+    remarks: project?.remarks || ''
+  })
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleNextStage = () => {
+    // Here you would typically save the form data to the project
+    console.log('For Delivery data:', formData)
+    onStepClick('delivered')
+  }
+
+  const isFormValid = () => {
+    return formData.deliveryDate && 
+           formData.inspectionDate && 
+           formData.inspectorName && 
+           formData.machineBrand && 
+           formData.engineType && 
+           formData.engineSerialNumber && 
+           formData.chasisSerialNumber && 
+           formData.ratedPower && 
+           formData.capacity
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h4 className="font-medium mb-2">Step 3: For Delivery - RAED Upload</h4>
+        <p className="text-sm text-muted-foreground mb-4">
+          Please fill in the delivery and inspection details for the machinery.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="deliveryDate">Delivery Date *</Label>
+          <Input
+            id="deliveryDate"
+            type="date"
+            value={formData.deliveryDate}
+            onChange={(e) => handleInputChange('deliveryDate', e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="inspectionDate">Inspection Date *</Label>
+          <Input
+            id="inspectionDate"
+            type="date"
+            value={formData.inspectionDate}
+            onChange={(e) => handleInputChange('inspectionDate', e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="inspectorName">Name of Inspector *</Label>
+          <Input
+            id="inspectorName"
+            value={formData.inspectorName}
+            onChange={(e) => handleInputChange('inspectorName', e.target.value)}
+            placeholder="Enter inspector name"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="machineBrand">Machine Brand *</Label>
+          <Input
+            id="machineBrand"
+            value={formData.machineBrand}
+            onChange={(e) => handleInputChange('machineBrand', e.target.value)}
+            placeholder="Enter machine brand"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="engineType">Engine Type *</Label>
+          <Input
+            id="engineType"
+            value={formData.engineType}
+            onChange={(e) => handleInputChange('engineType', e.target.value)}
+            placeholder="Enter engine type"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="engineSerialNumber">Engine Serial Number *</Label>
+          <Input
+            id="engineSerialNumber"
+            value={formData.engineSerialNumber}
+            onChange={(e) => handleInputChange('engineSerialNumber', e.target.value)}
+            placeholder="Enter engine serial number"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="chasisSerialNumber">Chasis Serial Number *</Label>
+          <Input
+            id="chasisSerialNumber"
+            value={formData.chasisSerialNumber}
+            onChange={(e) => handleInputChange('chasisSerialNumber', e.target.value)}
+            placeholder="Enter chasis serial number"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="ratedPower">Rated Power *</Label>
+          <Input
+            id="ratedPower"
+            value={formData.ratedPower}
+            onChange={(e) => handleInputChange('ratedPower', e.target.value)}
+            placeholder="Enter rated power"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="capacity">Capacity *</Label>
+          <Input
+            id="capacity"
+            value={formData.capacity}
+            onChange={(e) => handleInputChange('capacity', e.target.value)}
+            placeholder="Enter capacity"
+          />
+        </div>
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="remarks">Remarks</Label>
+          <textarea
+            id="remarks"
+            value={formData.remarks}
+            onChange={(e) => handleInputChange('remarks', e.target.value)}
+            placeholder="Enter any additional remarks"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-20"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <Button 
+          onClick={handleNextStage}
+          disabled={!isFormValid()}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <ArrowRight className="h-4 w-4 mr-2" />
+          Next Stage
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function DeliveredStepContent({ project, onStepClick }: { project?: Project, onStepClick: (step: string) => void }) {
+  const [formData, setFormData] = useState({
+    dateTurnover: project?.dateTurnover || '',
+    representativeBeneficiary: project?.representativeBeneficiary || '',
+    beneficiaryNumber: project?.beneficiaryNumber || '',
+    geotagPhotos: project?.geotagPhotos || [],
+    proofOfTurnover: project?.proofOfTurnover || []
+  })
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleFileUpload = (field: 'geotagPhotos' | 'proofOfTurnover', files: FileList | null) => {
+    if (files) {
+      const fileArray = Array.from(files)
+      setFormData(prev => ({
+        ...prev,
+        [field]: [...prev[field], ...fileArray.map(f => f.name)]
+      }))
+    }
+  }
+
+  const handleNextStage = () => {
+    // Here you would typically save the form data to the project
+    console.log('Delivered data:', formData)
+    onStepClick('inventory')
+  }
+
+  const isFormValid = () => {
+    return formData.dateTurnover && 
+           formData.representativeBeneficiary && 
+           formData.beneficiaryNumber && 
+           formData.geotagPhotos.length > 0 && 
+           formData.proofOfTurnover.length > 0
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h4 className="font-medium mb-2">Step 4: Delivered - Turnover Details</h4>
+        <p className="text-sm text-muted-foreground mb-4">
+          Please complete all turnover details to proceed to inventory stage.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="dateTurnover">Date Turnover *</Label>
+          <Input
+            id="dateTurnover"
+            type="date"
+            value={formData.dateTurnover}
+            onChange={(e) => handleInputChange('dateTurnover', e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="representativeBeneficiary">Representative/Beneficiary *</Label>
+          <Input
+            id="representativeBeneficiary"
+            value={formData.representativeBeneficiary}
+            onChange={(e) => handleInputChange('representativeBeneficiary', e.target.value)}
+            placeholder="Enter representative/beneficiary name"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="beneficiaryNumber">Beneficiary Number *</Label>
+          <Input
+            id="beneficiaryNumber"
+            value={formData.beneficiaryNumber}
+            onChange={(e) => handleInputChange('beneficiaryNumber', e.target.value)}
+            placeholder="Enter beneficiary number"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="geotagPhotos">Geotag Photos *</Label>
+          <input
+            type="file"
+            id="geotagPhotos"
+            multiple
+            accept="image/*"
+            onChange={(e) => handleFileUpload('geotagPhotos', e.target.files)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {formData.geotagPhotos.length > 0 && (
+            <div className="text-sm text-green-600">
+              {formData.geotagPhotos.length} photo(s) uploaded
+            </div>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="proofOfTurnover">Proof of Turnover (Photo) *</Label>
+          <input
+            type="file"
+            id="proofOfTurnover"
+            multiple
+            accept="image/*"
+            onChange={(e) => handleFileUpload('proofOfTurnover', e.target.files)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {formData.proofOfTurnover.length > 0 && (
+            <div className="text-sm text-green-600">
+              {formData.proofOfTurnover.length} photo(s) uploaded
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <Button 
+          onClick={handleNextStage}
+          disabled={!isFormValid()}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <ArrowRight className="h-4 w-4 mr-2" />
+          Next Stage
+        </Button>
       </div>
     </div>
   )

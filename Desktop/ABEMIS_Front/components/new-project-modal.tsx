@@ -15,6 +15,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import { Building2, Wrench, FileText } from 'lucide-react'
 import { InfraProjectModal } from './infra-project-modal'
+import { MachineryProjectModal } from './machinery-project-modal'
 
 interface NewProjectModalProps {
   isOpen: boolean
@@ -65,10 +66,17 @@ export function NewProjectModal({ isOpen, onClose, onProjectCreate, editingDraft
     }
   }, [editingDraft, isOpen])
 
+  const [showMachineryModal, setShowMachineryModal] = useState(false)
+
   const handleTypeSelect = (typeId: string) => {
     if (typeId === 'infra') {
       setShowInfraModal(true)
       onClose() // Close the modal when selecting Infrastructure
+      return
+    }
+    if (typeId === 'machinery') {
+      setShowMachineryModal(true)
+      onClose() // Close the modal when selecting Machinery
       return
     }
     setSelectedType(typeId)
@@ -118,6 +126,18 @@ export function NewProjectModal({ isOpen, onClose, onProjectCreate, editingDraft
     }
     onProjectCreate(extractedData)
     setShowInfraModal(false)
+    onClose()
+  }
+
+  const handleMachineryProjectCreate = (projectData: Record<string, unknown>) => {
+    // Extract required fields from projectData
+    const extractedData = {
+      title: (projectData.title as string) || 'New Machinery Project',
+      type: (projectData.type as string) || 'Machinery',
+      description: (projectData.description as string) || 'New project description'
+    }
+    onProjectCreate(extractedData)
+    setShowMachineryModal(false)
     onClose()
   }
 
@@ -230,6 +250,20 @@ export function NewProjectModal({ isOpen, onClose, onProjectCreate, editingDraft
           }
         }}
         onProjectCreate={handleInfraProjectCreate}
+        editingDraft={editingDraft}
+      />
+
+      {/* Machinery Project Modal */}
+      <MachineryProjectModal
+        isOpen={showMachineryModal}
+        onClose={() => {
+          setShowMachineryModal(false)
+          // Also close the main modal if needed
+          if (!editingDraft) {
+            onClose()
+          }
+        }}
+        onProjectCreate={handleMachineryProjectCreate}
         editingDraft={editingDraft}
       />
     </>

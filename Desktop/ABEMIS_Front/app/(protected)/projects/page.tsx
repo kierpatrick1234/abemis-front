@@ -66,6 +66,12 @@ export default function ProjectsPage() {
     setStageFilter('all')
   }, [])
 
+  const handleTypeFilterChange = useCallback((newTypeFilter: string) => {
+    setTypeFilter(newTypeFilter)
+    // Reset stage filter when type filter changes to avoid invalid combinations
+    setStageFilter('all')
+  }, [])
+
   const handleCreateProject = useCallback((projectData: any) => {
     if (editingDraft) {
       // Update existing draft project
@@ -116,7 +122,7 @@ export default function ProjectsPage() {
       
       const newProject: Project = {
         id: `PROJ-${Date.now()}`, // Generate unique ID
-        title: projectData.projectTitle || projectData.title || 'New Infrastructure Project',
+        title: projectData.projectTitle || projectData.title || (projectData.type === 'Machinery' ? 'New Machinery Project' : 'New Infrastructure Project'),
         type: (projectData.type as Project['type']) || 'Infrastructure',
         status: projectData.status || (projectData.isDraftSave ? 'Draft' : 'Proposal'),
         budget: projectData.allocatedAmount ? parseFloat(projectData.allocatedAmount) : 0,
@@ -293,7 +299,7 @@ export default function ProjectsPage() {
           <div className="flex gap-2">
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
+              onChange={(e) => handleTypeFilterChange(e.target.value)}
               className="h-10 px-3 py-2 border border-input bg-background rounded-md text-sm min-w-[120px]"
             >
               <option value="all">All Types</option>
@@ -313,74 +319,107 @@ export default function ProjectsPage() {
           </div>
         </div>
         
-        {/* Stage Filter Buttons - Centered */}
-        <div className="flex justify-center">
-          <div className="inline-flex rounded-lg border border-input bg-background p-1 flex-wrap gap-1">
-            <Button
-              variant={stageFilter === 'all' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setStageFilter('all')}
-              className="rounded-md"
-            >
-              <Package className="h-4 w-4 mr-1" />
-              All Stages
-            </Button>
-            <Button
-              variant={stageFilter === 'Proposal' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setStageFilter('Proposal')}
-              className="rounded-md"
-            >
-              <FileText className="h-4 w-4 mr-1" />
-              Proposal
-            </Button>
-            <Button
-              variant={stageFilter === 'Procurement' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setStageFilter('Procurement')}
-              className="rounded-md"
-            >
-              <ShoppingCart className="h-4 w-4 mr-1" />
-              Procurement
-            </Button>
-            <Button
-              variant={stageFilter === 'Implementation' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setStageFilter('Implementation')}
-              className="rounded-md"
-            >
-              <Hammer className="h-4 w-4 mr-1" />
-              Implementation
-            </Button>
-            <Button
-              variant={stageFilter === 'Completed' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setStageFilter('Completed')}
-              className="rounded-md"
-            >
-              <CheckCircle className="h-4 w-4 mr-1" />
-              Completed
-            </Button>
-            <Button
-              variant={stageFilter === 'Inventory' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setStageFilter('Inventory')}
-              className="rounded-md"
-            >
-              <Package className="h-4 w-4 mr-1" />
-              Inventory
-            </Button>
-            <Button
-              variant={stageFilter === 'Draft' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setStageFilter('Draft')}
-              className="rounded-md"
-            >
-              <Edit3 className="h-4 w-4 mr-1" />
-              Draft
-            </Button>
+        {/* Stage Filter Buttons - Dynamic based on project type */}
+        {typeFilter !== 'all' && (
+          <div className="flex justify-center">
+            <div className="inline-flex rounded-lg border border-input bg-background p-1 flex-wrap gap-1">
+              <Button
+                variant={stageFilter === 'all' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setStageFilter('all')}
+                className="rounded-md"
+              >
+                <Package className="h-4 w-4 mr-1" />
+                All Stages
+              </Button>
+              <Button
+                variant={stageFilter === 'Proposal' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setStageFilter('Proposal')}
+                className="rounded-md"
+              >
+                <FileText className="h-4 w-4 mr-1" />
+                Proposal
+              </Button>
+              <Button
+                variant={stageFilter === 'Procurement' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setStageFilter('Procurement')}
+                className="rounded-md"
+              >
+                <ShoppingCart className="h-4 w-4 mr-1" />
+                Procurement
+              </Button>
+              
+              {/* Infrastructure and FMR stages */}
+              {typeFilter === 'Infrastructure' && (
+                <>
+                  <Button
+                    variant={stageFilter === 'Implementation' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setStageFilter('Implementation')}
+                    className="rounded-md"
+                  >
+                    <Hammer className="h-4 w-4 mr-1" />
+                    Implementation
+                  </Button>
+                  <Button
+                    variant={stageFilter === 'Completed' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setStageFilter('Completed')}
+                    className="rounded-md"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Completed
+                  </Button>
+                </>
+              )}
+              
+              {/* Machinery stages */}
+              {typeFilter === 'Machinery' && (
+                <>
+                  <Button
+                    variant={stageFilter === 'For Delivery' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setStageFilter('For Delivery')}
+                    className="rounded-md"
+                  >
+                    <Hammer className="h-4 w-4 mr-1" />
+                    For Delivery
+                  </Button>
+                  <Button
+                    variant={stageFilter === 'Delivered' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setStageFilter('Delivered')}
+                    className="rounded-md"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Delivered
+                  </Button>
+                </>
+              )}
+              
+              <Button
+                variant={stageFilter === 'Inventory' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setStageFilter('Inventory')}
+                className="rounded-md"
+              >
+                <Package className="h-4 w-4 mr-1" />
+                Inventory
+              </Button>
+              <Button
+                variant={stageFilter === 'Draft' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setStageFilter('Draft')}
+                className="rounded-md"
+              >
+                <Edit3 className="h-4 w-4 mr-1" />
+                Draft
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Projects Table */}

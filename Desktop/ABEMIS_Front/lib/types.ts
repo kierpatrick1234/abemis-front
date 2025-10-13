@@ -27,7 +27,7 @@ export interface Project {
   type: 'FMR' | 'Infrastructure' | 'Machinery'
   province: string
   region?: string
-  status: 'Draft' | 'Proposal' | 'Procurement' | 'Implementation' | 'Completed' | 'Inventory'
+  status: 'Draft' | 'Proposal' | 'Procurement' | 'Implementation' | 'Completed' | 'Inventory' | 'For Delivery' | 'Delivered'
   description: string
   budget: number
   startDate: string
@@ -72,6 +72,23 @@ export interface Project {
     label: string
     id: string
   }>
+  // Machinery-specific fields
+  deliveryDate?: string
+  inspectionDate?: string
+  inspectorName?: string
+  machineBrand?: string
+  engineType?: string
+  engineSerialNumber?: string
+  chasisSerialNumber?: string
+  ratedPower?: string
+  capacity?: string
+  remarks?: string
+  // Delivered stage fields
+  dateTurnover?: string
+  representativeBeneficiary?: string
+  beneficiaryNumber?: string
+  geotagPhotos?: string[]
+  proofOfTurnover?: string[]
 }
 
 export interface Document {
