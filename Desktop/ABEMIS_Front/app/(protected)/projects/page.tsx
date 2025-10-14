@@ -14,7 +14,7 @@ import { mockProjects } from '@/lib/mock/data'
 import { formatDate } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { Project } from '@/lib/types'
-import { Search, Filter, Plus, FileText, ShoppingCart, Hammer, CheckCircle, Package, Edit3 } from 'lucide-react'
+import { Search, Filter, Plus, FileText, ShoppingCart, Hammer, CheckCircle, Package, Edit3, List, Grid3X3, MapPin, Calendar, DollarSign } from 'lucide-react'
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -29,6 +29,7 @@ export default function ProjectsPage() {
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [editingDraft, setEditingDraft] = useState<Project | null>(null)
   const [showInfraCreationModal, setShowInfraCreationModal] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const { user } = useAuth()
 
   const handleEditProject = useCallback((projectId: string) => {
@@ -425,20 +426,155 @@ export default function ProjectsPage() {
       {/* Projects Table */}
       <Card className="overflow-hidden flex flex-col">
         <CardHeader className="flex-shrink-0">
-          <CardTitle>Projects ({filteredProjects.length})</CardTitle>
-          <CardDescription>
-            Infrastructure and FMR project listings
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Projects ({filteredProjects.length})</CardTitle>
+              <CardDescription>
+                Infrastructure and FMR project listings
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">View:</span>
+              <div className="flex border rounded-lg">
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="rounded-r-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="rounded-l-none"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-0 flex-1 flex flex-col">
-          <DataTable 
-            columns={columns} 
-            data={filteredProjects} 
-            onRowClick={handleRowClick}
-            enablePagination={true}
-            pageSize={5}
-            pageSizeOptions={[5, 10, 25, 50, 100]}
-          />
+          {viewMode === 'list' ? (
+            <DataTable 
+              columns={columns} 
+              data={filteredProjects} 
+              onRowClick={handleRowClick}
+              enablePagination={true}
+              pageSize={5}
+              pageSizeOptions={[5, 10, 25, 50, 100]}
+            />
+          ) : (
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredProjects.map((project) => (
+                  <div 
+                    key={project.id}
+                    className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => handleRowClick(project)}
+                  >
+                    <div className="flex flex-col h-full">
+                      {/* Project Header */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-sm mb-1 line-clamp-2">{project.title}</h3>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{project.province}</span>
+                          </div>
+                        </div>
+                        <Badge variant={project.type === 'FMR' ? 'secondary' : 'outline'} className="text-xs">
+                          {project.type}
+                        </Badge>
+                      </div>
+                      
+                      {/* Project Type Display */}
+                      <div className="mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-muted-foreground">Type:</span>
+                          <Badge 
+                            variant={project.type === 'FMR' ? 'secondary' : project.type === 'Infrastructure' ? 'default' : 'outline'} 
+                            className="text-xs"
+                          >
+                            {project.type}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      {/* Project Status */}
+                      <div className="mb-3">
+                        <StatusBadge status={project.status} />
+                      </div>
+                      
+                      {/* Project Details */}
+                      <div className="space-y-2 text-xs text-muted-foreground mb-4 flex-1">
+                        {project.budget && (
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" />
+                            <span>₱{project.budget.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>Updated {formatDate(project.updatedAt)}</span>
+                        </div>
+                        {project.region && (
+                          <div className="text-xs">
+                            Region: {project.region}
+                          </div>
+                        )}
+                        {project.municipality && (
+                          <div className="text-xs">
+                            {project.municipality}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2 pt-2 border-t">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleEditProject(project.id)
+                          }}
+                          className="flex-1"
+                        >
+                          <Edit3 className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDuplicateProject(project.id)
+                          }}
+                          className="flex-1"
+                        >
+                          <FileText className="h-4 w-4 mr-1" />
+                          Duplicate
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {filteredProjects.length === 0 && (
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium">No projects found</h3>
+                  <p className="text-muted-foreground">
+                    Try adjusting your search criteria or filters
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 

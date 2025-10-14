@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Pagination, usePagination } from '@/components/pagination'
 import { 
   FileText, 
   Search, 
@@ -19,7 +20,11 @@ import {
   CheckCircle,
   AlertTriangle,
   Clock,
-  Archive
+  Archive,
+  Filter,
+  MapPin,
+  Upload,
+  X
 } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
 
@@ -75,6 +80,7 @@ const generateMockDocuments = (projects: any[]) => {
         projectTitle: project.title,
         projectType: project.type,
         projectStatus: project.status,
+        projectRegion: project.region,
         documentType: docType,
         status: status,
         fileType: fileType,
@@ -94,6 +100,8 @@ const generateMockDocuments = (projects: any[]) => {
 export default function DocumentManagerPage() {
   const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
+  const [regionFilter, setRegionFilter] = useState('all')
+  const [uploadedByFilter, setUploadedByFilter] = useState('all')
   const [selectedDocument, setSelectedDocument] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -110,19 +118,33 @@ export default function DocumentManagerPage() {
     return generateMockDocuments(regionProjects)
   }, [regionProjects])
 
-  // Filter documents based on search only
+  // Filter documents based on search and filters
   const filteredDocuments = useMemo(() => {
     return allDocuments.filter(doc => {
       const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           doc.projectTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           doc.documentType.toLowerCase().includes(searchQuery.toLowerCase())
       
-      return matchesSearch
+      const matchesRegion = regionFilter === 'all' || doc.projectRegion === regionFilter
+      const matchesUploadedBy = uploadedByFilter === 'all' || doc.uploadedBy === uploadedByFilter
+      
+      return matchesSearch && matchesRegion && matchesUploadedBy
     }).sort((a, b) => {
       // Default sort by upload date (newest first)
       return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
     })
-  }, [allDocuments, searchQuery])
+  }, [allDocuments, searchQuery, regionFilter, uploadedByFilter])
+
+  // Pagination logic
+  const {
+    currentPage,
+    pageSize,
+    totalPages,
+    totalItems,
+    paginatedData,
+    handlePageChange,
+    handlePageSizeChange
+  } = usePagination(filteredDocuments, 10, 1)
 
 
   // Statistics
@@ -606,7 +628,7 @@ export default function DocumentManagerPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Document Manager</h1>
         <p className="text-muted-foreground">
@@ -669,43 +691,145 @@ export default function DocumentManagerPage() {
         </Card>
       </div>
 
-      {/* Search */}
+      {/* Search and Filters */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Search Documents
+            <Filter className="h-5 w-5" />
+            Search & Filter Documents
           </CardTitle>
           <CardDescription>
-            Search through documents by name, project, or document type
+            Find documents quickly with search and filters
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 items-end">
-            <div className="flex-1 space-y-2">
-              <label className="text-sm font-medium">Search</label>
+          <div className="space-y-6">
+            {/* Search Section */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <label className="text-sm font-medium">Search Documents</label>
+              </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search documents..."
+                  placeholder="Search by document name, project, or type..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
                 />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
             </div>
-            
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">
-                Showing {filteredDocuments.length} of {totalDocuments} documents
-              </span>
-              {searchQuery && (
+
+            {/* Filters Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <label className="text-sm font-medium">Filters</label>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Region Filter */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <label className="text-sm font-medium">Region</label>
+                  </div>
+                  <select
+                    value={regionFilter}
+                    onChange={(e) => setRegionFilter(e.target.value)}
+                    className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-ring focus:border-ring"
+                  >
+                    <option value="all">All Regions</option>
+                    <option value="Region 1">Region 1</option>
+                    <option value="Region 2">Region 2</option>
+                    <option value="Region 3">Region 3</option>
+                    <option value="Region 4">Region 4</option>
+                    <option value="Region 5">Region 5</option>
+                    <option value="Region 6">Region 6</option>
+                    <option value="Region 7">Region 7</option>
+                    <option value="Region 8">Region 8</option>
+                    <option value="Region 9">Region 9</option>
+                    <option value="Region 10">Region 10</option>
+                    <option value="Region 11">Region 11</option>
+                    <option value="Region 12">Region 12</option>
+                    <option value="NCR">NCR</option>
+                    <option value="CAR">CAR</option>
+                    <option value="BARMM">BARMM</option>
+                  </select>
+                </div>
+                
+                {/* Uploaded By Filter */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Upload className="h-4 w-4 text-muted-foreground" />
+                    <label className="text-sm font-medium">Uploaded By</label>
+                  </div>
+                  <select
+                    value={uploadedByFilter}
+                    onChange={(e) => setUploadedByFilter(e.target.value)}
+                    className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-ring focus:border-ring"
+                  >
+                    <option value="all">All Users</option>
+                    <option value="RAED User">RAED User</option>
+                    <option value="Admin User">Admin User</option>
+                    <option value="Engineer User">Engineer User</option>
+                    <option value="Stakeholder User">Stakeholder User</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Results and Actions */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <span className="text-sm text-muted-foreground">
+                  Showing <span className="font-medium text-foreground">{paginatedData.length}</span> of <span className="font-medium text-foreground">{filteredDocuments.length}</span> documents
+                </span>
+                {(searchQuery || regionFilter !== 'all' || uploadedByFilter !== 'all') && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {searchQuery && (
+                      <Badge variant="secondary" className="text-xs">
+                        Search: {searchQuery}
+                      </Badge>
+                    )}
+                    {regionFilter !== 'all' && (
+                      <Badge variant="secondary" className="text-xs">
+                        Region: {regionFilter}
+                      </Badge>
+                    )}
+                    {uploadedByFilter !== 'all' && (
+                      <Badge variant="secondary" className="text-xs">
+                        User: {uploadedByFilter}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              {(searchQuery || regionFilter !== 'all' || uploadedByFilter !== 'all') && (
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => {
+                    setSearchQuery('')
+                    setRegionFilter('all')
+                    setUploadedByFilter('all')
+                  }}
+                  className="flex items-center gap-2"
                 >
-                  Clear Search
+                  <X className="h-4 w-4" />
+                  Clear All Filters
                 </Button>
               )}
             </div>
@@ -726,7 +850,7 @@ export default function DocumentManagerPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredDocuments.map((doc) => (
+            {paginatedData.map((doc) => (
               <div 
                 key={doc.id} 
                 className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
@@ -801,7 +925,7 @@ export default function DocumentManagerPage() {
               </div>
             ))}
             
-            {filteredDocuments.length === 0 && (
+            {paginatedData.length === 0 && (
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium">No documents found</h3>
@@ -813,6 +937,23 @@ export default function DocumentManagerPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pagination Controls - Sticky at bottom */}
+      {filteredDocuments.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50 shadow-lg">
+          <div className="max-w-7xl mx-auto px-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={totalItems}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              pageSizeOptions={[5, 10, 25, 50, 100]}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Document Preview Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

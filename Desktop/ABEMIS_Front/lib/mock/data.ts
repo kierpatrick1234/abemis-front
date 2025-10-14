@@ -248,7 +248,7 @@ export const navigationItems: NavItem[] = [
     roles: ['PPMD'],
   },
   {
-    title: 'Documents',
+    title: 'Document Manager',
     href: '/documents',
     icon: 'FileText',
     roles: ['admin', 'engineer', 'stakeholder', 'read', 'manager', 'supervisor', 'superadmin', 'EPDSD', 'PPMD', 'SEPD'],

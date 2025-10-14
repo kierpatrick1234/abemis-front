@@ -335,11 +335,6 @@ export default function LoginPage() {
 
   const testCredentials = [
     { email: 'admin@abemis.com', password: 'admin123', role: 'Admin', description: 'Full system access' },
-    { email: 'engineer@abemis.com', password: 'eng123', role: 'Engineer', description: 'Project and document management' },
-    { email: 'stakeholder@abemis.com', password: 'stake123', role: 'Stakeholder', description: 'View projects and documents' },
-    { email: 'read@abemis.com', password: 'read123', role: 'Read Only', description: 'View-only access' },
-    { email: 'manager@abemis.com', password: 'mgr123', role: 'Manager', description: 'Project oversight and analytics' },
-    { email: 'supervisor@abemis.com', password: 'sup123', role: 'Supervisor', description: 'Field supervision and reporting' },
     // RAED Users - Region 1 to Region 12
     { email: 'raed-1@abemis.com', password: 'raed123', role: 'RAED-1', description: 'Region 1 - Dashboard, Projects, Settings only' },
     { email: 'raed-2@abemis.com', password: 'raed123', role: 'RAED-2', description: 'Region 2 - Dashboard, Projects, Settings only' },
