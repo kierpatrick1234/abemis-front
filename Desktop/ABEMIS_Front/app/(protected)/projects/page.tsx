@@ -7,9 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { NewProjectModal } from '@/components/new-project-modal'
+import { RAEDProjectModal } from '@/components/raed-project-modal'
 import { InfraProjectModal } from '@/components/infra-project-modal'
 import { SuccessToast } from '@/components/success-toast'
 import { ProjectDetailsModal } from '@/components/project-details-modal'
+import { Pagination, usePagination } from '@/components/pagination'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -121,42 +123,84 @@ export default function ProjectsPage() {
       // Create a new project object with proper structure
       console.log('Creating new project:', projectData)
       
-      const newProject: Project = {
-        id: `PROJ-${Date.now()}`, // Generate unique ID
-        title: projectData.projectTitle || projectData.title || (projectData.type === 'Machinery' ? 'New Machinery Project' : 'New Infrastructure Project'),
-        type: (projectData.type as Project['type']) || 'Infrastructure',
-        status: projectData.status || (projectData.isDraftSave ? 'Draft' : 'Proposal'),
-        budget: projectData.allocatedAmount ? parseFloat(projectData.allocatedAmount) : 0,
-        province: projectData.province || 'Unknown',
-        region: projectData.region || 'Unknown',
-        description: projectData.projectDescription || projectData.description || 'New project description',
-        startDate: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString(),
-        // Infrastructure project specific fields
-        projectClassification: projectData.projectClassification,
-        projectType: projectData.projectType,
-        implementationDays: projectData.implementationDays,
-        prexcProgram: projectData.prexcProgram,
-        prexcSubProgram: projectData.prexcSubProgram,
-        budgetProcess: projectData.budgetProcess,
-        proposedFundSource: projectData.proposedFundSource,
-        sourceAgency: projectData.sourceAgency,
-        bannerProgram: projectData.bannerProgram,
-        fundingYear: projectData.fundingYear,
-        municipality: projectData.municipality,
-        district: projectData.district,
-        barangay: projectData.barangay,
-        documents: projectData.documents,
-      }
-      
-      // Add to new projects list
-      setNewProjects(prev => [newProject, ...prev])
-      
-      // Set appropriate toast message
-      if (projectData.isDraftSave) {
-        setToastMessage('Project saved as draft!')
+      // Handle package projects (individual project from package forms)
+      if (projectData.isPackage) {
+        const newProject: Project = {
+          id: `PROJ-${Date.now()}-${projectData.type.toLowerCase()}-${projectData.packageIndex || 0}`,
+          title: projectData.title || 'New Project',
+          type: (projectData.type as Project['type']) || 'Infrastructure',
+          status: projectData.status || (projectData.isDraftSave ? 'Draft' : 'Proposal'),
+          budget: projectData.allocatedAmount ? parseFloat(projectData.allocatedAmount) : 0,
+          province: projectData.province || 'Unknown',
+          region: projectData.region || user?.regionAssigned || 'Unknown',
+          description: projectData.description || 'New project description',
+          startDate: new Date().toISOString().split('T')[0],
+          updatedAt: new Date().toISOString(),
+          // Infrastructure project specific fields
+          projectClassification: projectData.projectClassification,
+          projectType: projectData.projectType,
+          implementationDays: projectData.implementationDays,
+          prexcProgram: projectData.prexcProgram,
+          prexcSubProgram: projectData.prexcSubProgram,
+          budgetProcess: projectData.budgetProcess,
+          proposedFundSource: projectData.proposedFundSource,
+          sourceAgency: projectData.sourceAgency,
+          bannerProgram: projectData.bannerProgram,
+          fundingYear: projectData.fundingYear,
+          municipality: projectData.municipality,
+          district: projectData.district,
+          barangay: projectData.barangay,
+          documents: projectData.documents,
+        }
+        
+        // Add to new projects list
+        setNewProjects(prev => [newProject, ...prev])
+        
+        // Set appropriate toast message
+        if (projectData.isDraftSave) {
+          setToastMessage('Project saved as draft!')
+        } else {
+          setToastMessage('Project created successfully!')
+        }
       } else {
-        setToastMessage('Project created successfully!')
+        // Handle single project
+        const newProject: Project = {
+          id: `PROJ-${Date.now()}`, // Generate unique ID
+          title: projectData.projectTitle || projectData.title || (projectData.type === 'Machinery' ? 'New Machinery Project' : 'New Infrastructure Project'),
+          type: (projectData.type as Project['type']) || 'Infrastructure',
+          status: projectData.status || (projectData.isDraftSave ? 'Draft' : 'Proposal'),
+          budget: projectData.allocatedAmount ? parseFloat(projectData.allocatedAmount) : 0,
+          province: projectData.province || 'Unknown',
+          region: projectData.region || user?.regionAssigned || 'Unknown',
+          description: projectData.projectDescription || projectData.description || 'New project description',
+          startDate: new Date().toISOString().split('T')[0],
+          updatedAt: new Date().toISOString(),
+          // Infrastructure project specific fields
+          projectClassification: projectData.projectClassification,
+          projectType: projectData.projectType,
+          implementationDays: projectData.implementationDays,
+          prexcProgram: projectData.prexcProgram,
+          prexcSubProgram: projectData.prexcSubProgram,
+          budgetProcess: projectData.budgetProcess,
+          proposedFundSource: projectData.proposedFundSource,
+          sourceAgency: projectData.sourceAgency,
+          bannerProgram: projectData.bannerProgram,
+          fundingYear: projectData.fundingYear,
+          municipality: projectData.municipality,
+          district: projectData.district,
+          barangay: projectData.barangay,
+          documents: projectData.documents,
+        }
+        
+        // Add to new projects list
+        setNewProjects(prev => [newProject, ...prev])
+        
+        // Set appropriate toast message
+        if (projectData.isDraftSave) {
+          setToastMessage('Project saved as draft!')
+        } else {
+          setToastMessage('Project created successfully!')
+        }
       }
     }
     
@@ -215,6 +259,9 @@ export default function ProjectsPage() {
     
     return matchesSearch && matchesType && matchesStage && matchesRegion
   }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+
+  // Pagination for grid view
+  const gridPagination = usePagination(filteredProjects, 12, 1)
 
   const columns = [
     {
@@ -469,7 +516,7 @@ export default function ProjectsPage() {
           ) : (
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredProjects.map((project) => (
+                {gridPagination.paginatedData.map((project) => (
                   <div 
                     key={project.id}
                     className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
@@ -564,7 +611,7 @@ export default function ProjectsPage() {
                 ))}
               </div>
               
-              {filteredProjects.length === 0 && (
+              {gridPagination.paginatedData.length === 0 && (
                 <div className="text-center py-8">
                   <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-medium">No projects found</h3>
@@ -573,21 +620,47 @@ export default function ProjectsPage() {
                   </p>
                 </div>
               )}
+              
+              {/* Pagination for grid view */}
+              {gridPagination.totalPages > 1 && (
+                <Pagination
+                  currentPage={gridPagination.currentPage}
+                  totalPages={gridPagination.totalPages}
+                  pageSize={gridPagination.pageSize}
+                  totalItems={gridPagination.totalItems}
+                  onPageChange={gridPagination.handlePageChange}
+                  onPageSizeChange={gridPagination.handlePageSizeChange}
+                  pageSizeOptions={[12, 24, 48, 96]}
+                  className="border-t"
+                />
+              )}
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* New Project Modal */}
-      <NewProjectModal
-        isOpen={isNewProjectModalOpen}
-        onClose={() => {
-          setIsNewProjectModalOpen(false)
-          setEditingDraft(null)
-        }}
-        onProjectCreate={handleCreateProject}
-        editingDraft={editingDraft}
-      />
+      {user?.role === 'RAED' ? (
+        <RAEDProjectModal
+          isOpen={isNewProjectModalOpen}
+          onClose={() => {
+            setIsNewProjectModalOpen(false)
+            setEditingDraft(null)
+          }}
+          onProjectCreate={handleCreateProject}
+          editingDraft={editingDraft}
+        />
+      ) : (
+        <NewProjectModal
+          isOpen={isNewProjectModalOpen}
+          onClose={() => {
+            setIsNewProjectModalOpen(false)
+            setEditingDraft(null)
+          }}
+          onProjectCreate={handleCreateProject}
+          editingDraft={editingDraft}
+        />
+      )}
 
       {/* Infrastructure Project Modal */}
       <InfraProjectModal

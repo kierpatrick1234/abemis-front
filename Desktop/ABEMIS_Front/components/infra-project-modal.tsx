@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Building2, Upload, Save } from 'lucide-react'
+import { Building2, Upload, Save, X } from 'lucide-react'
 import { SuccessToast } from './success-toast'
 
 interface InfraProjectModalProps {
@@ -20,6 +20,7 @@ interface InfraProjectModalProps {
   onClose: () => void
   onProjectCreate: (projectData: Record<string, unknown>) => void
   editingDraft?: any // Project being edited
+  showCloseButton?: boolean // Show X button for package projects
 }
 
 // Mock data for dropdowns
@@ -443,7 +444,7 @@ const requiredDocuments = [
   }
 ]
 
-export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDraft }: InfraProjectModalProps) {
+export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDraft, showCloseButton = false }: InfraProjectModalProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [isSuccess, setIsSuccess] = useState(false)
   const [countdown, setCountdown] = useState(10)
@@ -703,18 +704,32 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
         {/* Fixed Header and Progress Indicator */}
         <div className="sticky top-0 z-50 bg-background border-b p-6">
           <DialogHeader className="pb-4">
-            <DialogTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5" />
-              Create Infrastructure Project
-            </DialogTitle>
-            <DialogDescription>
-              Step {currentStep} of 5: {
-                currentStep === 1 ? 'Project Description' :
-                currentStep === 2 ? 'Budget Source' : 
-                currentStep === 3 ? 'Location' : 
-                currentStep === 4 ? 'Document Upload' : 'Summary'
-              }
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Create Infrastructure Project
+                </DialogTitle>
+                <DialogDescription>
+                  Step {currentStep} of 5: {
+                    currentStep === 1 ? 'Project Description' :
+                    currentStep === 2 ? 'Budget Source' : 
+                    currentStep === 3 ? 'Location' : 
+                    currentStep === 4 ? 'Document Upload' : 'Summary'
+                  }
+                </DialogDescription>
+              </div>
+              {showCloseButton && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClose}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </DialogHeader>
           
           {/* Progress Indicator */}

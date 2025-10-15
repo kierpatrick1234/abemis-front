@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Wrench, Upload, Save } from 'lucide-react'
+import { Wrench, Upload, Save, X } from 'lucide-react'
 import { SuccessToast } from './success-toast'
 
 interface MachineryProjectModalProps {
@@ -20,6 +20,7 @@ interface MachineryProjectModalProps {
   onClose: () => void
   onProjectCreate: (projectData: Record<string, unknown>) => void
   editingDraft?: any // Project being edited
+  showCloseButton?: boolean // Show X button for package projects
 }
 
 // Mock data for dropdowns
@@ -386,7 +387,7 @@ const requiredDocuments = [
   }
 ]
 
-export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editingDraft }: MachineryProjectModalProps) {
+export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editingDraft, showCloseButton = false }: MachineryProjectModalProps) {
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [formData, setFormData] = useState({
     title: editingDraft?.title || '',
@@ -490,13 +491,27 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5" />
-              Create Machinery Project
-            </DialogTitle>
-            <DialogDescription>
-              Fill in the details for your machinery project proposal
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="flex items-center gap-2">
+                  <Wrench className="h-5 w-5" />
+                  Create Machinery Project
+                </DialogTitle>
+                <DialogDescription>
+                  Fill in the details for your machinery project proposal
+                </DialogDescription>
+              </div>
+              {showCloseButton && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClose}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </DialogHeader>
 
           <div className="space-y-6">
