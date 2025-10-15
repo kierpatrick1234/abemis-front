@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { DataTable, StatusBadge, ActionMenu } from '@/components/data-table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,18 +17,43 @@ import { mockProjects } from '@/lib/mock/data'
 import { formatDate } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { Project } from '@/lib/types'
-import { Search, Filter, Plus, FileText, ShoppingCart, Hammer, CheckCircle, Package, Edit3, List, Grid3X3, MapPin, Calendar, DollarSign } from 'lucide-react'
+import { Search, Filter, Plus, FileText, ShoppingCart, Hammer, CheckCircle, Package, Edit3, List, Grid3X3, MapPin, Calendar, DollarSign, Building2, Wrench, ChevronDown } from 'lucide-react'
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [stageFilter, setStageFilter] = useState('all')
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false)
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Type filter options with icons and colors
+  const typeOptions = [
+    { value: 'all', label: 'All Types', icon: null, color: 'text-gray-600' },
+    { value: 'Infrastructure', label: 'Infrastructure', icon: Building2, color: 'text-blue-600' },
+    { value: 'Machinery', label: 'Machinery', icon: Wrench, color: 'text-emerald-600' },
+    { value: 'FMR', label: 'FMR', icon: FileText, color: 'text-orange-600' },
+    { value: 'Project Package', label: 'Package Projects', icon: Package, color: 'text-purple-600' }
+  ]
   const [newProjects, setNewProjects] = useState<Project[]>([])
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [toastCountdown, setToastCountdown] = useState(10)
   const [toastMessage, setToastMessage] = useState('Project created successfully!')
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsTypeDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showProjectPackageModal, setShowProjectPackageModal] = useState(false)
   const [showIndividualProjectDetails, setShowIndividualProjectDetails] = useState(false)
@@ -330,20 +355,20 @@ export default function ProjectsPage() {
             <div className="flex gap-2 flex-wrap">
               {row.packageProjects.infrastructure > 0 && (
                 <div className="relative">
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200 text-xs px-2 py-1">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200 text-xs px-2 py-1 pr-6">
                     Infra
                   </Badge>
-                  <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                  <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-sm">
                     {row.packageProjects.infrastructure}
                   </div>
                 </div>
               )}
               {row.packageProjects.machinery > 0 && (
                 <div className="relative">
-                  <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200 text-xs px-2 py-1">
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200 text-xs px-2 py-1 pr-6">
                     Machinery
                   </Badge>
-                  <div className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                  <div className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-sm">
                     {row.packageProjects.machinery}
                   </div>
                 </div>
@@ -415,17 +440,47 @@ export default function ProjectsPage() {
           </div>
           
           <div className="flex gap-2">
-            <select
-              value={typeFilter}
-              onChange={(e) => handleTypeFilterChange(e.target.value)}
-              className="h-10 px-3 py-2 border border-input bg-background rounded-md text-sm min-w-[120px]"
-            >
-              <option value="all">All Types</option>
-              <option value="FMR">FMR</option>
-              <option value="Infrastructure">Infrastructure</option>
-              <option value="Machinery">Machinery</option>
-              <option value="Project Package">Project Package</option>
-            </select>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+                className="h-10 px-3 py-2 border border-input bg-background rounded-md text-sm min-w-[140px] flex items-center justify-between gap-2"
+              >
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const selectedOption = typeOptions.find(option => option.value === typeFilter)
+                    const IconComponent = selectedOption?.icon
+                    return (
+                      <>
+                        {IconComponent && <IconComponent className={`h-4 w-4 ${selectedOption?.color}`} />}
+                        <span className={selectedOption?.color}>{selectedOption?.label}</span>
+                      </>
+                    )
+                  })()}
+                </div>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              
+              {isTypeDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-full bg-background border border-input rounded-md shadow-lg z-50">
+                  {typeOptions.map((option) => {
+                    const IconComponent = option.icon
+                    return (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          handleTypeFilterChange(option.value)
+                          setIsTypeDropdownOpen(false)
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
+                      >
+                        {IconComponent && <IconComponent className={`h-4 w-4 ${option.color}`} />}
+                        <span className={option.color}>{option.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
             
             <Button 
               variant="outline" 
@@ -645,10 +700,41 @@ export default function ProjectsPage() {
                         </div>
                       </div>
                       
-                      {/* Project Status */}
-                      <div className="mb-3">
-                        <StatusBadge status={project.status} />
-                      </div>
+                      {/* Project Status - Hide for package projects */}
+                      {!(typeFilter === 'Project Package' && project.type === 'Project Package') && (
+                        <div className="mb-3">
+                          <StatusBadge status={project.status} />
+                        </div>
+                      )}
+                      
+                      {/* Package Project Count Badges - Only show when package filter is active */}
+                      {typeFilter === 'Project Package' && project.type === 'Project Package' && project.packageProjects && (
+                        <div className="mb-3">
+                          <div className="flex gap-2 flex-wrap">
+                            {project.packageProjects.infrastructure > 0 && (
+                              <div className="relative">
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200 text-xs px-2 py-1 pr-6">
+                                  Infra
+                                </Badge>
+                                <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-sm">
+                                  {project.packageProjects.infrastructure}
+                                </div>
+                              </div>
+                            )}
+                            {project.packageProjects.machinery > 0 && (
+                              <div className="relative">
+                                <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200 text-xs px-2 py-1 pr-6">
+                                  Machinery
+                                </Badge>
+                                <div className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-sm">
+                                  {project.packageProjects.machinery}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
                       
                       {/* Project Details */}
                       <div className="space-y-2 text-xs text-muted-foreground mb-4 flex-1">

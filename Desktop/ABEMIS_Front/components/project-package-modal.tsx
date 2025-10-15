@@ -182,8 +182,8 @@ export function ProjectPackageModal({ isOpen, onClose, projectPackage, onViewPro
 
           {/* Project Stage Summary */}
           {individualProjects && individualProjects.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Project Stages</h4>
+                <div className="flex items-center gap-3">
+                  <h4 className="text-sm font-medium">Project Stages:</h4>
                   <div className="flex flex-wrap gap-2">
                     {(() => {
                       // Group projects by status and count them
