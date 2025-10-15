@@ -24,7 +24,7 @@ export interface Session {
 export interface Project {
   id: string
   title: string
-  type: 'FMR' | 'Infrastructure' | 'Machinery'
+  type: 'FMR' | 'Infrastructure' | 'Machinery' | 'Project Package'
   province: string
   region?: string
   status: 'Draft' | 'Proposal' | 'Procurement' | 'Implementation' | 'Completed' | 'Inventory' | 'For Delivery' | 'Delivered'
@@ -89,6 +89,13 @@ export interface Project {
   beneficiaryNumber?: string
   geotagPhotos?: string[]
   proofOfTurnover?: string[]
+  // Project Package specific fields
+  packageProjects?: {
+    infrastructure: number
+    machinery: number
+    fmr: number
+  }
+  individualProjects?: Project[]
 }
 
 export interface Document {

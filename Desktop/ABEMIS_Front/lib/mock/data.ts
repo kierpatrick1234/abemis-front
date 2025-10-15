@@ -1,9 +1,10 @@
 import { Project, Document, Activity, StatCard, NavItem, User } from '../types'
 import { raedSpecificProjects } from './raed-specific-projects'
 import { machineryProjects } from './machinery-projects'
+import { mockProjectPackages } from './project-packages'
 import { mockUsers as authMockUsers } from './auth'
 
-export const mockProjects: Project[] = [...raedSpecificProjects, ...machineryProjects]
+export const mockProjects: Project[] = [...raedSpecificProjects, ...machineryProjects, ...mockProjectPackages]
 
 export const mockDocuments: Document[] = [
   {

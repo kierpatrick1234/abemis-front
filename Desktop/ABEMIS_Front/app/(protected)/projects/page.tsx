@@ -11,6 +11,7 @@ import { RAEDProjectModal } from '@/components/raed-project-modal'
 import { InfraProjectModal } from '@/components/infra-project-modal'
 import { SuccessToast } from '@/components/success-toast'
 import { ProjectDetailsModal } from '@/components/project-details-modal'
+import { ProjectPackageModal } from '@/components/project-package-modal'
 import { Pagination, usePagination } from '@/components/pagination'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate } from '@/lib/utils'
@@ -29,6 +30,9 @@ export default function ProjectsPage() {
   const [toastMessage, setToastMessage] = useState('Project created successfully!')
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
+  const [showProjectPackageModal, setShowProjectPackageModal] = useState(false)
+  const [showIndividualProjectDetails, setShowIndividualProjectDetails] = useState(false)
+  const [selectedIndividualProject, setSelectedIndividualProject] = useState<Project | null>(null)
   const [editingDraft, setEditingDraft] = useState<Project | null>(null)
   const [showInfraCreationModal, setShowInfraCreationModal] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
@@ -45,8 +49,17 @@ export default function ProjectsPage() {
     // TODO: Implement duplicate functionality
   }, [])
 
+  const handleViewIndividualProject = useCallback((project: Project) => {
+    setSelectedIndividualProject(project)
+    setShowIndividualProjectDetails(true)
+  }, [])
+
   const handleRowClick = useCallback((project: Project) => {
-    if (project.status === 'Draft') {
+    if (project.type === 'Project Package') {
+      // For project packages, open a special modal to show individual projects
+      setSelectedProject(project)
+      setShowProjectPackageModal(true)
+    } else if (project.status === 'Draft') {
       // For draft projects, open the InfraProjectModal directly for editing
       setEditingDraft(project)
       // Open the appropriate modal based on project type
@@ -277,16 +290,46 @@ export default function ProjectsPage() {
     {
       key: 'type',
       label: 'Type',
-      render: (value: unknown) => (
-        <Badge variant={(value as string) === 'FMR' ? 'secondary' : 'outline'}>
-          {value as string}
-        </Badge>
-      )
+      render: (value: unknown) => {
+        const type = value as string
+        const getTypeIcon = () => {
+          switch (type) {
+            case 'FMR': return <FileText className="h-4 w-4" />
+            case 'Infrastructure': return <Hammer className="h-4 w-4" />
+            case 'Machinery': return <ShoppingCart className="h-4 w-4" />
+            case 'Project Package': return <Package className="h-4 w-4" />
+            default: return <FileText className="h-4 w-4" />
+          }
+        }
+        
+        const getTypeColor = () => {
+          switch (type) {
+            case 'FMR': return 'bg-orange-100 text-orange-800 border-orange-200'
+            case 'Infrastructure': return 'bg-blue-100 text-blue-800 border-blue-200'
+            case 'Machinery': return 'bg-green-100 text-green-800 border-green-200'
+            case 'Project Package': return 'bg-purple-100 text-purple-800 border-purple-200'
+            default: return 'bg-gray-100 text-gray-800 border-gray-200'
+          }
+        }
+        
+        return (
+          <Badge className={`${getTypeColor()} flex items-center gap-1 w-fit`}>
+            {getTypeIcon()}
+            {type}
+          </Badge>
+        )
+      }
     },
     {
       key: 'status',
       label: 'Status',
-      render: (value: unknown) => <StatusBadge status={value as string} />
+      render: (value: unknown, row: Project) => {
+        // Don't show status badge for Project Package items
+        if (row.type === 'Project Package') {
+          return <span className="text-muted-foreground text-sm">Package</span>
+        }
+        return <StatusBadge status={value as string} />
+      }
     },
     {
       key: 'updatedAt',
@@ -354,6 +397,7 @@ export default function ProjectsPage() {
               <option value="FMR">FMR</option>
               <option value="Infrastructure">Infrastructure</option>
               <option value="Machinery">Machinery</option>
+              <option value="Project Package">Project Package</option>
             </select>
             
             <Button 
@@ -368,7 +412,7 @@ export default function ProjectsPage() {
         </div>
         
         {/* Stage Filter Buttons - Dynamic based on project type */}
-        {typeFilter !== 'all' && (
+        {typeFilter !== 'all' && typeFilter !== 'Project Package' && (
           <div className="flex justify-center">
             <div className="inline-flex rounded-lg border border-input bg-background p-1 flex-wrap gap-1">
               <Button
@@ -443,6 +487,30 @@ export default function ProjectsPage() {
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Delivered
+                  </Button>
+                </>
+              )}
+              
+              {/* Project Package stages */}
+              {typeFilter === 'Project Package' && (
+                <>
+                  <Button
+                    variant={stageFilter === 'Implementation' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setStageFilter('Implementation')}
+                    className="rounded-md"
+                  >
+                    <Hammer className="h-4 w-4 mr-1" />
+                    Implementation
+                  </Button>
+                  <Button
+                    variant={stageFilter === 'Completed' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setStageFilter('Completed')}
+                    className="rounded-md"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Completed
                   </Button>
                 </>
               )}
@@ -688,6 +756,27 @@ export default function ProjectsPage() {
         onClose={() => {
           setShowProjectModal(false)
           setSelectedProject(null)
+        }}
+      />
+
+      {/* Project Package Modal */}
+        <ProjectPackageModal
+          projectPackage={selectedProject}
+          isOpen={showProjectPackageModal}
+          onClose={() => {
+            setShowProjectPackageModal(false)
+            setSelectedProject(null)
+          }}
+          onViewProject={handleViewIndividualProject}
+        />
+
+      {/* Individual Project Details Modal */}
+      <ProjectDetailsModal
+        project={selectedIndividualProject}
+        isOpen={showIndividualProjectDetails}
+        onClose={() => {
+          setShowIndividualProjectDetails(false)
+          setSelectedIndividualProject(null)
         }}
       />
     </div>
