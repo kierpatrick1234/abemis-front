@@ -389,103 +389,291 @@ const requiredDocuments = [
 ]
 
 export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editingDraft, showCloseButton = false, onBudgetChange }: MachineryProjectModalProps) {
-  const [showSuccessToast, setShowSuccessToast] = useState(false)
-  const [formData, setFormData] = useState({
-    title: editingDraft?.title || '',
-    projectClassification: editingDraft?.projectClassification || '',
-    projectType: editingDraft?.projectType || '',
-    prexcProgram: editingDraft?.prexcProgram || '',
-    prexcSubProgram: editingDraft?.prexcSubProgram || '',
-    budgetProcess: editingDraft?.budgetProcess || '',
-    proposedFundSource: editingDraft?.proposedFundSource || '',
-    sourceAgency: editingDraft?.sourceAgency || '',
-    bannerProgram: editingDraft?.bannerProgram || '',
-    fundingYear: editingDraft?.fundingYear || '',
-    region: editingDraft?.region || '',
-    province: editingDraft?.province || '',
-    municipality: editingDraft?.municipality || '',
-    district: editingDraft?.district || '',
-    barangay: editingDraft?.barangay || '',
-    budget: editingDraft?.budget || '',
-    description: editingDraft?.description || '',
-    startDate: editingDraft?.startDate || '',
-    endDate: editingDraft?.endDate || ''
-  })
-
-  const [documents, setDocuments] = useState<Array<{ file: File; label: string; id: string }>>([])
-
-  // Call budget change callback when budget changes
+  const [currentStep, setCurrentStep] = useState(1)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [countdown, setCountdown] = useState(10)
+  
+  // Step 1: Project Description
+  const [projectClassification, setProjectClassification] = useState('')
+  const [projectType, setProjectType] = useState('')
+  const [projectTitle, setProjectTitle] = useState('')
+  const [projectDescription, setProjectDescription] = useState('')
+  
+  // Step 2: Budget Source
+  const [implementationDays, setImplementationDays] = useState('')
+  const [prexcProgram, setPrexcProgram] = useState('')
+  const [prexcSubProgram, setPrexcSubProgram] = useState('')
+  const [budgetProcess, setBudgetProcess] = useState('')
+  const [proposedFundSource, setProposedFundSource] = useState('')
+  const [sourceAgency, setSourceAgency] = useState('')
+  const [bannerProgram, setBannerProgram] = useState('')
+  const [fundingYear, setFundingYear] = useState('')
+  const [allocatedAmount, setAllocatedAmount] = useState('')
+  
+  // Call budget change callback when allocated amount changes
   React.useEffect(() => {
-    if (onBudgetChange && formData.budget) {
-      const budget = parseFloat(formData.budget) || 0
+    if (onBudgetChange && allocatedAmount) {
+      const budget = parseFloat(allocatedAmount) || 0
       onBudgetChange(budget)
     }
-  }, [formData.budget, onBudgetChange])
+  }, [allocatedAmount, onBudgetChange])
+  
+  // Step 3: Location
+  const [region, setRegion] = useState('')
+  const [province, setProvince] = useState('')
+  const [municipality, setMunicipality] = useState('')
+  const [district, setDistrict] = useState('')
+  const [barangay, setBarangay] = useState('')
+  
+  // Step 4: Document Upload
+  const [documents, setDocuments] = useState<Array<{file: File, label: string, id: string}>>([])
+  
+  // Project Status
+  const [projectStatus, setProjectStatus] = useState<'Draft' | 'Proposal'>('Draft')
+  
+  // Track if there are unsaved changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false)
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+  // Pre-populate form when editing a draft
+  React.useEffect(() => {
+    if (editingDraft && isOpen) {
+      setProjectTitle(editingDraft.title || '')
+      setProjectDescription(editingDraft.description || '')
+      setProjectStatus('Draft') // Always set to Draft for editing
+      setRegion(editingDraft.region || '')
+      setProvince(editingDraft.province || '')
+      // Set other fields based on available data
+      if (editingDraft.budget) {
+        setAllocatedAmount(editingDraft.budget.toString())
+      }
+      
+      // Generate random current step (1-5) when editing a draft
+      const randomStep = Math.floor(Math.random() * 5) + 1
+      setCurrentStep(randomStep)
+      setHasUnsavedChanges(false) // Reset unsaved changes when opening existing draft
+    } else if (!editingDraft && isOpen) {
+      // Reset to step 1 for new projects
+      setCurrentStep(1)
+      setHasUnsavedChanges(false) // Reset unsaved changes for new projects
+    }
+  }, [editingDraft, isOpen])
+
+  // Track form changes to detect unsaved changes
+  React.useEffect(() => {
+    if (isOpen && !editingDraft) {
+      // For new projects, any change indicates unsaved changes
+      const hasChanges = !!(projectTitle || projectDescription || projectClassification || 
+                        projectType || implementationDays || prexcProgram || 
+                        prexcSubProgram || region || province || municipality || 
+                        district || barangay || allocatedAmount || documents.length > 0)
+      setHasUnsavedChanges(hasChanges)
+    } else if (isOpen && editingDraft) {
+      // For editing drafts, compare with original values
+      const hasChanges = !!(
+        projectTitle !== (editingDraft.title || '') ||
+        projectDescription !== (editingDraft.description || '') ||
+        region !== (editingDraft.region || '') ||
+        province !== (editingDraft.province || '') ||
+        allocatedAmount !== (editingDraft.budget ? editingDraft.budget.toString() : '') ||
+        documents.length > 0
+      )
+      setHasUnsavedChanges(hasChanges)
+    }
+  }, [projectTitle, projectDescription, projectClassification, projectType, 
+      implementationDays, prexcProgram, prexcSubProgram, region, province, 
+      municipality, district, barangay, allocatedAmount, documents, isOpen, editingDraft])
+
+  const handleNext = () => {
+    if (currentStep < 5) {
+      setCurrentStep(currentStep + 1)
+    }
   }
 
-  const handleFileUpload = (documentId: string, file: File) => {
-    const document = requiredDocuments.find(doc => doc.id === documentId)
-    if (document) {
-      const newDocument = {
-        file,
-        label: document.name,
-        id: documentId
-      }
-      setDocuments(prev => {
-        const filtered = prev.filter(doc => doc.id !== documentId)
-        return [...filtered, newDocument]
-      })
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
     }
+  }
+
+  const handleRemoveDocument = (id: string) => {
+    setDocuments(prev => prev.filter(doc => doc.id !== id))
   }
 
   const handleSubmit = () => {
     const projectData = {
-      ...formData,
-      type: 'Machinery',
-      status: 'Proposal',
-      documents: documents,
-      budget: parseFloat(formData.budget) || 0,
-      updatedAt: new Date().toISOString()
+      // Step 1
+      projectClassification,
+      projectType,
+      projectTitle,
+      projectDescription,
+      // Step 2
+      implementationDays,
+      prexcProgram,
+      prexcSubProgram,
+      budgetProcess,
+      proposedFundSource,
+      sourceAgency,
+      bannerProgram,
+      fundingYear,
+      allocatedAmount,
+      budget: parseFloat(allocatedAmount) || 0,
+      // Step 3
+      region,
+      province,
+      municipality,
+      district,
+      barangay,
+      // Step 4
+      documents,
+      // Status
+      status: 'Proposal', // Always create as Proposal when using Create Project
+      type: 'Machinery'
     }
 
     onProjectCreate(projectData)
-    setShowSuccessToast(true)
+    setIsSuccess(true)
+    setCountdown(10)
     
-    // For package projects, close modal after success to return to package view
+    // For package projects, close modal after countdown to return to package view
     if (showCloseButton) {
       // Package project - show success then close to return to package view
-      setTimeout(() => {
-        setShowSuccessToast(false)
-        onClose()
-      }, 2000)
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            handleClose()
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
     } else {
-      // Regular project - close modal after success
-      setTimeout(() => {
-        setShowSuccessToast(false)
-        onClose()
-      }, 2000)
+      // Regular project - close modal after countdown
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            handleClose()
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
     }
   }
 
-  const isFormValid = () => {
-    return formData.title.trim() !== '' &&
-           formData.projectClassification !== '' &&
-           formData.projectType !== '' &&
-           formData.budget !== '' &&
-           formData.description.trim() !== ''
+  const handleSaveAsDraft = () => {
+    const projectData = {
+      // Step 1
+      projectClassification,
+      projectType,
+      projectTitle,
+      projectDescription,
+      // Step 2
+      implementationDays,
+      prexcProgram,
+      prexcSubProgram,
+      budgetProcess,
+      proposedFundSource,
+      sourceAgency,
+      bannerProgram,
+      fundingYear,
+      allocatedAmount,
+      // Step 3
+      region,
+      province,
+      municipality,
+      district,
+      barangay,
+      // Step 4
+      documents,
+      // Status
+      status: 'Draft', // Always save as Draft when using Save as Draft
+      type: 'Machinery',
+      isDraftSave: true // Flag to indicate this is a draft save
+    }
+
+    onProjectCreate(projectData)
+    // Don't show success toast here - let the parent component handle it
+    performClose() // Close immediately after saving
+  }
+
+  const handleClose = () => {
+    if (hasUnsavedChanges) {
+      setShowUnsavedChangesDialog(true)
+    } else {
+      performClose()
+    }
+  }
+
+  const performClose = () => {
+    // Reset all form data
+    setCurrentStep(1)
+    setIsSuccess(false)
+    setCountdown(10)
+    setProjectClassification('')
+    setProjectType('')
+    setProjectTitle('')
+    setProjectDescription('')
+    setImplementationDays('')
+    setPrexcProgram('')
+    setPrexcSubProgram('')
+    setBudgetProcess('')
+    setProposedFundSource('')
+    setSourceAgency('')
+    setBannerProgram('')
+    setFundingYear('')
+    setAllocatedAmount('')
+    setRegion('')
+    setProvince('')
+    setMunicipality('')
+    setDistrict('')
+    setBarangay('')
+    setDocuments([])
+    setProjectStatus('Draft')
+    setHasUnsavedChanges(false)
+    setShowUnsavedChangesDialog(false)
+    onClose()
+  }
+
+  const handleSaveAndClose = () => {
+    // Auto-save as draft and close
+    handleSaveAsDraft()
+    setShowUnsavedChangesDialog(false)
+  }
+
+  const handleDiscardChanges = () => {
+    // Close without saving
+    setShowUnsavedChangesDialog(false)
+    performClose()
+  }
+
+  const isStep1Valid = projectClassification && projectType && projectTitle && projectDescription
+  const isStep2Valid = implementationDays && prexcProgram && prexcSubProgram && budgetProcess && 
+                      proposedFundSource && sourceAgency && bannerProgram && fundingYear && allocatedAmount
+  const isStep3Valid = region && province && municipality && district && barangay
+  const isStep4Valid = true // Documents are optional during registration
+
+  if (isSuccess) {
+    return (
+      <>
+        <SuccessToast 
+          isVisible={isSuccess}
+          onClose={handleClose}
+          countdown={countdown}
+        />
+      </>
+    )
   }
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[900px] max-h-[85vh] overflow-y-auto p-0">
+        {/* Fixed Header and Progress Indicator */}
+        <div className="sticky top-0 z-50 bg-background border-b p-6">
+          <DialogHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
                 <DialogTitle className="flex items-center gap-2">
@@ -493,14 +681,19 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
                   Create Machinery Project
                 </DialogTitle>
                 <DialogDescription>
-                  Fill in the details for your machinery project proposal
+                  Step {currentStep} of 5: {
+                    currentStep === 1 ? 'Project Description' :
+                    currentStep === 2 ? 'Budget Source' : 
+                    currentStep === 3 ? 'Location' : 
+                    currentStep === 4 ? 'Document Upload' : 'Summary'
+                  }
                 </DialogDescription>
               </div>
               {showCloseButton && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="h-8 w-8 p-0"
                 >
                   <X className="h-4 w-4" />
@@ -508,374 +701,620 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
               )}
             </div>
           </DialogHeader>
-
-          <div className="space-y-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Basic Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Project Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder="Enter project title"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="projectClassification">Project Classification *</Label>
-                  <select
-                    id="projectClassification"
-                    value={formData.projectClassification}
-                    onChange={(e) => handleInputChange('projectClassification', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          
+          {/* Progress Indicator */}
+          <div className="pb-4">
+            <div className="flex items-start justify-center w-full">
+            {[
+              { step: 1, label: 'Project Description' },
+              { step: 2, label: 'Budget Source' },
+              { step: 3, label: 'Location' },
+              { step: 4, label: 'Document Upload' },
+              { step: 5, label: 'Summary' }
+            ].map(({ step, label }, index) => (
+              <div key={step} className="flex flex-col items-center flex-1 min-w-0">
+                <div className="flex items-center w-full justify-center mb-3">
+                  <button
+                    onClick={() => {
+                      // Locked stepper - only allow navigation to current step
+                      if (step === currentStep) {
+                        setCurrentStep(step)
+                      }
+                    }}
+                    disabled={step !== currentStep}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 flex-shrink-0 ${
+                      step === currentStep
+                        ? 'bg-green-600 text-white hover:bg-green-700 cursor-pointer ring-2 ring-green-300'
+                        : step < currentStep
+                        ? 'bg-black text-white cursor-default'
+                        : 'bg-muted text-muted-foreground cursor-not-allowed'
+                    }`}
                   >
-                    <option value="">Select classification</option>
-                    {projectClassifications.map((classification) => (
-                      <option key={classification} value={classification}>
-                        {classification}
-                      </option>
-                    ))}
-                  </select>
+                    {step}
+                  </button>
+                  {index < 4 && (
+                    <div className={`flex-1 h-0.5 mx-2 rounded-full ${
+                      step < currentStep ? 'bg-black' : 'bg-muted'
+                    }`} />
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="projectType">Project Type *</Label>
-                  <select
-                    id="projectType"
-                    value={formData.projectType}
-                    onChange={(e) => handleInputChange('projectType', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select type</option>
-                    {projectTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="budget">Budget (PHP) *</Label>
-                  <Input
-                    id="budget"
-                    type="number"
-                    value={formData.budget}
-                    onChange={(e) => handleInputChange('budget', e.target.value)}
-                    placeholder="Enter budget amount"
-                  />
-                </div>
+                <span className={`text-xs text-center px-1 leading-tight font-medium ${
+                  step === currentStep
+                    ? 'text-green-600'
+                    : step < currentStep
+                    ? 'text-black'
+                    : 'text-muted-foreground'
+                }`}>
+                  {label}
+                </span>
               </div>
-            </div>
-
-            {/* Program Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Program Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="prexcProgram">PREXC Program</Label>
-                  <select
-                    id="prexcProgram"
-                    value={formData.prexcProgram}
-                    onChange={(e) => handleInputChange('prexcProgram', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select program</option>
-                    {prexcPrograms.map((program) => (
-                      <option key={program} value={program}>
-                        {program}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="prexcSubProgram">PREXC Sub-Program</Label>
-                  <select
-                    id="prexcSubProgram"
-                    value={formData.prexcSubProgram}
-                    onChange={(e) => handleInputChange('prexcSubProgram', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select sub-program</option>
-                    {prexcSubPrograms.map((subProgram) => (
-                      <option key={subProgram} value={subProgram}>
-                        {subProgram}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="budgetProcess">Budget Process</Label>
-                  <select
-                    id="budgetProcess"
-                    value={formData.budgetProcess}
-                    onChange={(e) => handleInputChange('budgetProcess', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select process</option>
-                    {budgetProcesses.map((process) => (
-                      <option key={process} value={process}>
-                        {process}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="proposedFundSource">Proposed Fund Source</Label>
-                  <select
-                    id="proposedFundSource"
-                    value={formData.proposedFundSource}
-                    onChange={(e) => handleInputChange('proposedFundSource', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select fund source</option>
-                    {fundSources.map((source) => (
-                      <option key={source} value={source}>
-                        {source}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="sourceAgency">Source Agency</Label>
-                  <select
-                    id="sourceAgency"
-                    value={formData.sourceAgency}
-                    onChange={(e) => handleInputChange('sourceAgency', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select agency</option>
-                    {sourceAgencies.map((agency) => (
-                      <option key={agency} value={agency}>
-                        {agency}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bannerProgram">Banner Program</Label>
-                  <select
-                    id="bannerProgram"
-                    value={formData.bannerProgram}
-                    onChange={(e) => handleInputChange('bannerProgram', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select program</option>
-                    {bannerPrograms.map((program) => (
-                      <option key={program} value={program}>
-                        {program}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fundingYear">Funding Year</Label>
-                  <select
-                    id="fundingYear"
-                    value={formData.fundingYear}
-                    onChange={(e) => handleInputChange('fundingYear', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select year</option>
-                    {fundingYears.map((year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Location Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Location Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="region">Region</Label>
-                  <select
-                    id="region"
-                    value={formData.region}
-                    onChange={(e) => handleInputChange('region', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select region</option>
-                    {regions.map((region) => (
-                      <option key={region} value={region}>
-                        {region}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="province">Province</Label>
-                  <select
-                    id="province"
-                    value={formData.province}
-                    onChange={(e) => handleInputChange('province', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select province</option>
-                    {provinces.map((province) => (
-                      <option key={province} value={province}>
-                        {province}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="municipality">Municipality</Label>
-                  <select
-                    id="municipality"
-                    value={formData.municipality}
-                    onChange={(e) => handleInputChange('municipality', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select municipality</option>
-                    {municipalities.map((municipality) => (
-                      <option key={municipality} value={municipality}>
-                        {municipality}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="district">District</Label>
-                  <select
-                    id="district"
-                    value={formData.district}
-                    onChange={(e) => handleInputChange('district', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select district</option>
-                    {districts.map((district) => (
-                      <option key={district} value={district}>
-                        {district}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="barangay">Barangay</Label>
-                  <select
-                    id="barangay"
-                    value={formData.barangay}
-                    onChange={(e) => handleInputChange('barangay', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select barangay</option>
-                    {barangays.map((barangay) => (
-                      <option key={barangay} value={barangay}>
-                        {barangay}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Project Details */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Project Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="startDate">Start Date</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => handleInputChange('startDate', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endDate">End Date</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => handleInputChange('endDate', e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
-                <textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Enter project description"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-24"
-                />
-              </div>
-            </div>
-
-            {/* Required Documents */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Required Documents</h3>
-              <div className="space-y-3">
-                {requiredDocuments.map((document) => (
-                  <div key={document.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{document.name}</span>
-                        {document.required && <span className="text-red-500">*</span>}
-                      </div>
-                      <span className="text-sm text-gray-500">({document.type})</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            handleFileUpload(document.id, file)
-                          }
-                        }}
-                        className="hidden"
-                        id={`file-${document.id}`}
-                      />
-                      <label
-                        htmlFor={`file-${document.id}`}
-                        className="px-3 py-1 bg-blue-500 text-white rounded-md cursor-pointer hover:bg-blue-600 text-sm"
-                      >
-                        <Upload className="h-4 w-4 inline mr-1" />
-                        Upload
-                      </label>
-                      {documents.find(doc => doc.id === document.id) && (
-                        <span className="text-green-600 text-sm">✓ Uploaded</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            ))}
             </div>
           </div>
+        </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose}>
+        <div className="px-6 py-6">
+          {currentStep === 1 && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="classification">Project Classification *</Label>
+                <select
+                  id="classification"
+                  value={projectClassification}
+                  onChange={(e) => setProjectClassification(e.target.value)}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                >
+                  <option value="">Select Classification</option>
+                  {projectClassifications.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="type">Project Type *</Label>
+                <select
+                  id="type"
+                  value={projectType}
+                  onChange={(e) => setProjectType(e.target.value)}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                >
+                  <option value="">Select Type</option>
+                  {projectTypes.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="title">Project Title *</Label>
+                <Input
+                  id="title"
+                  placeholder="Enter project title"
+                  value={projectTitle}
+                  onChange={(e) => setProjectTitle(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Project Description *</Label>
+                <textarea
+                  id="description"
+                  placeholder="Enter project description"
+                  value={projectDescription}
+                  onChange={(e) => setProjectDescription(e.target.value)}
+                  className="w-full min-h-[100px] px-3 py-2 border border-input bg-background rounded-md text-sm resize-none"
+                />
+              </div>
+
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="days">Implementation Schedule (Calendar Days) *</Label>
+                <Input
+                  id="days"
+                  type="number"
+                  placeholder="Enter number of days"
+                  value={implementationDays}
+                  onChange={(e) => setImplementationDays(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="prexc">PREXC Program *</Label>
+                  <select
+                    id="prexc"
+                    value={prexcProgram}
+                    onChange={(e) => setPrexcProgram(e.target.value)}
+                    className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  >
+                    <option value="">Select Program</option>
+                    {prexcPrograms.map((item) => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="prexcSub">PREXC Sub Program *</Label>
+                  <select
+                    id="prexcSub"
+                    value={prexcSubProgram}
+                    onChange={(e) => setPrexcSubProgram(e.target.value)}
+                    className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  >
+                    <option value="">Select Sub Program</option>
+                    {prexcSubPrograms.map((item) => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="budget">Budget Process *</Label>
+                  <select
+                    id="budget"
+                    value={budgetProcess}
+                    onChange={(e) => setBudgetProcess(e.target.value)}
+                    className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  >
+                    <option value="">Select Process</option>
+                    {budgetProcesses.map((item) => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="fundSource">Proposed Fund Source *</Label>
+                  <select
+                    id="fundSource"
+                    value={proposedFundSource}
+                    onChange={(e) => setProposedFundSource(e.target.value)}
+                    className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  >
+                    <option value="">Select Fund Source</option>
+                    {fundSources.map((item) => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="agency">Source Agency *</Label>
+                  <select
+                    id="agency"
+                    value={sourceAgency}
+                    onChange={(e) => setSourceAgency(e.target.value)}
+                    className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  >
+                    <option value="">Select Agency</option>
+                    {sourceAgencies.map((item) => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="banner">Banner Program *</Label>
+                  <select
+                    id="banner"
+                    value={bannerProgram}
+                    onChange={(e) => setBannerProgram(e.target.value)}
+                    className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  >
+                    <option value="">Select Program</option>
+                    {bannerPrograms.map((item) => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="year">Funding Year *</Label>
+                  <select
+                    id="year"
+                    value={fundingYear}
+                    onChange={(e) => setFundingYear(e.target.value)}
+                    className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  >
+                    <option value="">Select Year</option>
+                    {fundingYears.map((item) => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Proposed Allocated Amount (PHP) *</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    placeholder="Enter amount in PHP"
+                    value={allocatedAmount}
+                    onChange={(e) => setAllocatedAmount(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="region">Region *</Label>
+                <select
+                  id="region"
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                >
+                  <option value="">Select Region</option>
+                  {regions.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="province">Province *</Label>
+                <select
+                  id="province"
+                  value={province}
+                  onChange={(e) => setProvince(e.target.value)}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                >
+                  <option value="">Select Province</option>
+                  {provinces.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="municipality">Municipality *</Label>
+                <select
+                  id="municipality"
+                  value={municipality}
+                  onChange={(e) => setMunicipality(e.target.value)}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                >
+                  <option value="">Select Municipality</option>
+                  {municipalities.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="district">District *</Label>
+                <select
+                  id="district"
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                >
+                  <option value="">Select District</option>
+                  {districts.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="barangay">Barangay *</Label>
+                <select
+                  id="barangay"
+                  value={barangay}
+                  onChange={(e) => setBarangay(e.target.value)}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                >
+                  <option value="">Select Barangay</option>
+                  {barangays.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 4 && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Document Upload</Label>
+                <p className="text-sm text-muted-foreground">
+                  Upload documents from the proposal stage. Documents are optional during registration and can be uploaded later.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                {requiredDocuments.map((doc) => {
+                  const uploadedDoc = documents.find(d => d.label === doc.name || d.id === doc.id)
+                  return (
+                    <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center space-x-3 flex-1">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          uploadedDoc 
+                            ? 'bg-green-100 text-green-600' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {uploadedDoc ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{doc.name}</span>
+                            {doc.required && (
+                              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Recommended</span>
+                            )}
+                          </div>
+                          {uploadedDoc && (
+                            <div className="text-sm text-muted-foreground">
+                              {uploadedDoc.file.name} • {(uploadedDoc.file.size / 1024 / 1024).toFixed(2)} MB
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {uploadedDoc && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRemoveDocument(uploadedDoc.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            Remove
+                          </Button>
+                        )}
+                        <input
+                          type="file"
+                          id={`upload-${doc.id}`}
+                          className="hidden"
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              const newDocument = {
+                                file,
+                                label: doc.name,
+                                id: doc.id
+                              }
+                              // Remove existing document with same id if any
+                              setDocuments(prev => prev.filter(d => d.id !== doc.id))
+                              setDocuments(prev => [...prev, newDocument])
+                              // Reset the file input
+                              e.target.value = ''
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant={uploadedDoc ? "outline" : "secondary"}
+                          size="sm"
+                          className={uploadedDoc ? "" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-800"}
+                          onClick={() => document.getElementById(`upload-${doc.id}`)?.click()}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          {uploadedDoc ? 'Replace' : 'Upload'}
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {currentStep === 5 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">Project Summary</h3>
+                <p className="text-sm text-muted-foreground">Review all information before submitting your project</p>
+              </div>
+
+              {/* Step 1: Project Description Summary */}
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="font-semibold mb-3 text-primary">1. Project Description</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Classification:</span>
+                    <p className="text-muted-foreground">{projectClassification || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Type:</span>
+                    <p className="text-muted-foreground">{projectType || 'Not specified'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="font-medium">Title:</span>
+                    <p className="text-muted-foreground">{projectTitle || 'Not specified'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="font-medium">Description:</span>
+                    <p className="text-muted-foreground">{projectDescription || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2: Budget Source Summary */}
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="font-semibold mb-3 text-primary">2. Budget Source</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Implementation Days:</span>
+                    <p className="text-muted-foreground">{implementationDays || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">PREXC Program:</span>
+                    <p className="text-muted-foreground">{prexcProgram || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">PREXC Sub Program:</span>
+                    <p className="text-muted-foreground">{prexcSubProgram || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Budget Process:</span>
+                    <p className="text-muted-foreground">{budgetProcess || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Fund Source:</span>
+                    <p className="text-muted-foreground">{proposedFundSource || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Source Agency:</span>
+                    <p className="text-muted-foreground">{sourceAgency || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Banner Program:</span>
+                    <p className="text-muted-foreground">{bannerProgram || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Funding Year:</span>
+                    <p className="text-muted-foreground">{fundingYear || 'Not specified'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="font-medium">Allocated Amount:</span>
+                    <p className="text-muted-foreground">{allocatedAmount ? `₱${parseFloat(allocatedAmount).toLocaleString()}` : 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: Location Summary */}
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="font-semibold mb-3 text-primary">3. Location</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Region:</span>
+                    <p className="text-muted-foreground">{region || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Province:</span>
+                    <p className="text-muted-foreground">{province || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Municipality:</span>
+                    <p className="text-muted-foreground">{municipality || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">District:</span>
+                    <p className="text-muted-foreground">{district || 'Not specified'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="font-medium">Barangay:</span>
+                    <p className="text-muted-foreground">{barangay || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 4: Document Upload Summary */}
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="font-semibold mb-3 text-primary">4. Document Upload</h4>
+                <div className="text-sm">
+                  <span className="font-medium">Uploaded Documents:</span>
+                  {documents.length > 0 ? (
+                    <div className="mt-2 space-y-2">
+                      {documents.map((doc) => (
+                        <div key={doc.id} className="flex items-center justify-between p-2 bg-background rounded border">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span className="font-medium">{doc.label || doc.file.name}</span>
+                            <span className="text-xs text-muted-foreground">({(doc.file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground mt-2">No documents uploaded</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter className="flex justify-between items-center px-6 pb-6 pt-4">
+          {/* Left side - Save as Draft button (full left) */}
+          <Button 
+            variant="outline" 
+            onClick={handleSaveAsDraft}
+            className="text-sm"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save as Draft
+          </Button>
+          
+          {/* Right side - Navigation buttons */}
+          <div className="flex gap-2">
+            {currentStep > 1 && (
+              <Button variant="outline" onClick={handleBack}>
+                Back
+              </Button>
+            )}
+            <Button variant="outline" onClick={handleClose}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleSubmit} 
-              disabled={!isFormValid()}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Create Project
+            {currentStep < 5 ? (
+              <Button 
+                onClick={handleNext}
+                disabled={
+                  (currentStep === 1 && !isStep1Valid) ||
+                  (currentStep === 2 && !isStep2Valid) ||
+                  (currentStep === 3 && !isStep3Valid) ||
+                  (currentStep === 4 && !isStep4Valid)
+                }
+              >
+                Next
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleSubmit}
+              >
+                Create Project
+              </Button>
+            )}
+          </div>
+        </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Unsaved Changes Confirmation Dialog */}
+      <Dialog open={showUnsavedChangesDialog} onOpenChange={setShowUnsavedChangesDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Unsaved Changes</DialogTitle>
+            <DialogDescription>
+              You have unsaved changes. Do you want to save them as a draft before closing?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={handleDiscardChanges}>
+              Discard Changes
+            </Button>
+            <Button onClick={handleSaveAndClose}>
+              Save as Draft
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {showSuccessToast && (
-        <SuccessToast 
-          message="Machinery project created successfully!" 
-          isVisible={showSuccessToast}
-          onClose={() => setShowSuccessToast(false)}
-          countdown={3}
-        />
-      )}
     </>
   )
 }

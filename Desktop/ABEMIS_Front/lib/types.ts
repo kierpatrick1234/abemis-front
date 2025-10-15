@@ -93,7 +93,6 @@ export interface Project {
   packageProjects?: {
     infrastructure: number
     machinery: number
-    fmr: number
   }
   individualProjects?: Project[]
 }

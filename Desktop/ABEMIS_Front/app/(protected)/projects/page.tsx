@@ -322,9 +322,36 @@ export default function ProjectsPage() {
     },
     {
       key: 'status',
-      label: 'Status',
+      label: typeFilter === 'Project Package' ? 'Project Counts' : 'Status',
       render: (value: unknown, row: Project) => {
-        // Don't show status badge for Project Package items
+        // Show project count badges only when viewing Project Package filter
+        if (typeFilter === 'Project Package' && row.type === 'Project Package' && row.packageProjects) {
+          return (
+            <div className="flex gap-2 flex-wrap">
+              {row.packageProjects.infrastructure > 0 && (
+                <div className="relative">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200 text-xs px-2 py-1">
+                    Infra
+                  </Badge>
+                  <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {row.packageProjects.infrastructure}
+                  </div>
+                </div>
+              )}
+              {row.packageProjects.machinery > 0 && (
+                <div className="relative">
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200 text-xs px-2 py-1">
+                    Machinery
+                  </Badge>
+                  <div className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {row.packageProjects.machinery}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        }
+        // For Project Packages in other views, show "Package" text
         if (row.type === 'Project Package') {
           return <span className="text-muted-foreground text-sm">Package</span>
         }

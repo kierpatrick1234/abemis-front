@@ -102,75 +102,6 @@ const mockMachineryProjects: Project[] = [
   }
 ]
 
-const mockFMRProjects: Project[] = [
-  {
-    id: 'FMR-PKG1-001',
-    title: 'Farm-to-Market Road - Package 1',
-    type: 'FMR',
-    province: 'Albay',
-    region: 'Region 5',
-    status: 'Proposal',
-    description: 'Farm-to-market road construction for agricultural communities',
-    budget: 12000000,
-    startDate: '2024-03-01',
-    endDate: '2024-12-31',
-    updatedAt: '2024-01-28T11:30:00Z',
-    assignedTo: 'RAED - Region 5'
-  },
-  {
-    id: 'FMR-PKG2-001',
-    title: 'Rural Access Road - Package 2',
-    type: 'FMR',
-    province: 'Nueva Ecija',
-    region: 'Region 3',
-    status: 'Completed',
-    description: 'Rural access road development project',
-    budget: 22000000,
-    startDate: '2023-06-01',
-    endDate: '2023-12-15',
-    updatedAt: '2023-12-15T16:45:00Z',
-    assignedTo: 'RAED - Region 3',
-    budgetYear: '2023',
-    bidOpeningDate: '2023-06-15',
-    noticeOfAwardDate: '2023-07-01',
-    noticeToProceedDate: '2023-07-10',
-    procurementDocuments: {
-      bidOpening: 'bid-opening-document.pdf',
-      noticeOfAward: 'notice-of-award-document.pdf',
-      noticeToProceed: 'notice-to-proceed-document.pdf'
-    },
-    dateCompleted: '2023-12-15',
-    dateTurnedOver: '2023-12-20',
-    asBuiltPlans: {
-      cad: 'as-built-plans.dwg',
-      pdf: 'as-built-plans.pdf'
-    },
-    postGeotaggedPhotos: ['photo1.jpg', 'photo2.jpg', 'photo3.jpg']
-  },
-  {
-    id: 'FMR-PKG3-001',
-    title: 'Agricultural Road Network - Package 3',
-    type: 'FMR',
-    province: 'Cebu',
-    region: 'Region 7',
-    status: 'Implementation',
-    description: 'Agricultural road network development',
-    budget: 28000000,
-    startDate: '2024-01-01',
-    endDate: '2024-10-31',
-    updatedAt: '2024-01-30T09:15:00Z',
-    assignedTo: 'RAED - Region 7',
-    budgetYear: '2024',
-    bidOpeningDate: '2024-01-15',
-    noticeOfAwardDate: '2024-02-01',
-    noticeToProceedDate: '2024-02-10',
-    procurementDocuments: {
-      bidOpening: 'bid-opening-document.pdf',
-      noticeOfAward: 'notice-of-award-document.pdf',
-      noticeToProceed: 'notice-to-proceed-document.pdf'
-    }
-  }
-]
 
 // Helper function to generate project packages for each region
 function generateProjectPackagesForRegion(region: string, regionNumber: number, provinces: string[]): Project[] {
@@ -205,11 +136,11 @@ function generateProjectPackagesForRegion(region: string, regionNumber: number, 
     
     // Generate different project combinations
     const projectCombinations = [
-      { infrastructure: 1, machinery: 1, fmr: 1 },
-      { infrastructure: 2, machinery: 0, fmr: 1 },
-      { infrastructure: 0, machinery: 2, fmr: 1 },
-      { infrastructure: 1, machinery: 1, fmr: 2 },
-      { infrastructure: 1, machinery: 1, fmr: 1 }
+      { infrastructure: 1, machinery: 1 },
+      { infrastructure: 2, machinery: 0 },
+      { infrastructure: 0, machinery: 2 },
+      { infrastructure: 1, machinery: 2 },
+      { infrastructure: 2, machinery: 1 }
     ]
     
     const combination = projectCombinations[i - 1]
@@ -239,16 +170,6 @@ function generateProjectPackagesForRegion(region: string, regionNumber: number, 
       })
     }
     
-    for (let j = 0; j < combination.fmr; j++) {
-      individualProjects.push({
-        ...mockFMRProjects[j % mockFMRProjects.length],
-        id: `${packageId}-FMR-${j + 1}`,
-        title: `${mockFMRProjects[j % mockFMRProjects.length].title} - ${packageTitle}`,
-        province: province,
-        region: region,
-        assignedTo: `RAED - ${region}`
-      })
-    }
     
     const totalBudget = individualProjects.reduce((sum, project) => sum + project.budget, 0)
     
