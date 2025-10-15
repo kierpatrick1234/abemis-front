@@ -21,6 +21,7 @@ interface MachineryProjectModalProps {
   onProjectCreate: (projectData: Record<string, unknown>) => void
   editingDraft?: any // Project being edited
   showCloseButton?: boolean // Show X button for package projects
+  onBudgetChange?: (budget: number) => void // Callback for budget changes
 }
 
 // Mock data for dropdowns
@@ -387,7 +388,7 @@ const requiredDocuments = [
   }
 ]
 
-export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editingDraft, showCloseButton = false }: MachineryProjectModalProps) {
+export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editingDraft, showCloseButton = false, onBudgetChange }: MachineryProjectModalProps) {
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [formData, setFormData] = useState({
     title: editingDraft?.title || '',
@@ -412,6 +413,14 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
   })
 
   const [documents, setDocuments] = useState<Array<{ file: File; label: string; id: string }>>([])
+
+  // Call budget change callback when budget changes
+  React.useEffect(() => {
+    if (onBudgetChange && formData.budget) {
+      const budget = parseFloat(formData.budget) || 0
+      onBudgetChange(budget)
+    }
+  }, [formData.budget, onBudgetChange])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -448,34 +457,20 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
     onProjectCreate(projectData)
     setShowSuccessToast(true)
     
-    // Reset form
-    setFormData({
-      title: '',
-      projectClassification: '',
-      projectType: '',
-      prexcProgram: '',
-      prexcSubProgram: '',
-      budgetProcess: '',
-      proposedFundSource: '',
-      sourceAgency: '',
-      bannerProgram: '',
-      fundingYear: '',
-      region: '',
-      province: '',
-      municipality: '',
-      district: '',
-      barangay: '',
-      budget: '',
-      description: '',
-      startDate: '',
-      endDate: ''
-    })
-    setDocuments([])
-    
-    setTimeout(() => {
-      setShowSuccessToast(false)
-      onClose()
-    }, 2000)
+    // For package projects, close modal after success to return to package view
+    if (showCloseButton) {
+      // Package project - show success then close to return to package view
+      setTimeout(() => {
+        setShowSuccessToast(false)
+        onClose()
+      }, 2000)
+    } else {
+      // Regular project - close modal after success
+      setTimeout(() => {
+        setShowSuccessToast(false)
+        onClose()
+      }, 2000)
+    }
   }
 
   const isFormValid = () => {

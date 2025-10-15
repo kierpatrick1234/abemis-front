@@ -84,6 +84,18 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
   ])
   const [packageTitle, setPackageTitle] = useState('')
   const [packageDescription, setPackageDescription] = useState('')
+  const [packageTotalBudget, setPackageTotalBudget] = useState('')
+  
+  // Budget tracking for each project type
+  const [projectBudgets, setProjectBudgets] = useState<{
+    infra: number[]
+    machinery: number[]
+    fmr: number[]
+  }>({
+    infra: [],
+    machinery: [],
+    fmr: []
+  })
   
   // Modal states for individual project creation
   const [showInfraModal, setShowInfraModal] = useState(false)
@@ -91,6 +103,12 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
   
   // State for tracking which project form is being edited
   const [editingProjectIndex, setEditingProjectIndex] = useState<{ type: string; index: number } | null>(null)
+  
+  // State for tracking temporary budget during configuration
+  const [temporaryBudget, setTemporaryBudget] = useState<number | null>(null)
+  
+  // State for tracking completed projects
+  const [completedProjects, setCompletedProjects] = useState<Set<string>>(new Set())
 
   const handleModeSelect = (modeId: string) => {
     setSelectedMode(modeId)
@@ -138,6 +156,23 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
         return p
       })
     )
+    
+    // Update budget arrays when project count changes
+    setProjectBudgets(prev => {
+      const newBudgets = { ...prev }
+      const projectType = type as keyof typeof prev
+      const currentCount = prev[projectType].length
+      
+      if (increment) {
+        // Add a new budget entry
+        newBudgets[projectType] = [...prev[projectType], 0]
+      } else {
+        // Remove the last budget entry
+        newBudgets[projectType] = prev[projectType].slice(0, -1)
+      }
+      
+      return newBudgets
+    })
   }
 
   const handlePackageProceed = () => {
@@ -180,9 +215,17 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
     ])
     setPackageTitle('')
     setPackageDescription('')
+    setPackageTotalBudget('')
+    setProjectBudgets({
+      infra: [],
+      machinery: [],
+      fmr: []
+    })
     setShowInfraModal(false)
     setShowMachineryModal(false)
     setEditingProjectIndex(null)
+    setTemporaryBudget(null)
+    setCompletedProjects(new Set())
     onClose()
   }
 
@@ -197,14 +240,22 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
     // FMR projects will be handled differently since they don't have a complex form
   }
 
-  const handleFMRProjectCreate = (type: string, index: number) => {
+  const handleFMRProjectCreate = (type: string, index: number, budget: number = 0) => {
     const projectData = {
       title: `FMR Project ${index + 1} - ${packageTitle}`,
       type: 'FMR',
       description: `${packageDescription || 'New FMR project'} (Part of ${packageTitle})`,
       isPackage: true,
-      packageIndex: index
+      packageIndex: index,
+      budget: budget
     }
+    
+    // Update budget tracking for package projects
+    setProjectBudgets(prev => ({
+      ...prev,
+      fmr: [...prev.fmr.slice(0, index), budget, ...prev.fmr.slice(index + 1)]
+    }))
+    
     onProjectCreate(projectData)
   }
 
@@ -216,15 +267,32 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
       isPackage: step === 'package-forms',
       packageTitle: packageTitle,
       packageDescription: packageDescription,
-      packageIndex: editingProjectIndex?.index
+      packageIndex: editingProjectIndex?.index,
+      budget: projectData.budget || projectData.allocatedAmount || 0
     }
+    
+    // Update budget tracking for package projects
+    if (step === 'package-forms' && editingProjectIndex) {
+      setProjectBudgets(prev => ({
+        ...prev,
+        infra: [...prev.infra.slice(0, editingProjectIndex.index), 
+               projectData.budget || projectData.allocatedAmount || 0, 
+               ...prev.infra.slice(editingProjectIndex.index + 1)]
+      }))
+      
+      // Clear temporary budget and editing state
+      setTemporaryBudget(null)
+      setEditingProjectIndex(null)
+      
+      // Mark project as completed
+      const projectKey = `${editingProjectIndex.type}-${editingProjectIndex.index}`
+      setCompletedProjects(prev => new Set([...prev, projectKey]))
+    }
+    
     onProjectCreate(extractedData)
     setShowInfraModal(false)
     
-    if (step === 'package-forms') {
-      // Don't close the modal, just reset the editing index
-      setEditingProjectIndex(null)
-    } else {
+    if (step !== 'package-forms') {
       onClose()
     }
   }
@@ -237,15 +305,32 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
       isPackage: step === 'package-forms',
       packageTitle: packageTitle,
       packageDescription: packageDescription,
-      packageIndex: editingProjectIndex?.index
+      packageIndex: editingProjectIndex?.index,
+      budget: projectData.budget || projectData.allocatedAmount || 0
     }
+    
+    // Update budget tracking for package projects
+    if (step === 'package-forms' && editingProjectIndex) {
+      setProjectBudgets(prev => ({
+        ...prev,
+        machinery: [...prev.machinery.slice(0, editingProjectIndex.index), 
+                   projectData.budget || projectData.allocatedAmount || 0, 
+                   ...prev.machinery.slice(editingProjectIndex.index + 1)]
+      }))
+      
+      // Clear temporary budget and editing state
+      setTemporaryBudget(null)
+      setEditingProjectIndex(null)
+      
+      // Mark project as completed
+      const projectKey = `${editingProjectIndex.type}-${editingProjectIndex.index}`
+      setCompletedProjects(prev => new Set([...prev, projectKey]))
+    }
+    
     onProjectCreate(extractedData)
     setShowMachineryModal(false)
     
-    if (step === 'package-forms') {
-      // Don't close the modal, just reset the editing index
-      setEditingProjectIndex(null)
-    } else {
+    if (step !== 'package-forms') {
       onClose()
     }
   }
@@ -254,13 +339,43 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
     return packageProjects.reduce((sum, p) => sum + p.count, 0)
   }
 
+  const getProjectTypeTotalBudget = (type: string) => {
+    const baseBudget = projectBudgets[type as keyof typeof projectBudgets].reduce((sum, budget) => sum + budget, 0)
+    
+    // Add temporary budget if we're currently editing this project type
+    if (editingProjectIndex?.type === type && temporaryBudget !== null) {
+      // Replace the budget for the current editing index with temporary budget
+      const currentBudgets = projectBudgets[type as keyof typeof projectBudgets]
+      const tempBudgets = [...currentBudgets]
+      tempBudgets[editingProjectIndex.index] = temporaryBudget
+      return tempBudgets.reduce((sum, budget) => sum + budget, 0)
+    }
+    
+    return baseBudget
+  }
+
+  const getTotalSubBudgets = () => {
+    return Object.values(projectBudgets).flat().reduce((sum, budget) => sum + budget, 0)
+  }
+
+  const getBudgetStatus = () => {
+    const totalBudget = parseFloat(packageTotalBudget) || 0
+    const subTotal = getTotalSubBudgets()
+    
+    if (subTotal === 0) return { status: 'empty', message: 'No budgets set', color: 'text-gray-500' }
+    if (totalBudget === 0) return { status: 'no-total', message: 'Total budget not set', color: 'text-yellow-600' }
+    if (subTotal > totalBudget) return { status: 'over', message: `Over budget by ₱${(subTotal - totalBudget).toLocaleString()}`, color: 'text-red-600' }
+    if (subTotal < totalBudget) return { status: 'under', message: `Under budget by ₱${(totalBudget - subTotal).toLocaleString()}`, color: 'text-green-600' }
+    return { status: 'exact', message: 'Budget allocation is exact', color: 'text-blue-600' }
+  }
+
   const selectedProjectMode = projectModes.find(p => p.id === selectedMode)
   const selectedProjectType = projectTypes.find(p => p.id === selectedSoloType)
 
   return (
     <>
       <Dialog open={isOpen && !showInfraModal && !showMachineryModal} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
             <DialogDescription>
@@ -272,7 +387,7 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-6">
+          <div className="py-6 overflow-y-auto flex-1 px-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {step === 'mode' && (
               <div className="space-y-4">
                 {projectModes.map((mode) => {
@@ -447,6 +562,20 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="package-total-budget">Total Package Budget (PHP)</Label>
+                    <Input
+                      id="package-total-budget"
+                      type="number"
+                      placeholder="Enter total package budget"
+                      value={packageTotalBudget}
+                      onChange={(e) => setPackageTotalBudget(e.target.value)}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      This will be used to track budget allocation across all projects in the package.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="package-description">Package Description (Optional)</Label>
                     <textarea
                       id="package-description"
@@ -475,68 +604,151 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <h4 className="font-semibold text-blue-900 mb-2">Package: {packageTitle}</h4>
                     <p className="text-sm text-blue-800">{packageDescription}</p>
+                    {packageTotalBudget && (
+                      <div className="mt-2 p-2 bg-blue-100 rounded border border-blue-300">
+                        <p className="text-sm font-medium text-blue-900">
+                          Total Package Budget: ₱{parseFloat(packageTotalBudget).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  <Accordion type="multiple" className="w-full">
+
+                  <Accordion type="multiple" className="w-full space-y-2">
                     {packageProjects.map((packageProject) => {
                       if (packageProject.count === 0) return null
                       
                       const projectType = projectTypes.find(t => t.id === packageProject.type)
                       const Icon = projectType?.icon || FileText
+                      const typeBudget = getProjectTypeTotalBudget(packageProject.type)
+                      
+                      // Get highlight color based on project type
+                      const getHighlightColor = (type: string) => {
+                        switch (type) {
+                          case 'infra': return 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+                          case 'machinery': return 'bg-green-50 border-green-200 hover:bg-green-100'
+                          case 'fmr': return 'bg-orange-50 border-orange-200 hover:bg-orange-100'
+                          default: return 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                        }
+                      }
                       
                       return (
-                        <AccordionItem key={packageProject.type} value={packageProject.type}>
-                          <AccordionTrigger className="hover:no-underline">
-                            <div className="flex items-center space-x-3">
-                              <Icon className="h-5 w-5" />
-                              <div className="text-left">
-                                <h4 className="font-semibold">{projectType?.name}</h4>
-                                <p className="text-sm text-muted-foreground">
-                                  {packageProject.count} project{packageProject.count > 1 ? 's' : ''} to configure
-                                </p>
+                        <AccordionItem key={packageProject.type} value={packageProject.type} className="border-2 rounded-lg">
+                          <AccordionTrigger className={`hover:no-underline p-4 rounded-lg transition-all duration-200 ${getHighlightColor(packageProject.type)}`}>
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center space-x-3">
+                                <Icon className="h-6 w-6" />
+                                <div className="text-left">
+                                  <h4 className="font-semibold text-lg">{projectType?.name}</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    {packageProject.count} project{packageProject.count > 1 ? 's' : ''} to configure
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm font-medium">
+                                  Budget: ₱{typeBudget.toLocaleString()}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {typeBudget > 0 ? 'Configured' : 'Pending'}
+                                </div>
                               </div>
                             </div>
                           </AccordionTrigger>
                           <AccordionContent>
-                            <div className="space-y-3 pt-2">
-                              {Array.from({ length: packageProject.count }, (_, index) => (
-                                <Card key={index} className="border border-gray-200">
-                                  <CardContent className="p-4">
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center space-x-3">
-                                        <Icon className="h-5 w-5 text-muted-foreground" />
-                                        <div>
-                                          <h5 className="font-medium">
-                                            {projectType?.name} Project {index + 1}
-                                          </h5>
-                                          <p className="text-sm text-muted-foreground">
-                                            Click to configure project details
-                                          </p>
+                            <div className="space-y-3 pt-2 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                {Array.from({ length: packageProject.count }, (_, index) => {
+                                const projectBudget = projectBudgets[packageProject.type as keyof typeof projectBudgets][index] || 0
+                                const projectKey = `${packageProject.type}-${index}`
+                                const isCompleted = completedProjects.has(projectKey)
+                                const isConfigured = projectBudget > 0 || isCompleted
+                                
+                                return (
+                                  <Card key={index} className={`border-2 transition-all duration-200 ${
+                                    isConfigured 
+                                      ? 'border-green-200 bg-green-50' 
+                                      : 'border-gray-200 bg-gray-50'
+                                  }`}>
+                                    <CardContent className="p-4">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-3">
+                                          <Icon className={`h-5 w-5 ${isConfigured ? 'text-green-600' : 'text-muted-foreground'}`} />
+                                          <div>
+                                            <h5 className="font-medium">
+                                              {projectType?.name} Project {index + 1}
+                                            </h5>
+                                            <p className="text-sm text-muted-foreground">
+                                              {isCompleted ? 'Project completed - ready for registration' : 
+                                               isConfigured ? 'Project configured' : 
+                                               'Click to configure project details'}
+                                            </p>
+                                            {isConfigured && (
+                                              <p className="text-sm font-medium text-green-600">
+                                                Budget: ₱{projectBudget.toLocaleString()}
+                                              </p>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                          {isCompleted && (
+                                            <div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                              ✓ Completed
+                                            </div>
+                                          )}
+                                          {isConfigured && !isCompleted && (
+                                            <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                              ✓ Configured
+                                            </div>
+                                          )}
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleOpenProjectForm(packageProject.type, index)}
+                                          >
+                                            {packageProject.type === 'fmr' ? 'Create FMR' : 
+                                             isCompleted ? 'Edit Project' : 
+                                             isConfigured ? 'Edit' : 'Configure'}
+                                          </Button>
                                         </div>
                                       </div>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleOpenProjectForm(packageProject.type, index)}
-                                      >
-                                        {packageProject.type === 'fmr' ? 'Create FMR' : 'Configure'}
-                                      </Button>
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              ))}
+                                    </CardContent>
+                                  </Card>
+                                )
+                              })}
                             </div>
                           </AccordionContent>
                         </AccordionItem>
                       )
                     })}
                   </Accordion>
+
+                  {/* Overall Budget Status */}
+                  {getBudgetStatus().status !== 'empty' && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h5 className="font-semibold text-gray-900">Overall Budget Status</h5>
+                          <p className="text-sm text-muted-foreground">
+                            Package Budget: ₱{packageTotalBudget ? parseFloat(packageTotalBudget).toLocaleString() : 'Not set'}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-gray-900">
+                            ₱{getTotalSubBudgets().toLocaleString()}
+                          </div>
+                          <div className={`text-sm font-medium ${getBudgetStatus().color}`}>
+                            {getBudgetStatus().message}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </div>
 
-          <DialogFooter className="flex gap-2">
+          <DialogFooter className="flex gap-2 flex-shrink-0">
             {step !== 'mode' && (
               <Button variant="outline" onClick={handleBack}>
                 Back
@@ -570,12 +782,13 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
         isOpen={showInfraModal}
         onClose={() => {
           setShowInfraModal(false)
-          if (!editingDraft) {
-            onClose()
-          }
+          setEditingProjectIndex(null)
+          setTemporaryBudget(null)
         }}
         onProjectCreate={handleInfraProjectCreate}
         editingDraft={editingDraft}
+        showCloseButton={step === 'package-forms'}
+        onBudgetChange={(budget) => setTemporaryBudget(budget)}
       />
 
       {/* Machinery Project Modal */}
@@ -583,12 +796,13 @@ export function RAEDProjectModal({ isOpen, onClose, onProjectCreate, editingDraf
         isOpen={showMachineryModal}
         onClose={() => {
           setShowMachineryModal(false)
-          if (!editingDraft) {
-            onClose()
-          }
+          setEditingProjectIndex(null)
+          setTemporaryBudget(null)
         }}
         onProjectCreate={handleMachineryProjectCreate}
         editingDraft={editingDraft}
+        showCloseButton={step === 'package-forms'}
+        onBudgetChange={(budget) => setTemporaryBudget(budget)}
       />
     </>
   )

@@ -21,6 +21,7 @@ interface InfraProjectModalProps {
   onProjectCreate: (projectData: Record<string, unknown>) => void
   editingDraft?: any // Project being edited
   showCloseButton?: boolean // Show X button for package projects
+  onBudgetChange?: (budget: number) => void // Callback for budget changes
 }
 
 // Mock data for dropdowns
@@ -444,7 +445,7 @@ const requiredDocuments = [
   }
 ]
 
-export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDraft, showCloseButton = false }: InfraProjectModalProps) {
+export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDraft, showCloseButton = false, onBudgetChange }: InfraProjectModalProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [isSuccess, setIsSuccess] = useState(false)
   const [countdown, setCountdown] = useState(10)
@@ -465,6 +466,14 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
   const [bannerProgram, setBannerProgram] = useState('')
   const [fundingYear, setFundingYear] = useState('')
   const [allocatedAmount, setAllocatedAmount] = useState('')
+  
+  // Call budget change callback when allocated amount changes
+  React.useEffect(() => {
+    if (onBudgetChange && allocatedAmount) {
+      const budget = parseFloat(allocatedAmount) || 0
+      onBudgetChange(budget)
+    }
+  }, [allocatedAmount, onBudgetChange])
   
   // Step 3: Location
   const [region, setRegion] = useState('')
@@ -565,6 +574,7 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
       bannerProgram,
       fundingYear,
       allocatedAmount,
+      budget: parseFloat(allocatedAmount) || 0,
       // Step 3
       region,
       province,
@@ -581,17 +591,32 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
     setIsSuccess(true)
     setCountdown(10)
     
-    // Countdown timer
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          handleClose()
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
+    // For package projects, close modal after countdown to return to package view
+    if (showCloseButton) {
+      // Package project - show success then close to return to package view
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            handleClose()
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    } else {
+      // Regular project - close modal after countdown
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            handleClose()
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    }
   }
 
   const handleSaveAsDraft = () => {
