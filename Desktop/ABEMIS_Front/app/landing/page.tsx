@@ -27,6 +27,8 @@ import {
   XCircle
 } from 'lucide-react'
 import { AbemisLogo } from '@/components/abemis-logo'
+import { Design4 } from '@/components/design4'
+import { Design5 } from '@/components/design5'
 import { mockProjects } from '@/lib/mock/data'
 import { Project } from '@/lib/types'
 
@@ -310,6 +312,8 @@ export default function LandingPage() {
                   <SelectItem value="design1">Modern Cards</SelectItem>
                   <SelectItem value="design2">Minimalist</SelectItem>
                   <SelectItem value="design3">Dashboard Style</SelectItem>
+                  <SelectItem value="design4">Clean Corporate</SelectItem>
+                  <SelectItem value="design5">Clean Dashboard</SelectItem>
                 </SelectContent>
               </Select>
             <Button 
@@ -358,6 +362,40 @@ export default function LandingPage() {
       
       {selectedDesign === 'design3' && (
         <Design3 
+          handleLoginClick={handleLoginClick}
+          trackingCode={trackingCode}
+          setTrackingCode={setTrackingCode}
+          trackingResult={trackingResult}
+          handleTrackingSearch={handleTrackingSearch}
+          downloadReport={downloadReport}
+          features={features}
+          stats={stats}
+          projectStats={projectStats}
+          availableProjects={availableProjects}
+          isVisible={isVisible}
+          scrollAnimations={scrollAnimations}
+          scrollToDashboard={scrollToDashboard}
+          dashboardRef={dashboardRef}
+        />
+      )}
+
+      {selectedDesign === 'design4' && (
+        <Design4 
+          handleLoginClick={handleLoginClick}
+          trackingCode={trackingCode}
+          setTrackingCode={setTrackingCode}
+          trackingResult={trackingResult}
+          handleTrackingSearch={handleTrackingSearch}
+          downloadReport={downloadReport}
+          features={features}
+          stats={stats}
+          projectStats={projectStats}
+          availableProjects={availableProjects}
+        />
+      )}
+
+      {selectedDesign === 'design5' && (
+        <Design5 
           handleLoginClick={handleLoginClick}
           trackingCode={trackingCode}
           setTrackingCode={setTrackingCode}
@@ -433,28 +471,18 @@ function Design1({
   return (
     <>
       {/* Hero Section */}
-      <section 
-        className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative"
-        style={{
-          backgroundImage: 'url(/landing-bg.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
-        {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/40"></div>
+      <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative bg-gradient-to-br from-background to-muted/50">
         
         <div className="max-w-7xl mx-auto w-full relative z-10">
           <div className="text-center space-y-8">
             <div className="space-y-6">
-              <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight">
+              <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight">
                 Agricultural & Biosystems Engineering
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">
                   {" "}Management Information System
                 </span>
               </h1>
-              <p className="text-xl text-white/90 max-w-4xl mx-auto leading-relaxed">
+              <p className="text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
                 ABEMIS 3.0 is the official information system of the Department of Agriculture - 
                 Bureau of Agricultural and Fisheries Engineering (DA-BAFE) Central Office, 
                 designed to manage agricultural infrastructure projects, farm-to-market roads, 
@@ -474,7 +502,7 @@ function Design1({
               <Button 
                 variant="outline" 
                 size="lg"
-                className="border-white/30 text-white hover:bg-white/10"
+                className="border-border text-foreground hover:bg-muted"
               >
                 System Overview
               </Button>
@@ -744,28 +772,18 @@ function Design2({
   return (
     <>
       {/* Hero Section */}
-      <section 
-        className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative"
-        style={{
-          backgroundImage: 'url(/landing-bg.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
-        {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/30"></div>
+      <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative bg-gradient-to-br from-background via-muted/30 to-background">
         
         <div className="max-w-6xl mx-auto w-full relative z-10">
           <div className="text-center space-y-12">
             <div className="space-y-8">
-              <h1 className="text-5xl md:text-7xl font-light text-white leading-tight">
+              <h1 className="text-5xl md:text-7xl font-light text-foreground leading-tight">
                 ABEMIS
-                <span className="block text-2xl md:text-3xl font-normal text-white/80 mt-4">
+                <span className="block text-2xl md:text-3xl font-normal text-muted-foreground mt-4">
                   Agricultural & Biosystems Engineering Management Information System
                 </span>
               </h1>
-              <p className="text-lg text-white/90 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                 Official information system of the Department of Agriculture - 
                 Bureau of Agricultural and Fisheries Engineering (DA-BAFE) Central Office.
               </p>
@@ -774,7 +792,7 @@ function Design2({
               <Button 
                 onClick={() => handleLoginClick('Access System')}
                 size="lg" 
-                className="bg-white text-black hover:bg-white/90 transition-colors duration-200"
+                className="bg-foreground text-background hover:bg-foreground/90 transition-colors duration-200"
                 type="button"
               >
                 Access System
@@ -782,7 +800,7 @@ function Design2({
               <Button 
                 variant="ghost" 
                 size="lg"
-                className="text-white hover:bg-white/10"
+                className="text-foreground hover:bg-muted"
               >
                 Learn More
               </Button>
