@@ -40,6 +40,7 @@ export interface Project {
   bidOpeningDate?: string
   noticeOfAwardDate?: string
   noticeToProceedDate?: string
+  procurementMethod?: string
   procurementDocuments?: {
     bidOpening?: string
     noticeOfAward?: string

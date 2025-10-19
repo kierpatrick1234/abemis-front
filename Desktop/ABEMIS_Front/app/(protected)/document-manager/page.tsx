@@ -21,9 +21,6 @@ import {
   AlertTriangle,
   Clock,
   Archive,
-  Filter,
-  MapPin,
-  Upload,
   X
 } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
@@ -100,8 +97,6 @@ const generateMockDocuments = (projects: any[]) => {
 export default function DocumentManagerPage() {
   const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
-  const [regionFilter, setRegionFilter] = useState('all')
-  const [uploadedByFilter, setUploadedByFilter] = useState('all')
   const [selectedDocument, setSelectedDocument] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -118,22 +113,19 @@ export default function DocumentManagerPage() {
     return generateMockDocuments(regionProjects)
   }, [regionProjects])
 
-  // Filter documents based on search and filters
+  // Filter documents based on search
   const filteredDocuments = useMemo(() => {
     return allDocuments.filter(doc => {
       const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           doc.projectTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           doc.documentType.toLowerCase().includes(searchQuery.toLowerCase())
       
-      const matchesRegion = regionFilter === 'all' || doc.projectRegion === regionFilter
-      const matchesUploadedBy = uploadedByFilter === 'all' || doc.uploadedBy === uploadedByFilter
-      
-      return matchesSearch && matchesRegion && matchesUploadedBy
+      return matchesSearch
     }).sort((a, b) => {
       // Default sort by upload date (newest first)
       return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
     })
-  }, [allDocuments, searchQuery, regionFilter, uploadedByFilter])
+  }, [allDocuments, searchQuery])
 
   // Pagination logic
   const {
@@ -691,103 +683,37 @@ export default function DocumentManagerPage() {
         </Card>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search Documents */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Search & Filter Documents
+            <Search className="h-5 w-5" />
+            Search Documents
           </CardTitle>
           <CardDescription>
-            Find documents quickly with search and filters
+            Find documents quickly by searching document names, projects, or types
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {/* Search Section */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
-                <label className="text-sm font-medium">Search Documents</label>
-              </div>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search by document name, project, or type..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-                {searchQuery && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Filters Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <label className="text-sm font-medium">Filters</label>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Region Filter */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <label className="text-sm font-medium">Region</label>
-                  </div>
-                  <select
-                    value={regionFilter}
-                    onChange={(e) => setRegionFilter(e.target.value)}
-                    className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-ring focus:border-ring"
-                  >
-                    <option value="all">All Regions</option>
-                    <option value="Region 1">Region 1</option>
-                    <option value="Region 2">Region 2</option>
-                    <option value="Region 3">Region 3</option>
-                    <option value="Region 4">Region 4</option>
-                    <option value="Region 5">Region 5</option>
-                    <option value="Region 6">Region 6</option>
-                    <option value="Region 7">Region 7</option>
-                    <option value="Region 8">Region 8</option>
-                    <option value="Region 9">Region 9</option>
-                    <option value="Region 10">Region 10</option>
-                    <option value="Region 11">Region 11</option>
-                    <option value="Region 12">Region 12</option>
-                    <option value="NCR">NCR</option>
-                    <option value="CAR">CAR</option>
-                    <option value="BARMM">BARMM</option>
-                  </select>
-                </div>
-                
-                {/* Uploaded By Filter */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Upload className="h-4 w-4 text-muted-foreground" />
-                    <label className="text-sm font-medium">Uploaded By</label>
-                  </div>
-                  <select
-                    value={uploadedByFilter}
-                    onChange={(e) => setUploadedByFilter(e.target.value)}
-                    className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-ring focus:border-ring"
-                  >
-                    <option value="all">All Users</option>
-                    <option value="RAED User">RAED User</option>
-                    <option value="Admin User">Admin User</option>
-                    <option value="Engineer User">Engineer User</option>
-                    <option value="Stakeholder User">Stakeholder User</option>
-                  </select>
-                </div>
-              </div>
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by document name, project, or type..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
             </div>
 
             {/* Results and Actions */}
@@ -796,40 +722,26 @@ export default function DocumentManagerPage() {
                 <span className="text-sm text-muted-foreground">
                   Showing <span className="font-medium text-foreground">{paginatedData.length}</span> of <span className="font-medium text-foreground">{filteredDocuments.length}</span> documents
                 </span>
-                {(searchQuery || regionFilter !== 'all' || uploadedByFilter !== 'all') && (
+                {searchQuery && (
                   <div className="flex flex-wrap items-center gap-2">
-                    {searchQuery && (
-                      <Badge variant="secondary" className="text-xs">
-                        Search: {searchQuery}
-                      </Badge>
-                    )}
-                    {regionFilter !== 'all' && (
-                      <Badge variant="secondary" className="text-xs">
-                        Region: {regionFilter}
-                      </Badge>
-                    )}
-                    {uploadedByFilter !== 'all' && (
-                      <Badge variant="secondary" className="text-xs">
-                        User: {uploadedByFilter}
-                      </Badge>
-                    )}
+                    <Badge variant="secondary" className="text-xs">
+                      Search: {searchQuery}
+                    </Badge>
                   </div>
                 )}
               </div>
               
-              {(searchQuery || regionFilter !== 'all' || uploadedByFilter !== 'all') && (
+              {searchQuery && (
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => {
                     setSearchQuery('')
-                    setRegionFilter('all')
-                    setUploadedByFilter('all')
                   }}
                   className="flex items-center gap-2"
                 >
                   <X className="h-4 w-4" />
-                  Clear All Filters
+                  Clear Search
                 </Button>
               )}
             </div>

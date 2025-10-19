@@ -12,7 +12,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Wrench, Upload, Save, X } from 'lucide-react'
+import { 
+  Wrench, 
+  Upload, 
+  Save, 
+  X, 
+  MapPin, 
+  Calendar, 
+  DollarSign, 
+  FileText, 
+  Users, 
+  Settings,
+  Clock,
+  Target,
+  Banknote,
+  Cog
+} from 'lucide-react'
 import { SuccessToast } from './success-toast'
 
 interface MachineryProjectModalProps {
@@ -390,8 +405,6 @@ const requiredDocuments = [
 
 export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editingDraft, showCloseButton = false, onBudgetChange }: MachineryProjectModalProps) {
   const [currentStep, setCurrentStep] = useState(1)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [countdown, setCountdown] = useState(10)
   
   // Step 1: Project Description
   const [projectClassification, setProjectClassification] = useState('')
@@ -532,35 +545,9 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
     }
 
     onProjectCreate(projectData)
-    setIsSuccess(true)
-    setCountdown(10)
-    
-    // For package projects, close modal after countdown to return to package view
-    if (showCloseButton) {
-      // Package project - show success then close to return to package view
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer)
-            handleClose()
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-    } else {
-      // Regular project - close modal after countdown
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer)
-            handleClose()
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-    }
+    // Reset unsaved changes flag before closing to prevent unsaved changes dialog
+    setHasUnsavedChanges(false)
+    performClose() // Close the modal immediately after project creation
   }
 
   const handleSaveAsDraft = () => {
@@ -610,8 +597,6 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
   const performClose = () => {
     // Reset all form data
     setCurrentStep(1)
-    setIsSuccess(false)
-    setCountdown(10)
     setProjectClassification('')
     setProjectType('')
     setProjectTitle('')
@@ -655,17 +640,6 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
   const isStep3Valid = region && province && municipality && district && barangay
   const isStep4Valid = true // Documents are optional during registration
 
-  if (isSuccess) {
-    return (
-      <>
-        <SuccessToast 
-          isVisible={isSuccess}
-          onClose={handleClose}
-          countdown={countdown}
-        />
-      </>
-    )
-  }
 
   return (
     <>
@@ -702,16 +676,16 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
             </div>
           </DialogHeader>
           
-          {/* Progress Indicator */}
+          {/* Enhanced Progress Indicator */}
           <div className="pb-4">
             <div className="flex items-start justify-center w-full">
             {[
-              { step: 1, label: 'Project Description' },
-              { step: 2, label: 'Budget Source' },
-              { step: 3, label: 'Location' },
-              { step: 4, label: 'Document Upload' },
-              { step: 5, label: 'Summary' }
-            ].map(({ step, label }, index) => (
+              { step: 1, label: 'Project Description', icon: FileText },
+              { step: 2, label: 'Budget Source', icon: DollarSign },
+              { step: 3, label: 'Location', icon: MapPin },
+              { step: 4, label: 'Document Upload', icon: Upload },
+              { step: 5, label: 'Summary', icon: Target }
+            ].map(({ step, label, icon: Icon }, index) => (
               <div key={step} className="flex flex-col items-center flex-1 min-w-0">
                 <div className="flex items-center w-full justify-center mb-3">
                   <button
@@ -722,28 +696,34 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
                       }
                     }}
                     disabled={step !== currentStep}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 flex-shrink-0 ${
+                    className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 flex-shrink-0 shadow-sm ${
                       step === currentStep
-                        ? 'bg-green-600 text-white hover:bg-green-700 cursor-pointer ring-2 ring-green-300'
+                        ? 'bg-orange-600 text-white hover:bg-orange-700 cursor-pointer ring-2 ring-orange-300 shadow-md'
                         : step < currentStep
-                        ? 'bg-black text-white cursor-default'
-                        : 'bg-muted text-muted-foreground cursor-not-allowed'
+                        ? 'bg-green-600 text-white cursor-default shadow-md'
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                     }`}
                   >
-                    {step}
+                    {step < currentStep ? (
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <Icon className="w-5 h-5" />
+                    )}
                   </button>
                   {index < 4 && (
-                    <div className={`flex-1 h-0.5 mx-2 rounded-full ${
-                      step < currentStep ? 'bg-black' : 'bg-muted'
+                    <div className={`flex-1 h-1 mx-3 rounded-full transition-colors duration-300 ${
+                      step < currentStep ? 'bg-green-500' : 'bg-gray-200'
                     }`} />
                   )}
                 </div>
-                <span className={`text-xs text-center px-1 leading-tight font-medium ${
+                <span className={`text-xs text-center px-1 leading-tight font-medium transition-colors duration-200 ${
                   step === currentStep
-                    ? 'text-green-600'
+                    ? 'text-orange-600'
                     : step < currentStep
-                    ? 'text-black'
-                    : 'text-muted-foreground'
+                    ? 'text-green-600'
+                    : 'text-gray-400'
                 }`}>
                   {label}
                 </span>
@@ -757,12 +737,15 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
           {currentStep === 1 && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="classification">Project Classification *</Label>
+                <Label htmlFor="classification" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4 text-gray-600" />
+                  Project Classification *
+                </Label>
                 <select
                   id="classification"
                   value={projectClassification}
                   onChange={(e) => setProjectClassification(e.target.value)}
-                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 >
                   <option value="">Select Classification</option>
                   {projectClassifications.map((item) => (
@@ -772,12 +755,15 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Project Type *</Label>
+                <Label htmlFor="type" className="flex items-center gap-2">
+                  <Wrench className="h-4 w-4 text-gray-600" />
+                  Project Type *
+                </Label>
                 <select
                   id="type"
                   value={projectType}
                   onChange={(e) => setProjectType(e.target.value)}
-                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 >
                   <option value="">Select Type</option>
                   {projectTypes.map((item) => (
@@ -787,23 +773,30 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="title">Project Title *</Label>
+                <Label htmlFor="title" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-gray-600" />
+                  Project Title *
+                </Label>
                 <Input
                   id="title"
                   placeholder="Enter project title"
                   value={projectTitle}
                   onChange={(e) => setProjectTitle(e.target.value)}
+                  className="focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Project Description *</Label>
+                <Label htmlFor="description" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-gray-600" />
+                  Project Description *
+                </Label>
                 <textarea
                   id="description"
                   placeholder="Enter project description"
                   value={projectDescription}
                   onChange={(e) => setProjectDescription(e.target.value)}
-                  className="w-full min-h-[100px] px-3 py-2 border border-input bg-background rounded-md text-sm resize-none"
+                  className="w-full min-h-[100px] px-3 py-2 border border-input bg-background rounded-md text-sm resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
               </div>
 

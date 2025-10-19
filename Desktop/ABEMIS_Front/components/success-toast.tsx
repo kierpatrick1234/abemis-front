@@ -14,6 +14,13 @@ interface SuccessToastProps {
 export function SuccessToast({ isVisible, onClose, countdown, message = 'Project Created Successfully!' }: SuccessToastProps) {
   if (!isVisible) return null
 
+  // Auto-close when countdown reaches 0
+  React.useEffect(() => {
+    if (countdown <= 0) {
+      onClose()
+    }
+  }, [countdown, onClose])
+
   return (
     <div className="fixed top-4 right-4 z-50">
       <div className="bg-white border border-green-200 rounded-lg shadow-lg p-4 max-w-sm cursor-pointer" onClick={onClose}>
@@ -25,7 +32,7 @@ export function SuccessToast({ isVisible, onClose, countdown, message = 'Project
               {message.includes('draft') ? 'Your project has been saved as draft.' : 'Your infrastructure project has been added to the list.'}
             </p>
             <p className="text-xs text-green-600 mt-1">
-              Auto-closes in {countdown} seconds (click to close)
+              {countdown > 0 ? `Auto-closes in ${countdown} seconds (click to close)` : 'Click to close'}
             </p>
           </div>
         </div>

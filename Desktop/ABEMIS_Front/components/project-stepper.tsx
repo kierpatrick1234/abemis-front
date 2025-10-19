@@ -497,7 +497,7 @@ function ProposalStepContent({ projectType, currentStatus, project }: { projectT
       {/* Step Number for Machinery Projects */}
       {projectType === 'Machinery' && (
         <div className="text-center mb-4">
-          <h3 className="text-lg font-semibold text-blue-600">Step 1: Proposal</h3>
+          <h3 className="text-lg font-semibold text-blue-600">Proposal</h3>
         </div>
       )}
       
@@ -878,6 +878,7 @@ function ProcurementStepContent({ currentStatus, project, onStepClick, onStagePr
   const [bidOpeningDate, setBidOpeningDate] = useState<string>(() => (project?.bidOpeningDate || '') as string)
   const [noticeOfAwardDate, setNoticeOfAwardDate] = useState<string>(() => (project?.noticeOfAwardDate || '') as string)
   const [noticeToProceedDate, setNoticeToProceedDate] = useState<string>(() => (project?.noticeToProceedDate || '') as string)
+  const [procurementMethod, setProcurementMethod] = useState<string>(() => ((project as any)?.procurementMethod || 'Public Bidding') as string)
   const [uploadingDocuments, setUploadingDocuments] = useState<Set<string>>(new Set())
   const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: File | null}>({
     bidOpening: null,
@@ -918,13 +919,26 @@ function ProcurementStepContent({ currentStatus, project, onStepClick, onStagePr
     <div className="space-y-6">
       {/* Step Number for Machinery Projects */}
       <div className="text-center mb-4">
-        <h3 className="text-lg font-semibold text-blue-600">Step 2: Procurement</h3>
+        <h3 className="text-lg font-semibold text-blue-600">Procurement</h3>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <h4 className="font-medium mb-2">Procurement Method</h4>
-          <Badge variant="outline">Public Bidding</Badge>
+          <select
+            value={procurementMethod || 'Public Bidding'}
+            onChange={(e) => setProcurementMethod(e.target.value)}
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
+          >
+            <option value="Public Bidding">Public Bidding</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Direct Contracting">Direct Contracting</option>
+            <option value="Repeat Order">Repeat Order</option>
+            <option value="Small Value Procurement">Small Value Procurement</option>
+            <option value="Negotiated Procurement">Negotiated Procurement</option>
+            <option value="Two-Stage Bidding">Two-Stage Bidding</option>
+            <option value="Alternative Methods">Alternative Methods</option>
+          </select>
         </div>
         <div>
           <h4 className="font-medium mb-2">Status</h4>
@@ -2921,100 +2935,295 @@ function CompletedStepContent({ project, onStepClick }: { project?: Project, onS
 }
 
 function InventoryStepContent() {
-  // Generate random data for inventory details
-  const generateRandomAuditResult = () => {
-    const isAudited = Math.random() > 0.4 // 60% chance of being audited
-    if (isAudited) {
-      const auditDate = new Date()
-      auditDate.setDate(auditDate.getDate() - Math.floor(Math.random() * 90)) // Random date within last 90 days
-      return {
-        status: 'Audited',
-        date: auditDate.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'short', 
-          day: 'numeric' 
-        }),
-        badgeVariant: 'default' as const
-      }
-    } else {
-      return {
-        status: 'Not Audited',
-        date: null,
-        badgeVariant: 'outline' as const
-      }
+  // State for machine usage monitoring
+  const [machineUsageData, setMachineUsageData] = useState<Array<{
+    id: string
+    machineName: string
+    machineType: string
+    serialNumber: string
+    isUsed: boolean
+    usageDate?: string
+    usageDuration?: number
+    operator?: string
+    location?: string
+    notes?: string
+  }>>([
+    {
+      id: '1',
+      machineName: 'Tractor Model A',
+      machineType: 'Agricultural Tractor',
+      serialNumber: 'TR-001-2024',
+      isUsed: false
+    },
+    {
+      id: '2',
+      machineName: 'Harvester Model B',
+      machineType: 'Grain Harvester',
+      serialNumber: 'HV-002-2024',
+      isUsed: true,
+      usageDate: '2024-01-15',
+      usageDuration: 8,
+      operator: 'Juan Dela Cruz',
+      location: 'Farm Field 1',
+      notes: 'Used for rice harvesting'
+    }
+  ])
+
+  const [showUsageForm, setShowUsageForm] = useState<boolean>(false)
+  const [selectedMachine, setSelectedMachine] = useState<string | null>(null)
+  const [usageFormData, setUsageFormData] = useState({
+    usageDate: '',
+    usageDuration: '',
+    operator: '',
+    location: '',
+    notes: ''
+  })
+
+  const handleUsageToggle = (machineId: string, isUsed: boolean) => {
+    setMachineUsageData(prev => 
+      prev.map(machine => 
+        machine.id === machineId 
+          ? { ...machine, isUsed, usageDate: isUsed ? new Date().toISOString().split('T')[0] : undefined }
+          : machine
+      )
+    )
+  }
+
+  const handleUsageFormSubmit = (machineId: string) => {
+    setMachineUsageData(prev => 
+      prev.map(machine => 
+        machine.id === machineId 
+          ? { 
+              ...machine, 
+              ...usageFormData,
+              usageDuration: parseInt(usageFormData.usageDuration) || 0
+            }
+          : machine
+      )
+    )
+    setShowUsageForm(false)
+    setSelectedMachine(null)
+    setUsageFormData({
+      usageDate: '',
+      usageDuration: '',
+      operator: '',
+      location: '',
+      notes: ''
+    })
+  }
+
+  const openUsageForm = (machineId: string) => {
+    const machine = machineUsageData.find(m => m.id === machineId)
+    if (machine) {
+      setSelectedMachine(machineId)
+      setUsageFormData({
+        usageDate: machine.usageDate || '',
+        usageDuration: machine.usageDuration?.toString() || '',
+        operator: machine.operator || '',
+        location: machine.location || '',
+        notes: machine.notes || ''
+      })
+      setShowUsageForm(true)
     }
   }
 
-  const generateRandomRating = () => {
-    const isRated = Math.random() > 0.3 // 70% chance of being rated
-    if (isRated) {
-      const score = Math.floor(Math.random() * 40) + 60 // Score between 60-100
-      let rating = ''
-      if (score >= 90) rating = 'Excellent'
-      else if (score >= 80) rating = 'Very Good'
-      else if (score >= 70) rating = 'Good'
-      else if (score >= 60) rating = 'Satisfactory'
-      
-      return {
-        status: 'Rated',
-        score: score,
-        rating: rating,
-        badgeVariant: 'default' as const
-      }
+  const getUsageIndicator = (machine: any) => {
+    if (machine.isUsed) {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-green-600 font-medium">In Use</span>
+        </div>
+      )
     } else {
-      return {
-        status: 'Not Rated',
-        score: null,
-        rating: null,
-        badgeVariant: 'outline' as const
-      }
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+          <span className="text-gray-600 font-medium">Not Used</span>
+        </div>
+      )
     }
   }
-
-  const auditResult = generateRandomAuditResult()
-  const ratingResult = generateRandomRating()
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Step Number for Machinery Projects */}
       <div className="text-center mb-4">
-        <h3 className="text-lg font-semibold text-blue-600">Step 5: Inventory</h3>
+        <h3 className="text-lg font-semibold text-blue-600">Inventory</h3>
       </div>
       
-      <div>
-        <h4 className="font-medium mb-2">Inventory Status</h4>
-        <Badge variant="outline">Pending</Badge>
-      </div>
-      
-      <div>
-        <h4 className="font-medium mb-2">Monitoring Evaluator (PPMD)</h4>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline">PPMD</Badge>
-          <span className="text-sm text-muted-foreground">Pending Assignment</span>
+      {/* Machine Usage Monitoring Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h4 className="font-medium text-lg">Machine Usage Monitoring</h4>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="text-sm">Used</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+              <span className="text-sm">Not Used</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Machine List */}
+        <div className="space-y-3">
+          {machineUsageData.map((machine) => (
+            <div key={machine.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h5 className="font-semibold text-lg">{machine.machineName}</h5>
+                    {getUsageIndicator(machine)}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                    <div>
+                      <span className="font-medium">Type:</span> {machine.machineType}
+                    </div>
+                    <div>
+                      <span className="font-medium">Serial:</span> {machine.serialNumber}
+                    </div>
+                    {machine.isUsed && (
+                      <>
+                        <div>
+                          <span className="font-medium">Last Used:</span> {machine.usageDate || 'N/A'}
+                        </div>
+                        <div>
+                          <span className="font-medium">Duration:</span> {machine.usageDuration || 0} hours
+                        </div>
+                        <div>
+                          <span className="font-medium">Operator:</span> {machine.operator || 'N/A'}
+                        </div>
+                        <div>
+                          <span className="font-medium">Location:</span> {machine.location || 'N/A'}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  {machine.notes && (
+                    <div className="mt-2 text-sm text-gray-600">
+                      <span className="font-medium">Notes:</span> {machine.notes}
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={machine.isUsed}
+                      onChange={(e) => handleUsageToggle(machine.id, e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium">Mark as Used</span>
+                  </label>
+                  <button
+                    onClick={() => openUsageForm(machine.id)}
+                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Update Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-      
-      <div>
-        <h4 className="font-medium mb-2">Audit Result as of</h4>
-        <div className="flex items-center gap-2">
-          <Badge variant={auditResult.badgeVariant}>
-            {auditResult.status}
-          </Badge>
-          <span className="text-sm text-muted-foreground">
-            {auditResult.date ? `Audited on ${auditResult.date}` : 'No audit date available'}
-          </span>
+
+      {/* Usage Form Modal */}
+      {showUsageForm && selectedMachine && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h5 className="font-semibold text-lg mb-4">Update Machine Usage Details</h5>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Usage Date</label>
+                <input
+                  type="date"
+                  value={usageFormData.usageDate}
+                  onChange={(e) => setUsageFormData(prev => ({ ...prev, usageDate: e.target.value }))}
+                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Usage Duration (hours)</label>
+                <input
+                  type="number"
+                  value={usageFormData.usageDuration}
+                  onChange={(e) => setUsageFormData(prev => ({ ...prev, usageDuration: e.target.value }))}
+                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter duration in hours"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Operator</label>
+                <input
+                  type="text"
+                  value={usageFormData.operator}
+                  onChange={(e) => setUsageFormData(prev => ({ ...prev, operator: e.target.value }))}
+                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter operator name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Location</label>
+                <input
+                  type="text"
+                  value={usageFormData.location}
+                  onChange={(e) => setUsageFormData(prev => ({ ...prev, location: e.target.value }))}
+                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter usage location"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Notes</label>
+                <textarea
+                  value={usageFormData.notes}
+                  onChange={(e) => setUsageFormData(prev => ({ ...prev, notes: e.target.value }))}
+                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter additional notes"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={() => setShowUsageForm(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleUsageFormSubmit(selectedMachine)}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Update
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <div>
-        <h4 className="font-medium mb-2">Score and IMAS Rating</h4>
-        <div className="flex items-center gap-2">
-          <Badge variant={ratingResult.badgeVariant}>
-            {ratingResult.status}
-          </Badge>
-          <span className="text-sm text-muted-foreground">
-            {ratingResult.score ? `Score: ${ratingResult.score} (${ratingResult.rating})` : 'Pending evaluation'}
-          </span>
+      )}
+
+      {/* Inventory Status Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-green-600">
+            {machineUsageData.filter(m => m.isUsed).length}
+          </div>
+          <div className="text-sm text-gray-600">Machines in Use</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-gray-600">
+            {machineUsageData.filter(m => !m.isUsed).length}
+          </div>
+          <div className="text-sm text-gray-600">Machines Not Used</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-blue-600">
+            {machineUsageData.length}
+          </div>
+          <div className="text-sm text-gray-600">Total Machines</div>
         </div>
       </div>
     </div>

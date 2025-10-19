@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   ArrowRight, 
   BarChart3, 
@@ -54,6 +55,7 @@ export default function LandingPage() {
   const [isLoginHovered, setIsLoginHovered] = useState(false)
   const [trackingCode, setTrackingCode] = useState('')
   const [trackingResult, setTrackingResult] = useState<TrackingResult | null>(null)
+  const [selectedDesign, setSelectedDesign] = useState('design3')
 
   const handleLoginClick = (buttonType = 'unknown') => {
     console.log(`${buttonType} button clicked!`) // Debug log
@@ -151,6 +153,9 @@ export default function LandingPage() {
     }
   }
 
+  // Get first 10 projects for dropdown
+  const availableProjects = mockProjects.slice(0, 10)
+
   const downloadReport = (type: string) => {
     // Mock download functionality
     const reportData: Record<string, string> = {
@@ -198,9 +203,9 @@ export default function LandingPage() {
   ]
 
   const stats = [
-    { label: "Active Projects", value: "150+", icon: <TrendingUp className="h-5 w-5" /> },
-    { label: "Regional Coverage", value: "17 Regions", icon: <Globe className="h-5 w-5" /> },
-    { label: "Authorized Users", value: "500+", icon: <Users className="h-5 w-5" /> },
+    { label: "Active Projects", value: "35,952", icon: <TrendingUp className="h-5 w-5" /> },
+    { label: "Infra & Machinery Projects", value: "187+", icon: <Globe className="h-5 w-5" /> },
+    { label: "Authorized Users", value: "50+", icon: <Users className="h-5 w-5" /> },
     { label: "Farm-to-Market Roads", value: "2,500+ km", icon: <MapPin className="h-5 w-5" /> }
   ]
 
@@ -250,6 +255,17 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <AbemisLogo size="md" textSize="sm" />
+            <div className="flex items-center gap-4">
+              <Select value={selectedDesign} onValueChange={setSelectedDesign}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Choose Design" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="design1">Modern Cards</SelectItem>
+                  <SelectItem value="design2">Minimalist</SelectItem>
+                  <SelectItem value="design3">Dashboard Style</SelectItem>
+                </SelectContent>
+              </Select>
             <Button 
               onClick={() => handleLoginClick('Top Navigation')}
               className="transition-all duration-200 transform hover:scale-105 relative z-10"
@@ -258,10 +274,114 @@ export default function LandingPage() {
               Login
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
+            </div>
           </div>
         </div>
       </nav>
 
+      {/* Conditional Design Rendering */}
+      {selectedDesign === 'design1' && (
+        <Design1 
+          handleLoginClick={handleLoginClick}
+          trackingCode={trackingCode}
+          setTrackingCode={setTrackingCode}
+          trackingResult={trackingResult}
+          handleTrackingSearch={handleTrackingSearch}
+          downloadReport={downloadReport}
+          features={features}
+          stats={stats}
+          projectStats={projectStats}
+          availableProjects={availableProjects}
+        />
+      )}
+      
+      {selectedDesign === 'design2' && (
+        <Design2 
+          handleLoginClick={handleLoginClick}
+          trackingCode={trackingCode}
+          setTrackingCode={setTrackingCode}
+          trackingResult={trackingResult}
+          handleTrackingSearch={handleTrackingSearch}
+          downloadReport={downloadReport}
+          features={features}
+          stats={stats}
+          projectStats={projectStats}
+          availableProjects={availableProjects}
+        />
+      )}
+      
+      {selectedDesign === 'design3' && (
+        <Design3 
+          handleLoginClick={handleLoginClick}
+          trackingCode={trackingCode}
+          setTrackingCode={setTrackingCode}
+          trackingResult={trackingResult}
+          handleTrackingSearch={handleTrackingSearch}
+          downloadReport={downloadReport}
+          features={features}
+          stats={stats}
+          projectStats={projectStats}
+          availableProjects={availableProjects}
+        />
+      )}
+
+
+      {/* Footer */}
+      <footer className="bg-muted py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-12">
+            <div className="col-span-1 md:col-span-2">
+              <div className="mb-6">
+                <AbemisLogo size="lg" textSize="lg" />
+              </div>
+              <p className="text-muted-foreground mb-4 max-w-md">
+                Agricultural & Biosystems Engineering Management Information System - 
+                Official information system of the Department of Agriculture - Bureau of Agricultural and Fisheries Engineering.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4 text-foreground">System Capabilities</h3>
+              <ul className="space-y-2 text-muted-foreground">
+                <li>Project Creation & Planning</li>
+                <li>Approval Workflows</li>
+                <li>Implementation Monitoring</li>
+                <li>Farm-to-Market Road Management</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4 text-foreground">Support & Resources</h3>
+              <ul className="space-y-2 text-muted-foreground">
+                <li>System Documentation</li>
+                <li>User Training</li>
+                <li>Technical Support</li>
+                <li>Regional Coordination</li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
+            <p>&copy; 2024 Department of Agriculture - Bureau of Agricultural and Fisheries Engineering. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
+
+// Design 1: Modern Card-based Layout
+function Design1({ 
+  handleLoginClick, 
+  trackingCode, 
+  setTrackingCode, 
+  trackingResult, 
+  handleTrackingSearch, 
+  downloadReport, 
+  features, 
+  stats, 
+  projectStats,
+  availableProjects
+}: any) {
+  return (
+    <>
       {/* Hero Section */}
       <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto w-full">
@@ -305,9 +425,9 @@ export default function LandingPage() {
       <section className="py-20 bg-muted/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center space-y-4">
-                <div className="flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mx-auto">
+            {stats.map((stat: any, index: number) => (
+              <Card key={index} className="text-center p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mx-auto mb-4">
                   <div className="text-primary">
                     {stat.icon}
                   </div>
@@ -316,7 +436,7 @@ export default function LandingPage() {
                   <div className="text-3xl font-bold text-foreground">{stat.value}</div>
                   <div className="text-sm text-muted-foreground">{stat.label}</div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </div>
@@ -335,7 +455,7 @@ export default function LandingPage() {
           </div>
           
           <div className="max-w-2xl mx-auto">
-            <Card className="p-8">
+            <Card className="p-8 shadow-xl">
               <CardHeader className="text-center pb-6">
                 <CardTitle className="flex items-center justify-center gap-2">
                   <Search className="h-6 w-6" />
@@ -346,31 +466,66 @@ export default function LandingPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex gap-4">
-                  <Input
-                    placeholder={`Enter project tracking reference (e.g., ${mockProjects[0]?.id || 'PRJ-001'})`}
-                    value={trackingCode}
-                    onChange={(e) => setTrackingCode(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button onClick={handleTrackingSearch} className="px-8">
-                    <Search className="h-4 w-4 mr-2" />
-                    Track
-                  </Button>
+                <div className="space-y-4">
+                  <div className="flex gap-4">
+                    <Input
+                      placeholder="Enter project tracking reference"
+                      value={trackingCode}
+                      onChange={(e) => setTrackingCode(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button onClick={handleTrackingSearch} className="px-8">
+                      <Search className="h-4 w-4 mr-2" />
+                      Track
+                    </Button>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-sm text-muted-foreground">Or select from available projects:</span>
+                  </div>
+                  <Select value={trackingCode} onValueChange={setTrackingCode}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a project to track" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableProjects.map((project: any) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.id} - {project.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 {trackingResult && (
                   <div className="space-y-6 p-6 bg-muted/50 rounded-lg">
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-semibold">{trackingResult.title}</h3>
-                      <p className="text-sm text-muted-foreground">{trackingResult.region}</p>
-                      <div className="flex items-center justify-between">
-                        <Badge variant={trackingResult.status === 'Completed' ? 'default' : 'secondary'}>
-                          {trackingResult.status}
-                        </Badge>
-                        <div className="text-right">
-                          <p className="text-sm text-muted-foreground">Budget</p>
-                          <p className="font-semibold">₱{trackingResult.budget.toLocaleString()}</p>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-semibold">{trackingResult.title}</h3>
+                        <p className="text-sm text-muted-foreground">{trackingResult.region}</p>
+                        <p className="text-sm text-muted-foreground">{trackingResult.description}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Status</span>
+                            <Badge variant={trackingResult.status === 'Completed' ? 'default' : 'secondary'}>
+                              {trackingResult.status}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Type</span>
+                            <span className="text-sm font-medium">{trackingResult.type}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Budget</span>
+                            <span className="text-sm font-semibold">₱{trackingResult.budget.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Start Date</span>
+                            <span className="text-sm font-medium">{new Date(trackingResult.startDate).toLocaleDateString()}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -391,7 +546,7 @@ export default function LandingPage() {
                     <div className="space-y-3">
                       <h4 className="font-medium">Project Milestones</h4>
                       <div className="space-y-2">
-                        {trackingResult.milestones.map((milestone, index) => {
+                        {trackingResult.milestones.map((milestone: any, index: number) => {
                           const milestoneDate = new Date(milestone.date)
                           const now = new Date()
                           const daysAgo = Math.floor((now.getTime() - milestoneDate.getTime()) / (1000 * 60 * 60 * 24))
@@ -428,196 +583,8 @@ export default function LandingPage() {
                   <div className="text-center p-6 bg-red-50 border border-red-200 rounded-lg">
                     <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
                     <p className="text-red-700">Project not found. Please check your tracking code.</p>
-                    <p className="text-sm text-red-600 mt-1">
-                      Try: {mockProjects.slice(0, 5).map(p => p.id).join(', ')} or any other project tracking reference
-                    </p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Real-time Statistics & Charts Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-              Real-time Project Statistics
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Live data and comprehensive analytics on agricultural infrastructure projects across the Philippines.
-            </p>
-          </div>
-          
-          <div className="grid lg:grid-cols-2 gap-8 mb-12">
-            {/* Project Status Distribution */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PieChart className="h-5 w-5" />
-                  Project Status Distribution
-                </CardTitle>
-                <CardDescription>Current status of all projects</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {projectStats.statusDistribution.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-4 h-4 rounded-full ${item.color}`} />
-                        <span className="font-medium">{item.status}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold">{item.count} projects</div>
-                        <div className="text-sm text-muted-foreground">{item.percentage}%</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Project Types */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Project Types
-                </CardTitle>
-                <CardDescription>Distribution by project category</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {projectStats.projectTypes.map((item, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{item.type}</span>
-                        <span className="text-sm text-muted-foreground">{item.count} projects</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${item.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Regional Distribution */}
-          <Card className="mb-12">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Regional Project Distribution
-              </CardTitle>
-              <CardDescription>Projects and budget allocation by region</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {projectStats.regionalDistribution.slice(0, 8).map((region, index) => (
-                  <div key={index} className="p-4 border rounded-lg">
-                    <h4 className="font-semibold text-sm">{region.region}</h4>
-                    <div className="mt-2 space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>Projects:</span>
-                        <span className="font-medium">{region.projects}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Budget:</span>
-                        <span className="font-medium">₱{(region.budget / 1000000).toFixed(0)}M</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-        </div>
-      </section>
-
-      {/* Download Reports Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12 space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-              Download Reports
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Access comprehensive reports and analytics on agricultural infrastructure projects.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Download className="h-5 w-5" />
-                  Quarterly Report
-                </CardTitle>
-                <CardDescription>
-                  Q1 2024 comprehensive project status and budget analysis
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={() => downloadReport('quarterly')}
-                  className="w-full"
-                  variant="outline"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Annual Report
-                </CardTitle>
-                <CardDescription>
-                  2023 complete annual performance and achievements summary
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={() => downloadReport('annual')}
-                  className="w-full"
-                  variant="outline"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  Project Status
-                </CardTitle>
-                <CardDescription>
-                  Current status of all active projects with detailed progress tracking
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={() => downloadReport('projects')}
-                  className="w-full"
-                  variant="outline"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
               </CardContent>
             </Card>
           </div>
@@ -638,7 +605,7 @@ export default function LandingPage() {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {features.map((feature, index) => (
+            {features.map((feature: any, index: number) => (
               <Card key={index} className="group hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 p-6">
                 <CardHeader className="pb-6">
                   <div className="w-14 h-14 bg-primary/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -648,8 +615,8 @@ export default function LandingPage() {
                   </div>
                   <CardTitle className="text-xl font-semibold text-foreground leading-tight">
                     {feature.title}
-                  </CardTitle>
-                </CardHeader>
+                </CardTitle>
+              </CardHeader>
                 <CardContent className="pt-0">
                   <CardDescription className="text-muted-foreground leading-relaxed text-base">
                     {feature.description}
@@ -657,8 +624,8 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </div>
+                      </div>
+                      </div>
       </section>
 
       {/* CTA Section */}
@@ -695,44 +662,531 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+    </>
+  )
+}
 
-      {/* Footer */}
-      <footer className="bg-muted py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-12">
-            <div className="col-span-1 md:col-span-2">
-              <div className="mb-6">
-                <AbemisLogo size="lg" textSize="lg" />
-              </div>
-              <p className="text-muted-foreground mb-4 max-w-md">
-                Agricultural & Biosystems Engineering Management Information System - 
-                Official information system of the Department of Agriculture - Bureau of Agricultural and Fisheries Engineering.
+// Design 2: Minimalist Clean Layout
+function Design2({ 
+  handleLoginClick, 
+  trackingCode, 
+  setTrackingCode, 
+  trackingResult, 
+  handleTrackingSearch, 
+  downloadReport, 
+  features, 
+  stats, 
+  projectStats,
+  availableProjects
+}: any) {
+  return (
+    <>
+      {/* Hero Section */}
+      <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto w-full">
+          <div className="text-center space-y-12">
+            <div className="space-y-8">
+              <h1 className="text-5xl md:text-7xl font-light text-foreground leading-tight">
+                ABEMIS
+                <span className="block text-2xl md:text-3xl font-normal text-muted-foreground mt-4">
+                  Agricultural & Biosystems Engineering Management Information System
+                </span>
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                Official information system of the Department of Agriculture - 
+                Bureau of Agricultural and Fisheries Engineering (DA-BAFE) Central Office.
               </p>
             </div>
-            <div>
-              <h3 className="font-semibold mb-4 text-foreground">System Capabilities</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li>Project Creation & Planning</li>
-                <li>Approval Workflows</li>
-                <li>Implementation Monitoring</li>
-                <li>Farm-to-Market Road Management</li>
-              </ul>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center pt-8">
+              <Button 
+                onClick={() => handleLoginClick('Access System')}
+                size="lg" 
+                className="bg-foreground text-background hover:bg-foreground/90 transition-colors duration-200"
+                type="button"
+              >
+                Access System
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="lg"
+                className="text-foreground hover:bg-muted"
+              >
+                Learn More
+              </Button>
             </div>
-            <div>
-              <h3 className="font-semibold mb-4 text-foreground">Support & Resources</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li>System Documentation</li>
-                <li>User Training</li>
-                <li>Technical Support</li>
-                <li>Regional Coordination</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 Department of Agriculture - Bureau of Agricultural and Fisheries Engineering. All rights reserved.</p>
           </div>
         </div>
-      </footer>
-    </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-24 border-t border-b">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-16">
+            {stats.map((stat: any, index: number) => (
+              <div key={index} className="text-center space-y-4">
+                <div className="text-4xl font-light text-foreground">{stat.value}</div>
+                <div className="text-sm text-muted-foreground uppercase tracking-wide">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+        </div>
+      </section>
+
+      {/* Project Tracking Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16 space-y-6">
+            <h2 className="text-3xl font-light text-foreground">
+              Project Tracking
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Enter your project tracking code to view real-time status and progress.
+            </p>
+          </div>
+          
+          <div className="max-w-xl mx-auto">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <Input
+                    placeholder="Enter project tracking reference"
+                    value={trackingCode}
+                    onChange={(e) => setTrackingCode(e.target.value)}
+                    className="flex-1 border-0 border-b-2 border-muted-foreground/20 rounded-none focus:border-foreground"
+                  />
+                  <Button onClick={handleTrackingSearch} variant="outline" className="px-8">
+                    Track
+                  </Button>
+                </div>
+                <div className="text-center">
+                  <span className="text-sm text-muted-foreground">Or select from available projects:</span>
+                </div>
+                <Select value={trackingCode} onValueChange={setTrackingCode}>
+                  <SelectTrigger className="w-full border-0 border-b-2 border-muted-foreground/20 rounded-none focus:border-foreground">
+                    <SelectValue placeholder="Select a project to track" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableProjects.map((project: any) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.id} - {project.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {trackingResult && (
+                <div className="space-y-6 p-8 border border-muted-foreground/20">
+                <div className="space-y-4">
+                    <h3 className="text-xl font-medium">{trackingResult.title}</h3>
+                      <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">{trackingResult.region}</span>
+                      <span className="text-sm font-medium">₱{trackingResult.budget.toLocaleString()}</span>
+                      </div>
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline">{trackingResult.status}</Badge>
+                      <span className="text-sm">{trackingResult.progress}% Complete</span>
+                    </div>
+                  </div>
+                  
+                  <div className="w-full bg-muted/30 h-1">
+                    <div 
+                      className="bg-foreground h-1 transition-all duration-300"
+                      style={{ width: `${trackingResult.progress}%` }}
+                        />
+                      </div>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm">Milestones</h4>
+                    <div className="space-y-2">
+                      {trackingResult.milestones.map((milestone: any, index: number) => (
+                        <div key={index} className="flex items-center gap-3 text-sm">
+                          <div className={`w-2 h-2 rounded-full ${milestone.completed ? 'bg-foreground' : 'bg-muted-foreground/30'}`} />
+                          <span className={milestone.completed ? 'text-foreground' : 'text-muted-foreground'}>
+                            {milestone.name}
+                          </span>
+                    </div>
+                  ))}
+                </div>
+          </div>
+                </div>
+              )}
+              
+              {trackingCode && !trackingResult && (
+                <div className="text-center p-8 border border-red-200">
+                  <p className="text-red-600">Project not found. Please check your tracking code.</p>
+                      </div>
+              )}
+                      </div>
+                    </div>
+                  </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-24 border-t">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 space-y-6">
+            <h2 className="text-3xl font-light text-foreground">
+              System Features
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Comprehensive tools for managing agricultural infrastructure projects.
+            </p>
+              </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
+            {features.map((feature: any, index: number) => (
+              <div key={index} className="space-y-4">
+                <div className="w-12 h-12 bg-muted/50 flex items-center justify-center">
+                  <div className="text-foreground">
+                    {feature.icon}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium text-foreground">
+                    {feature.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 bg-muted/30">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="space-y-6">
+            <h2 className="text-3xl font-light text-foreground">
+              Access the ABEMIS System
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Authorized personnel can access the system to manage projects and monitor implementations.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
+                <Button 
+              onClick={() => handleLoginClick('Login to System')}
+              size="lg" 
+              className="bg-foreground text-background hover:bg-foreground/90"
+              type="button"
+            >
+              Login to System
+                </Button>
+                <Button 
+              variant="ghost" 
+              size="lg" 
+              className="text-foreground hover:bg-muted"
+            >
+              Mobile Access
+                </Button>
+          </div>
+        </div>
+      </section>
+    </>
+  )
+}
+
+// Design 3: Dashboard-style Layout
+function Design3({ 
+  handleLoginClick, 
+  trackingCode, 
+  setTrackingCode, 
+  trackingResult, 
+  handleTrackingSearch, 
+  downloadReport, 
+  features, 
+  stats, 
+  projectStats,
+  availableProjects
+}: any) {
+  return (
+    <>
+      {/* Hero Section */}
+      <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary/5 to-muted/30">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="space-y-6">
+                <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight">
+                  ABEMIS 3.0
+                  <span className="block text-2xl md:text-3xl font-semibold text-primary mt-2">
+                    Agricultural & Biosystems Engineering Management Information System
+                  </span>
+                </h1>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Official information system of the Department of Agriculture - 
+                  Bureau of Agricultural and Fisheries Engineering (DA-BAFE) Central Office, 
+                  designed to manage agricultural infrastructure projects across the Philippines.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button 
+                  onClick={() => handleLoginClick('Access System')}
+                  size="lg" 
+                  className="transition-all duration-200 transform hover:scale-105"
+                  type="button"
+                >
+                  Access System
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="lg"
+                >
+                  View Dashboard
+                </Button>
+              </div>
+            </div>
+            
+            {/* Dashboard Preview */}
+            <div className="grid grid-cols-2 gap-4">
+              {stats.map((stat: any, index: number) => (
+                <Card key={index} className="p-6 text-center hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg mx-auto mb-4">
+                    <div className="text-primary">
+                      {stat.icon}
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground">{stat.label}</div>
+            </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Dashboard */}
+      <section className="py-16 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-8 mb-12">
+            {/* Project Status Distribution */}
+            <Card className="p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <PieChart className="h-5 w-5" />
+                <h3 className="text-lg font-semibold">Project Status</h3>
+              </div>
+              <div className="space-y-4">
+                {projectStats.statusDistribution.map((item: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                      <span className="text-sm font-medium">{item.status}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-semibold">{item.count}</div>
+                      <div className="text-xs text-muted-foreground">{item.percentage}%</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Project Types */}
+            <Card className="p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <BarChart3 className="h-5 w-5" />
+                <h3 className="text-lg font-semibold">Project Types</h3>
+              </div>
+              <div className="space-y-4">
+                {projectStats.projectTypes.map((item: any, index: number) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{item.type}</span>
+                      <span className="text-xs text-muted-foreground">{item.count}</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${item.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Project Tracking Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 space-y-4">
+            <h2 className="text-3xl font-bold text-foreground">
+              Project Tracking Dashboard
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Enter your project tracking code to view real-time status, progress, and milestones.
+            </p>
+          </div>
+          
+          <div className="max-w-2xl mx-auto">
+            <Card className="p-6">
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex gap-4">
+                    <Input
+                      placeholder="Enter project tracking reference"
+                      value={trackingCode}
+                      onChange={(e) => setTrackingCode(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button onClick={handleTrackingSearch} className="px-8">
+                      <Search className="h-4 w-4 mr-2" />
+                      Track
+                    </Button>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-sm text-muted-foreground">Or select from available projects:</span>
+                  </div>
+                  <Select value={trackingCode} onValueChange={setTrackingCode}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a project to track" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableProjects.map((project: any) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.id} - {project.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {trackingResult && (
+                  <div className="space-y-6 p-6 bg-muted/50 rounded-lg">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h3 className="text-lg font-semibold">{trackingResult.title}</h3>
+                        <p className="text-sm text-muted-foreground">{trackingResult.region}</p>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant={trackingResult.status === 'Completed' ? 'default' : 'secondary'}>
+                          {trackingResult.status}
+                        </Badge>
+                        <p className="text-sm text-muted-foreground mt-1">₱{trackingResult.budget.toLocaleString()}</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">Progress</span>
+                        <span className="text-sm">{trackingResult.progress}%</span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div 
+                          className="bg-primary h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${trackingResult.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-sm">Project Milestones</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {trackingResult.milestones.map((milestone: any, index: number) => (
+                          <div key={index} className="flex items-center gap-2 text-sm">
+                            {milestone.completed ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                            )}
+                            <span className={milestone.completed ? 'text-green-700' : 'text-muted-foreground'}>
+                              {milestone.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {trackingCode && !trackingResult && (
+                  <div className="text-center p-6 bg-red-50 border border-red-200 rounded-lg">
+                    <XCircle className="h-6 w-6 text-red-500 mx-auto mb-2" />
+                    <p className="text-red-700 text-sm">Project not found. Please check your tracking code.</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 space-y-4">
+            <h2 className="text-3xl font-bold text-foreground">
+              System Capabilities
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Comprehensive tools for managing agricultural infrastructure projects.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature: any, index: number) => (
+              <Card key={index} className="p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="text-primary">
+                      {feature.icon}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-foreground">
+                    {feature.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    {feature.description}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-primary">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="space-y-4">
+            <h2 className="text-3xl font-bold text-primary-foreground">
+              Access the ABEMIS System
+            </h2>
+            <p className="text-primary-foreground/80 max-w-2xl mx-auto">
+              Authorized personnel can access the system to manage projects and monitor implementations.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={() => handleLoginClick('Login to System')}
+              size="lg" 
+              variant="secondary"
+              className="transition-all duration-200 transform hover:scale-105"
+              type="button"
+            >
+              Login to System
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+            >
+              <Smartphone className="mr-2 h-5 w-5" />
+              Mobile Access
+            </Button>
+          </div>
+        </div>
+      </section>
+    </>
   )
 }
