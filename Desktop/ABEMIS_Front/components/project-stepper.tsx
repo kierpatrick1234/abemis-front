@@ -316,7 +316,7 @@ export function ProjectStepper({ currentStatus, onStepClick, projectType, projec
             <CompletedStepContent project={project} onStepClick={onStepClick} />
           )}
           {activeStep === 'inventory' && (
-            <InventoryStepContent />
+            <InventoryStepContent project={project} />
           )}
           {activeStep === 'for-delivery' && (
             <ForDeliveryStepContent project={project} onStepClick={onStepClick} />
@@ -2934,7 +2934,7 @@ function CompletedStepContent({ project, onStepClick }: { project?: Project, onS
   )
 }
 
-function InventoryStepContent() {
+function InventoryStepContent({ project }: { project?: Project }) {
   // State for machine usage monitoring
   const [machineUsageData, setMachineUsageData] = useState<Array<{
     id: string
@@ -2968,6 +2968,314 @@ function InventoryStepContent() {
       notes: 'Used for rice harvesting'
     }
   ])
+
+  // New state for infrastructure monitoring features
+  const [questionnaireScores, setQuestionnaireScores] = useState<Record<string, number>>({})
+  const [infrastructureCondition, setInfrastructureCondition] = useState<string>('')
+  const [machineryCondition, setMachineryCondition] = useState<string>('')
+  const [inspectionNotes, setInspectionNotes] = useState<string>('')
+  const [isEditing, setIsEditing] = useState(false)
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [showToast, setShowToast] = useState(false)
+
+  // Get project type from project data
+  const projectType = project?.type || 'Infrastructure'
+  
+  // Infrastructure-specific questionnaire
+  const infrastructureQuestionnaire = [
+    {
+      id: 'q1',
+      question: 'How satisfied are you with the overall infrastructure implementation?',
+      category: 'General Satisfaction',
+      weight: 1.0
+    },
+    {
+      id: 'q2',
+      question: 'Rate the quality of construction materials used in the infrastructure',
+      category: 'Quality Assessment',
+      weight: 0.9
+    },
+    {
+      id: 'q3',
+      question: 'How well was the infrastructure project completed within the specified timeline?',
+      category: 'Timeline Performance',
+      weight: 0.8
+    },
+    {
+      id: 'q4',
+      question: 'Rate the effectiveness of the infrastructure in meeting its intended purpose',
+      category: 'Objective Achievement',
+      weight: 1.0
+    },
+    {
+      id: 'q5',
+      question: 'How satisfied are you with the contractor\'s construction performance?',
+      category: 'Contractor Performance',
+      weight: 0.9
+    },
+    {
+      id: 'q6',
+      question: 'Rate the level of community involvement in the infrastructure project',
+      category: 'Community Engagement',
+      weight: 0.7
+    },
+    {
+      id: 'q7',
+      question: 'How well does the infrastructure address the identified community needs?',
+      category: 'Need Fulfillment',
+      weight: 1.0
+    },
+    {
+      id: 'q8',
+      question: 'Rate the structural integrity and long-term durability of the infrastructure',
+      category: 'Structural Assessment',
+      weight: 0.9
+    },
+    {
+      id: 'q9',
+      question: 'How satisfied are you with the infrastructure documentation and as-built plans?',
+      category: 'Documentation',
+      weight: 0.6
+    },
+    {
+      id: 'q10',
+      question: 'Rate the overall value for money of this infrastructure project',
+      category: 'Value Assessment',
+      weight: 0.8
+    },
+    {
+      id: 'q11',
+      question: 'How well does the infrastructure integrate with existing systems and facilities?',
+      category: 'Integration',
+      weight: 0.7
+    },
+    {
+      id: 'q12',
+      question: 'Rate the accessibility and usability of the completed infrastructure',
+      category: 'Accessibility',
+      weight: 0.8
+    }
+  ]
+
+  // Machinery-specific questionnaire
+  const machineryQuestionnaire = [
+    {
+      id: 'q1',
+      question: 'How satisfied are you with the overall machinery delivery and setup?',
+      category: 'General Satisfaction',
+      weight: 1.0
+    },
+    {
+      id: 'q2',
+      question: 'Rate the quality and condition of the delivered machinery',
+      category: 'Quality Assessment',
+      weight: 0.9
+    },
+    {
+      id: 'q3',
+      question: 'How well was the machinery delivered within the specified timeline?',
+      category: 'Timeline Performance',
+      weight: 0.8
+    },
+    {
+      id: 'q4',
+      question: 'Rate the effectiveness of the machinery in meeting its operational objectives',
+      category: 'Objective Achievement',
+      weight: 1.0
+    },
+    {
+      id: 'q5',
+      question: 'How satisfied are you with the supplier\'s delivery and installation performance?',
+      category: 'Supplier Performance',
+      weight: 0.9
+    },
+    {
+      id: 'q6',
+      question: 'Rate the level of community involvement in the machinery project',
+      category: 'Community Engagement',
+      weight: 0.7
+    },
+    {
+      id: 'q7',
+      question: 'How well does the machinery address the identified operational needs?',
+      category: 'Need Fulfillment',
+      weight: 1.0
+    },
+    {
+      id: 'q8',
+      question: 'Rate the operational efficiency and long-term reliability of the machinery',
+      category: 'Operational Assessment',
+      weight: 0.9
+    },
+    {
+      id: 'q9',
+      question: 'How satisfied are you with the machinery documentation and manuals?',
+      category: 'Documentation',
+      weight: 0.6
+    },
+    {
+      id: 'q10',
+      question: 'Rate the overall value for money of this machinery project',
+      category: 'Value Assessment',
+      weight: 0.8
+    },
+    {
+      id: 'q11',
+      question: 'How well does the machinery integrate with existing equipment and systems?',
+      category: 'Integration',
+      weight: 0.7
+    },
+    {
+      id: 'q12',
+      question: 'Rate the ease of operation and maintenance of the machinery',
+      category: 'Usability',
+      weight: 0.8
+    }
+  ]
+
+  // Select questionnaire based on project type
+  const questionnaireItems = projectType === 'Infrastructure' ? infrastructureQuestionnaire : machineryQuestionnaire
+
+  // Infrastructure condition options
+  const infrastructureConditions = [
+    { value: 'usable', label: 'Usable', color: 'text-green-600', bgColor: 'bg-green-50' },
+    { value: 'damaged', label: 'Damaged', color: 'text-red-600', bgColor: 'bg-red-50' },
+    { value: 'needs_repair', label: 'Needs Repair', color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
+    { value: 'under_maintenance', label: 'Under Maintenance', color: 'text-blue-600', bgColor: 'bg-blue-50' },
+    { value: 'out_of_service', label: 'Out of Service', color: 'text-gray-600', bgColor: 'bg-gray-50' }
+  ]
+
+  // Machinery condition options
+  const machineryConditions = [
+    { value: 'working', label: 'Working', color: 'text-green-600', bgColor: 'bg-green-50' },
+    { value: 'usable', label: 'Usable', color: 'text-green-600', bgColor: 'bg-green-50' },
+    { value: 'damaged', label: 'Damaged', color: 'text-red-600', bgColor: 'bg-red-50' },
+    { value: 'needs_maintenance', label: 'Needs Maintenance', color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
+    { value: 'out_of_order', label: 'Out of Order', color: 'text-gray-600', bgColor: 'bg-gray-50' },
+    { value: 'under_repair', label: 'Under Repair', color: 'text-blue-600', bgColor: 'bg-blue-50' }
+  ]
+
+  // Mock inspection timeline data
+  const mockInspectionTimeline = [
+    {
+      id: 'ins-001',
+      date: '2024-01-15T09:00:00Z',
+      type: 'Initial Inspection',
+      inspector: 'RAED Inspector - Juan Santos',
+      status: 'completed',
+      findings: 'Project completed according to specifications. All systems functioning properly.',
+      score: 4.2,
+      condition: 'usable'
+    },
+    {
+      id: 'ins-002',
+      date: '2024-07-15T10:30:00Z',
+      type: '6-Month Review',
+      inspector: 'RAED Inspector - Maria Rodriguez',
+      status: 'completed',
+      findings: 'Infrastructure showing normal wear. Minor maintenance recommended.',
+      score: 4.0,
+      condition: 'usable'
+    },
+    {
+      id: 'ins-003',
+      date: '2025-01-15T08:45:00Z',
+      type: 'Annual Inspection',
+      inspector: 'RAED Inspector - Carlos Mendez',
+      status: 'scheduled',
+      findings: '',
+      score: null,
+      condition: null
+    }
+  ]
+
+  // Calculate overall satisfaction score
+  const calculateOverallScore = () => {
+    const scores = Object.values(questionnaireScores).filter(score => score > 0)
+    if (scores.length === 0) return 0
+    
+    const totalScore = scores.reduce((sum, score) => sum + score, 0)
+    return (totalScore / scores.length).toFixed(1)
+  }
+
+  // Get satisfaction level based on score
+  const getSatisfactionLevel = (score: number) => {
+    if (score >= 4.5) return { level: 'Excellent', color: 'text-green-600', bgColor: 'bg-green-50' }
+    if (score >= 3.5) return { level: 'Good', color: 'text-blue-600', bgColor: 'bg-blue-50' }
+    if (score >= 2.5) return { level: 'Fair', color: 'text-yellow-600', bgColor: 'bg-yellow-50' }
+    if (score >= 1.5) return { level: 'Poor', color: 'text-orange-600', bgColor: 'bg-orange-50' }
+    return { level: 'Very Poor', color: 'text-red-600', bgColor: 'bg-red-50' }
+  }
+
+  const handleScoreChange = (questionId: string, score: number) => {
+    setQuestionnaireScores(prev => ({
+      ...prev,
+      [questionId]: score
+    }))
+  }
+
+  const handleSaveAssessment = () => {
+    setShowSuccessMessage(true)
+    setIsEditing(false)
+    setTimeout(() => {
+      setShowSuccessMessage(false)
+    }, 3000)
+  }
+
+  const handleSaveProject = () => {
+    // Save all project data
+    const projectData = {
+      questionnaireScores,
+      infrastructureCondition,
+      machineryCondition,
+      inspectionNotes,
+      overallScore: Number(calculateOverallScore()) || 0,
+      satisfaction: getSatisfactionLevel(Number(calculateOverallScore()) || 0)
+    }
+    
+    console.log('Project updated:', projectData)
+    
+    // Add save action to inspection timeline
+    const saveLogEntry = {
+      id: `save-${Date.now()}`,
+      date: new Date().toISOString(),
+      type: 'Project Update',
+      inspector: 'RAED User - Current Session',
+      status: 'completed',
+      findings: `Project assessment saved with overall score: ${Number(calculateOverallScore()) || 0}/5 (${getSatisfactionLevel(Number(calculateOverallScore()) || 0)})`,
+      score: Number(calculateOverallScore()) || 0,
+      condition: projectType === 'Infrastructure' ? infrastructureCondition : machineryCondition
+    }
+    
+    // Add to the beginning of the timeline
+    mockInspectionTimeline.unshift(saveLogEntry)
+    
+    // Show toast notification
+    setShowToast(true)
+    setTimeout(() => {
+      setShowToast(false)
+    }, 3000)
+  }
+
+  const handleAddInspection = () => {
+    const newInspection = {
+      id: `ins-${Date.now()}`,
+      date: new Date().toISOString(),
+      type: 'Routine Inspection',
+      inspector: 'RAED Inspector - Current User',
+      status: 'completed',
+      findings: inspectionNotes,
+      score: Number(calculateOverallScore()) || 0,
+      condition: infrastructureCondition || machineryCondition
+    }
+    
+    console.log('New inspection added:', newInspection)
+    setInspectionNotes('')
+    setShowSuccessMessage(true)
+    setTimeout(() => {
+      setShowSuccessMessage(false)
+    }, 3000)
+  }
 
   const [showUsageForm, setShowUsageForm] = useState<boolean>(false)
   const [selectedMachine, setSelectedMachine] = useState<string | null>(null)
@@ -3045,187 +3353,369 @@ function InventoryStepContent() {
     }
   }
 
+  const overallScore = Number(calculateOverallScore()) || 0
+  const satisfaction = getSatisfactionLevel(overallScore)
+
   return (
     <div className="space-y-6">
       {/* Step Number for Machinery Projects */}
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold text-blue-600">Inventory</h3>
       </div>
-      
-      {/* Machine Usage Monitoring Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h4 className="font-medium text-lg">Machine Usage Monitoring</h4>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm">Used</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-              <span className="text-sm">Not Used</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Machine List */}
-        <div className="space-y-3">
-          {machineUsageData.map((machine) => (
-            <div key={machine.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h5 className="font-semibold text-lg">{machine.machineName}</h5>
-                    {getUsageIndicator(machine)}
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                    <div>
-                      <span className="font-medium">Type:</span> {machine.machineType}
-                    </div>
-                    <div>
-                      <span className="font-medium">Serial:</span> {machine.serialNumber}
-                    </div>
-                    {machine.isUsed && (
-                      <>
-                        <div>
-                          <span className="font-medium">Last Used:</span> {machine.usageDate || 'N/A'}
-                        </div>
-                        <div>
-                          <span className="font-medium">Duration:</span> {machine.usageDuration || 0} hours
-                        </div>
-                        <div>
-                          <span className="font-medium">Operator:</span> {machine.operator || 'N/A'}
-                        </div>
-                        <div>
-                          <span className="font-medium">Location:</span> {machine.location || 'N/A'}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  {machine.notes && (
-                    <div className="mt-2 text-sm text-gray-600">
-                      <span className="font-medium">Notes:</span> {machine.notes}
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={machine.isUsed}
-                      onChange={(e) => handleUsageToggle(machine.id, e.target.checked)}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-medium">Mark as Used</span>
-                  </label>
-                  <button
-                    onClick={() => openUsageForm(machine.id)}
-                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Update Details
-                  </button>
-                </div>
+      {/* DA-BAFE-PPMD Monitoring Section */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-primary rounded-full"></div>
+            <CardTitle className="text-lg text-blue-900">Monitored by: DA-BAFE-PPMD</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-card rounded-lg border shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium text-green-800">Project Status</span>
+              </div>
+              <div className="text-xl font-bold text-green-900">Completed</div>
+            </div>
+            <div className="p-4 bg-card rounded-lg border shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span className="text-sm font-medium text-blue-800">Last Inspection</span>
+              </div>
+              <div className="text-sm text-blue-900">
+                {formatDate(mockInspectionTimeline[1]?.date || new Date().toISOString())}
               </div>
             </div>
-          ))}
+            <div className="p-4 bg-card rounded-lg border shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                <span className="text-sm font-medium text-purple-800">Overall Score</span>
+              </div>
+              <div className="text-xl font-bold text-purple-900">
+                {overallScore > 0 ? overallScore : 'N/A'}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Scoring Accordion */}
+      <div className="bg-white border rounded-lg hover:shadow-md transition-shadow duration-200">
+        <div className="p-4 border-b">
+          <h4 className="font-semibold text-lg flex items-center gap-2">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+            Project Assessment & Scoring
+          </h4>
+        </div>
+        <div className="p-4">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="questionnaire" className="border rounded-lg hover:bg-muted/50 transition-colors duration-200">
+              <AccordionTrigger className="hover:no-underline hover:bg-muted/30 rounded-lg transition-colors duration-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <span className="font-semibold">Satisfaction Questionnaire</span>
+                  <Badge variant="outline" className="ml-2">
+                    {Object.keys(questionnaireScores).length}/{questionnaireItems.length} completed
+                  </Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 pt-4">
+                  {/* Overall Score Display */}
+                  {overallScore > 0 && (
+                    <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-lg">Overall Satisfaction Score</h4>
+                          <p className="text-sm text-muted-foreground">Based on completed assessments</p>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-3xl font-bold ${satisfaction.color}`}>
+                            {overallScore}/5.0
+                          </div>
+                          <div className={`text-sm font-medium ${satisfaction.color}`}>
+                            {satisfaction.level}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Questionnaire Items */}
+                  <div className="space-y-4">
+                    {questionnaireItems.map((item) => (
+                      <div key={item.id} className="p-4 border rounded-lg">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className="font-medium text-sm text-gray-900 mb-1">
+                                {item.question}
+                              </h4>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {item.category}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  Weight: {item.weight}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Rating:</span>
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1">
+                                {[1, 2, 3, 4, 5].map((rating) => (
+                                  <button
+                                    key={rating}
+                                    onClick={() => handleScoreChange(item.id, rating)}
+                                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-semibold transition-colors duration-200 ${
+                                      questionnaireScores[item.id] === rating
+                                        ? 'bg-primary border-primary text-primary-foreground shadow-md'
+                                        : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5'
+                                    }`}
+                                  >
+                                    {rating}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </div>
 
-      {/* Usage Form Modal */}
-      {showUsageForm && selectedMachine && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h5 className="font-semibold text-lg mb-4">Update Machine Usage Details</h5>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Usage Date</label>
-                <input
-                  type="date"
-                  value={usageFormData.usageDate}
-                  onChange={(e) => setUsageFormData(prev => ({ ...prev, usageDate: e.target.value }))}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Usage Duration (hours)</label>
-                <input
-                  type="number"
-                  value={usageFormData.usageDuration}
-                  onChange={(e) => setUsageFormData(prev => ({ ...prev, usageDuration: e.target.value }))}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter duration in hours"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Operator</label>
-                <input
-                  type="text"
-                  value={usageFormData.operator}
-                  onChange={(e) => setUsageFormData(prev => ({ ...prev, operator: e.target.value }))}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter operator name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Location</label>
-                <input
-                  type="text"
-                  value={usageFormData.location}
-                  onChange={(e) => setUsageFormData(prev => ({ ...prev, location: e.target.value }))}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter usage location"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Notes</label>
-                <textarea
-                  value={usageFormData.notes}
-                  onChange={(e) => setUsageFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter additional notes"
-                  rows={3}
-                />
+      {/* Infrastructure/Machinery Condition Assessment */}
+      <div className="bg-white border rounded-lg hover:shadow-md transition-shadow duration-200">
+        <div className="p-4 border-b">
+          <h4 className="font-semibold text-lg flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            {projectType === 'Infrastructure' ? 'Infrastructure' : 'Machinery'} Condition Assessment
+          </h4>
+        </div>
+        <div className="p-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Current Condition:
+              </Label>
+              <select
+                value={projectType === 'Infrastructure' ? infrastructureCondition : machineryCondition}
+                onChange={(e) => {
+                  if (projectType === 'Infrastructure') {
+                    setInfrastructureCondition(e.target.value)
+                  } else {
+                    setMachineryCondition(e.target.value)
+                  }
+                }}
+                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select condition</option>
+                {(projectType === 'Infrastructure' ? infrastructureConditions : machineryConditions).map((condition) => (
+                  <option key={condition.value} value={condition.value}>
+                    {condition.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Assessment Notes:</Label>
+              <input
+                placeholder="Add assessment notes..."
+                value={inspectionNotes}
+                onChange={(e) => setInspectionNotes(e.target.value)}
+                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+          
+          {/* Current Condition Display */}
+          {((projectType === 'Infrastructure' && infrastructureCondition) || (projectType === 'Machinery' && machineryCondition)) && (
+            <div className="p-4 bg-gray-50 rounded-lg border">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Current Status:</span>
+                {(() => {
+                  const condition = projectType === 'Infrastructure' ? infrastructureCondition : machineryCondition
+                  const conditionData = (projectType === 'Infrastructure' ? infrastructureConditions : machineryConditions).find(c => c.value === condition)
+                  return (
+                    <Badge className={`${conditionData?.bgColor} ${conditionData?.color} border-0`}>
+                      {conditionData?.label}
+                    </Badge>
+                  )
+                })()}
               </div>
             </div>
-            <div className="flex gap-2 mt-6">
-              <button
-                onClick={() => setShowUsageForm(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleUsageFormSubmit(selectedMachine)}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Update
-              </button>
+          )}
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleSaveProject}
+          className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors duration-200 font-medium shadow-md hover:shadow-lg"
+        >
+          Save Project Updates
+        </button>
+      </div>
+
+      {/* Inspection Timeline Accordion */}
+      <div className="bg-white border rounded-lg hover:shadow-md transition-shadow duration-200">
+        <div className="p-4 border-b">
+          <h4 className="font-semibold text-lg flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            Inspection Timeline & Logs
+          </h4>
+        </div>
+        <div className="p-4">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="timeline" className="border rounded-lg hover:bg-muted/50 transition-colors duration-200">
+              <AccordionTrigger className="hover:no-underline hover:bg-muted/30 rounded-lg transition-colors duration-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="font-semibold">Inspection History</span>
+                  <Badge variant="outline" className="ml-2">
+                    {mockInspectionTimeline.filter(i => i.status === 'completed').length} completed
+                  </Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 pt-4">
+                  {/* Timeline */}
+                  <div className="space-y-3">
+                    {mockInspectionTimeline.map((inspection, index) => (
+                      <div key={inspection.id} className="flex items-start gap-4 p-4 border rounded-lg">
+                        <div className="flex-shrink-0">
+                          <div className={`w-3 h-3 rounded-full mt-2 ${
+                            inspection.status === 'completed' ? 'bg-green-500' : 'bg-gray-300'
+                          }`} />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{inspection.type}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {formatDate(inspection.date)} • {inspection.inspector}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {inspection.status === 'completed' && (
+                                <>
+                                  {inspection.score && (
+                                    <Badge variant="outline" className="text-green-600 border-green-200">
+                                      Score: {inspection.score}/5
+                                    </Badge>
+                                  )}
+                                  <Badge variant="outline" className="text-blue-600 border-blue-200">
+                                    {inspection.condition}
+                                  </Badge>
+                                </>
+                              )}
+                              {inspection.status === 'scheduled' && (
+                                <Badge variant="outline" className="text-yellow-600 border-yellow-200">
+                                  Scheduled
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          {inspection.findings && (
+                            <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                              {inspection.findings}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Add New Inspection */}
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 className="font-medium text-blue-900 mb-2">Add New Inspection</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm">Inspection Notes:</Label>
+                        <input
+                          placeholder="Record inspection findings..."
+                          value={inspectionNotes}
+                          onChange={(e) => setInspectionNotes(e.target.value)}
+                          className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <button 
+                        onClick={handleAddInspection} 
+                        className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                      >
+                        Add Inspection Record
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      </div>
+
+      {/* Success Message Modal */}
+      {showSuccessMessage && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+          <div className="bg-card rounded-xl p-8 max-w-lg mx-4 text-center shadow-2xl border">
+            <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full animate-pulse">
+              <CheckCircle className="h-10 w-10 text-green-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-3">Assessment Saved</h3>
+            <p className="text-muted-foreground mb-6">
+              Your project assessment has been successfully saved and recorded.
+            </p>
+            <div className="flex items-center justify-center space-x-2 text-green-600">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-600"></div>
+              <span className="text-sm font-medium">Processing...</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Inventory Status Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-green-600">
-            {machineUsageData.filter(m => m.isUsed).length}
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-4 right-4 z-[9999] animate-in slide-in-from-right duration-300">
+          <div className="bg-card border rounded-lg shadow-lg p-4 max-w-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm text-foreground">Project Updated</h4>
+                <p className="text-xs text-muted-foreground">
+                  Your project has been successfully updated and saved.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowToast(false)}
+                className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
-          <div className="text-sm text-gray-600">Machines in Use</div>
         </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-gray-600">
-            {machineUsageData.filter(m => !m.isUsed).length}
-          </div>
-          <div className="text-sm text-gray-600">Machines Not Used</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-blue-600">
-            {machineUsageData.length}
-          </div>
-          <div className="text-sm text-gray-600">Total Machines</div>
-        </div>
-      </div>
+      )}
+      
     </div>
   )
 }

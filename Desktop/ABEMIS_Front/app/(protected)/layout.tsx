@@ -6,6 +6,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { Topbar } from '@/components/topbar'
 import { AnnouncementPopup } from '@/components/announcement-popup'
 import { useAuth } from '@/lib/contexts/auth-context'
+import { EvaluationProvider } from '@/lib/contexts/evaluation-context'
 
 export default function ProtectedLayout({
   children,
@@ -71,7 +72,7 @@ export default function ProtectedLayout({
   }
 
   return (
-    <>
+    <EvaluationProvider>
       <div className="flex h-screen bg-background">
         <AppSidebar 
           isCollapsed={isSidebarCollapsed} 
@@ -93,6 +94,6 @@ export default function ProtectedLayout({
           userRole={user.role}
         />
       )}
-    </>
+    </EvaluationProvider>
   )
 }

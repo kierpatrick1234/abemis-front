@@ -237,6 +237,12 @@ export const navigationItems: NavItem[] = [
     roles: ['EPDSD'],
   },
   {
+    title: 'My Evaluation',
+    href: '/my-evaluation',
+    icon: 'CheckCircle',
+    roles: ['EPDSD'],
+  },
+  {
     title: 'SEPD Projects',
     href: '/sepd-projects',
     icon: 'FolderOpen',

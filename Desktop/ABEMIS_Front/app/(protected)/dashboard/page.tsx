@@ -146,9 +146,14 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">RAED Dashboard - {userRegion}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {user?.role === 'EPDSD' ? 'EPDSD Dashboard' : `RAED Dashboard - ${userRegion}`}
+        </h1>
         <p className="text-muted-foreground">
-          Overview of agricultural engineering projects in {userRegion}
+          {user?.role === 'EPDSD' 
+            ? 'Overview of Infrastructure and Machinery projects for evaluation'
+            : `Overview of agricultural engineering projects in ${userRegion}`
+          }
         </p>
       </div>
 

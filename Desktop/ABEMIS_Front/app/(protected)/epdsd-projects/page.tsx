@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { DataTable, StatusBadge, ActionMenu } from '@/components/data-table'
 import { EPDSDProjectDetailsModal } from '@/components/epdsd-project-details-modal'
 import { Button } from '@/components/ui/button'
@@ -11,9 +11,11 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, CheckCircle, XCircle, FileText, Clock, User, MessageSquare, Download, Eye, ChevronDown, ChevronRight } from 'lucide-react'
+import { Search, CheckCircle, XCircle, FileText, Clock, User, MessageSquare, Download, Eye, ChevronDown, ChevronRight, Grid3X3, List } from 'lucide-react'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate, formatCurrency } from '@/lib/utils'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { useEvaluation } from '@/lib/contexts/evaluation-context'
 
 // Mock data for proposal stage documents
 const mockProposalDocuments = [
@@ -111,15 +113,27 @@ const mockTimelineData = [
 ]
 
 export default function EPDSDProjectsPage() {
+  const { user } = useAuth()
+  const { addEvaluatedProject } = useEvaluation()
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [regionFilter, setRegionFilter] = useState('all')
+  const [documentsFilter, setDocumentsFilter] = useState('all')
   const [selectedProject, setSelectedProject] = useState<any>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showEvaluationModal, setShowEvaluationModal] = useState(false)
   const [documentEvaluations, setDocumentEvaluations] = useState<Record<string, Record<string, {evaluation: 'satisfied' | 'not_satisfied' | null, comments: string}>>>({})
   const [generalComments, setGeneralComments] = useState('')
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
   
+  // Reset filters function
+  const handleResetFilters = useCallback(() => {
+    setSearchQuery('')
+    setTypeFilter('all')
+    setRegionFilter('all')
+    setDocumentsFilter('all')
+  }, [])
+
 
   // Fixed EPDSD projects - 50 entries for consistent evaluation
   const fixedEPDSDProjects = [
@@ -781,14 +795,109 @@ export default function EPDSDProjectsPage() {
 
   const handleApproveProject = useCallback((projectId: string) => {
     console.log('Approving project:', projectId)
-    // In a real app, this would update the project status to 'Procurement'
-    alert('Project approved and moved to procurement stage!')
-  }, [])
+    
+    // Find the project
+    const project = epdsdProjects.find(p => p.id === projectId)
+    if (project && user) {
+      // Store in localStorage first (primary method)
+      const evaluatedProject = {
+        id: project.id,
+        title: project.title,
+        type: project.type,
+        province: project.province,
+        region: project.region,
+        status: 'Evaluated',
+        description: project.description,
+        budget: project.budget,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        updatedAt: project.updatedAt,
+        evaluatedAt: new Date().toISOString(),
+        evaluatedBy: user.name || 'EPDSD Officer',
+        evaluationStatus: 'Approved',
+        evaluationComments: 'Project approved via grid view',
+        documentsStatus: {
+          letterOfIntent: true,
+          validationReport: true,
+          feasibilityStudy: true,
+          detailedDesign: true,
+          programOfWork: true,
+          rightOfWay: true
+        }
+      }
+      
+      // Store in localStorage (primary storage)
+      const existingEvaluations = JSON.parse(localStorage.getItem('evaluatedProjects') || '[]')
+      const updatedEvaluations = existingEvaluations.filter((p: any) => p.id !== project.id)
+      updatedEvaluations.push(evaluatedProject)
+      localStorage.setItem('evaluatedProjects', JSON.stringify(updatedEvaluations))
+      console.log('Project stored in localStorage:', evaluatedProject.title)
+      
+      // Also add to context (secondary method)
+      addEvaluatedProject(
+        project, 
+        user.name || 'EPDSD Officer', 
+        'Approved', 
+        'Project approved via grid view'
+      )
+      console.log('Project also added to context')
+    }
+    
+    alert('Project approved and moved to procurement stage! This project has been added to your evaluation history.')
+  }, [epdsdProjects, user, addEvaluatedProject])
 
   const handleRejectProject = useCallback((projectId: string) => {
     console.log('Rejecting project:', projectId)
-    alert('Project rejected. Please provide feedback to the submitting region.')
-  }, [])
+    
+    // Find the project
+    const project = epdsdProjects.find(p => p.id === projectId)
+    if (project && user) {
+      // Store in localStorage first (primary method)
+      const evaluatedProject = {
+        id: project.id,
+        title: project.title,
+        type: project.type,
+        province: project.province,
+        region: project.region,
+        status: 'Evaluated',
+        description: project.description,
+        budget: project.budget,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        updatedAt: project.updatedAt,
+        evaluatedAt: new Date().toISOString(),
+        evaluatedBy: user.name || 'EPDSD Officer',
+        evaluationStatus: 'Rejected',
+        evaluationComments: 'Project rejected - requires resubmission',
+        documentsStatus: {
+          letterOfIntent: true,
+          validationReport: true,
+          feasibilityStudy: true,
+          detailedDesign: true,
+          programOfWork: true,
+          rightOfWay: true
+        }
+      }
+      
+      // Store in localStorage (primary storage)
+      const existingEvaluations = JSON.parse(localStorage.getItem('evaluatedProjects') || '[]')
+      const updatedEvaluations = existingEvaluations.filter((p: any) => p.id !== project.id)
+      updatedEvaluations.push(evaluatedProject)
+      localStorage.setItem('evaluatedProjects', JSON.stringify(updatedEvaluations))
+      console.log('Project stored in localStorage:', evaluatedProject.title)
+      
+      // Also add to context (secondary method)
+      addEvaluatedProject(
+        project, 
+        user.name || 'EPDSD Officer', 
+        'Rejected', 
+        'Project rejected - requires resubmission'
+      )
+      console.log('Project also added to context')
+    }
+    
+    alert('Project rejected. Please provide feedback to the submitting region. This project has been added to your evaluation history.')
+  }, [epdsdProjects, user, addEvaluatedProject])
 
   const handleEditProject = useCallback((projectId: string) => {
     console.log('Edit project', projectId)
@@ -822,7 +931,7 @@ export default function EPDSDProjectsPage() {
   }, [selectedProject])
 
   const handleSubmitEvaluation = useCallback(() => {
-    if (!selectedProject) return
+    if (!selectedProject || !user) return
     
     const projectId = (selectedProject as { id: string }).id
     const projectEvaluations = documentEvaluations[projectId] || {}
@@ -837,18 +946,110 @@ export default function EPDSDProjectsPage() {
       )
       
       if (satisfiedDocuments.length === mockProposalDocuments.length) {
-        alert('All documents evaluated successfully! Project can proceed to next stage.')
+        // Store in localStorage first (primary method)
+        const evaluatedProject = {
+          id: selectedProject.id,
+          title: selectedProject.title,
+          type: selectedProject.type,
+          province: selectedProject.province,
+          region: selectedProject.region,
+          status: 'Evaluated',
+          description: selectedProject.description,
+          budget: selectedProject.budget,
+          startDate: selectedProject.startDate,
+          endDate: selectedProject.endDate,
+          updatedAt: selectedProject.updatedAt,
+          evaluatedAt: new Date().toISOString(),
+          evaluatedBy: user.name || 'EPDSD Officer',
+          evaluationStatus: 'Approved',
+          evaluationComments: generalComments || 'All documents evaluated and approved.',
+          documentsStatus: {
+            letterOfIntent: true,
+            validationReport: true,
+            feasibilityStudy: true,
+            detailedDesign: true,
+            programOfWork: true,
+            rightOfWay: true
+          }
+        }
+        
+        // Store in localStorage (primary storage)
+        const existingEvaluations = JSON.parse(localStorage.getItem('evaluatedProjects') || '[]')
+        const updatedEvaluations = existingEvaluations.filter((p: any) => p.id !== selectedProject.id)
+        updatedEvaluations.push(evaluatedProject)
+        localStorage.setItem('evaluatedProjects', JSON.stringify(updatedEvaluations))
+        console.log('Project stored in localStorage:', evaluatedProject.title)
+        
+        // Also add to context (secondary method)
+        addEvaluatedProject(
+          selectedProject, 
+          user.name || 'EPDSD Officer', 
+          'Approved', 
+          generalComments || 'All documents evaluated and approved.'
+        )
+        console.log('Project also added to context')
+        
+        alert('All documents evaluated successfully! Project can proceed to next stage. This project has been added to your evaluation history.')
         setShowEvaluationModal(false)
       } else {
-        alert('All documents must be marked as "Satisfied" before submitting.')
+        // Some documents not satisfied - reject
+        const notSatisfiedDocs = mockProposalDocuments.filter(doc => 
+          projectEvaluations[doc.id]?.evaluation === 'not_satisfied'
+        )
+        
+        // Store in localStorage first (primary method)
+        const evaluatedProject = {
+          id: selectedProject.id,
+          title: selectedProject.title,
+          type: selectedProject.type,
+          province: selectedProject.province,
+          region: selectedProject.region,
+          status: 'Evaluated',
+          description: selectedProject.description,
+          budget: selectedProject.budget,
+          startDate: selectedProject.startDate,
+          endDate: selectedProject.endDate,
+          updatedAt: selectedProject.updatedAt,
+          evaluatedAt: new Date().toISOString(),
+          evaluatedBy: user.name || 'EPDSD Officer',
+          evaluationStatus: 'Rejected',
+          evaluationComments: `Project rejected due to unsatisfactory documents: ${notSatisfiedDocs.map(doc => doc.name).join(', ')}`,
+          documentsStatus: {
+            letterOfIntent: true,
+            validationReport: true,
+            feasibilityStudy: true,
+            detailedDesign: true,
+            programOfWork: true,
+            rightOfWay: true
+          }
+        }
+        
+        // Store in localStorage (primary storage)
+        const existingEvaluations = JSON.parse(localStorage.getItem('evaluatedProjects') || '[]')
+        const updatedEvaluations = existingEvaluations.filter((p: any) => p.id !== selectedProject.id)
+        updatedEvaluations.push(evaluatedProject)
+        localStorage.setItem('evaluatedProjects', JSON.stringify(updatedEvaluations))
+        console.log('Project stored in localStorage:', evaluatedProject.title)
+        
+        // Also add to context (secondary method)
+        addEvaluatedProject(
+          selectedProject, 
+          user.name || 'EPDSD Officer', 
+          'Rejected', 
+          `Project rejected due to unsatisfactory documents: ${notSatisfiedDocs.map(doc => doc.name).join(', ')}`
+        )
+        console.log('Project also added to context')
+        
+        alert(`Project rejected due to unsatisfactory documents: ${notSatisfiedDocs.map(doc => doc.name).join(', ')}. This project has been added to your evaluation history.`)
+        setShowEvaluationModal(false)
       }
     } else {
       alert('Please evaluate all documents before submitting.')
     }
-  }, [documentEvaluations, selectedProject])
+  }, [documentEvaluations, selectedProject, user, addEvaluatedProject, generalComments])
 
   const handleMoveToNextStage = useCallback(() => {
-    if (!selectedProject) return
+    if (!selectedProject || !user) return
     
     const projectId = (selectedProject as { id: string }).id
     const projectEvaluations = documentEvaluations[projectId] || {}
@@ -863,8 +1064,51 @@ export default function EPDSDProjectsPage() {
       )
       
       if (satisfiedDocuments.length === mockProposalDocuments.length) {
+        // Store in localStorage first (primary method)
+        const evaluatedProject = {
+          id: selectedProject.id,
+          title: selectedProject.title,
+          type: selectedProject.type,
+          province: selectedProject.province,
+          region: selectedProject.region,
+          status: 'Evaluated',
+          description: selectedProject.description,
+          budget: selectedProject.budget,
+          startDate: selectedProject.startDate,
+          endDate: selectedProject.endDate,
+          updatedAt: selectedProject.updatedAt,
+          evaluatedAt: new Date().toISOString(),
+          evaluatedBy: user.name || 'EPDSD Officer',
+          evaluationStatus: 'Approved',
+          evaluationComments: generalComments || 'All documents evaluated and approved.',
+          documentsStatus: {
+            letterOfIntent: true,
+            validationReport: true,
+            feasibilityStudy: true,
+            detailedDesign: true,
+            programOfWork: true,
+            rightOfWay: true
+          }
+        }
+        
+        // Store in localStorage (primary storage)
+        const existingEvaluations = JSON.parse(localStorage.getItem('evaluatedProjects') || '[]')
+        const updatedEvaluations = existingEvaluations.filter((p: any) => p.id !== selectedProject.id)
+        updatedEvaluations.push(evaluatedProject)
+        localStorage.setItem('evaluatedProjects', JSON.stringify(updatedEvaluations))
+        console.log('Project stored in localStorage:', evaluatedProject.title)
+        
+        // Also add to context (secondary method)
+        addEvaluatedProject(
+          selectedProject, 
+          user.name || 'EPDSD Officer', 
+          'Approved', 
+          generalComments || 'All documents evaluated and approved.'
+        )
+        console.log('Project also added to context')
+        
         // Show enhanced success message
-        alert(`🎉 Project Approved!\n\n"${selectedProject.title}" has been successfully moved to the procurement stage.\n\nAll documents have been evaluated and satisfied.`)
+        alert(`🎉 Project Approved!\n\n"${selectedProject.title}" has been successfully moved to the procurement stage.\n\nAll documents have been evaluated and satisfied.\n\nThis project has been added to your evaluation history.`)
         setShowEvaluationModal(false)
       } else {
         // Show which documents are not satisfied
@@ -880,7 +1124,7 @@ export default function EPDSDProjectsPage() {
       )
       alert(`⚠️ Please complete evaluation!\n\nThe following documents need to be evaluated:\n\n${unevaluatedDocs.map(doc => `• ${doc.name}`).join('\n')}`)
     }
-  }, [documentEvaluations, selectedProject])
+  }, [documentEvaluations, selectedProject, user, addEvaluatedProject, generalComments])
 
   // Helper function to get document validation status
   const getDocumentValidationStatus = useCallback((docId: string) => {
@@ -910,12 +1154,73 @@ export default function EPDSDProjectsPage() {
       return getRegionNumber(a) - getRegionNumber(b)
     })
 
+  // Helper function to get document status
+  const getDocumentStatus = useCallback((projectId: string) => {
+    const projectNumber = parseInt(projectId.split('-').pop() || '0')
+    const documentTypes = ['letterOfIntent', 'validationReport', 'feasibilityStudy', 'detailedDesign', 'programOfWork', 'rightOfWay']
+    const missingCount = projectNumber % 3
+    
+    if (missingCount === 0) {
+      return {
+        letterOfIntent: true,
+        validationReport: true,
+        feasibilityStudy: true,
+        detailedDesign: true,
+        programOfWork: true,
+        rightOfWay: true
+      }
+    } else if (missingCount === 1) {
+      const missingDocumentIndex = projectNumber % documentTypes.length
+      const missingDocument = documentTypes[missingDocumentIndex]
+      
+      return {
+        letterOfIntent: missingDocument !== 'letterOfIntent',
+        validationReport: missingDocument !== 'validationReport',
+        feasibilityStudy: missingDocument !== 'feasibilityStudy',
+        detailedDesign: missingDocument !== 'detailedDesign',
+        programOfWork: missingDocument !== 'programOfWork',
+        rightOfWay: missingDocument !== 'rightOfWay'
+      }
+    } else {
+      const firstMissingIndex = projectNumber % documentTypes.length
+      const secondMissingIndex = (projectNumber + 1) % documentTypes.length
+      const firstMissing = documentTypes[firstMissingIndex]
+      const secondMissing = documentTypes[secondMissingIndex]
+      
+      return {
+        letterOfIntent: firstMissing !== 'letterOfIntent' && secondMissing !== 'letterOfIntent',
+        validationReport: firstMissing !== 'validationReport' && secondMissing !== 'validationReport',
+        feasibilityStudy: firstMissing !== 'feasibilityStudy' && secondMissing !== 'feasibilityStudy',
+        detailedDesign: firstMissing !== 'detailedDesign' && secondMissing !== 'detailedDesign',
+        programOfWork: firstMissing !== 'programOfWork' && secondMissing !== 'programOfWork',
+        rightOfWay: firstMissing !== 'rightOfWay' && secondMissing !== 'rightOfWay'
+      }
+    }
+  }, [])
+
   const filteredProjects = epdsdProjects.filter(project => {
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          project.province.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesType = typeFilter === 'all' || project.type === typeFilter
     const matchesRegion = regionFilter === 'all' || project.region === regionFilter
-    return matchesSearch && matchesType && matchesRegion
+    
+    // Documents filter
+    let matchesDocuments = true
+    if (documentsFilter !== 'all') {
+      const documentStatus = getDocumentStatus(project.id)
+      const totalDocuments = 6
+      const uploadedDocuments = Object.values(documentStatus).filter(Boolean).length
+      
+      if (documentsFilter === 'complete') {
+        matchesDocuments = uploadedDocuments === totalDocuments
+      } else if (documentsFilter === 'partial') {
+        matchesDocuments = uploadedDocuments > 0 && uploadedDocuments < totalDocuments
+      } else if (documentsFilter === 'none') {
+        matchesDocuments = uploadedDocuments === 0
+      }
+    }
+    
+    return matchesSearch && matchesType && matchesRegion && matchesDocuments
   }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
 
   const columns = [
@@ -1142,7 +1447,7 @@ export default function EPDSDProjectsPage() {
               variant={typeFilter === 'all' ? 'default' : 'outline'}
               onClick={() => setTypeFilter('all')}
               size="sm"
-              className="h-8 px-2 text-xs"
+              className="h-8 px-3 text-xs"
             >
               All
             </Button>
@@ -1150,7 +1455,7 @@ export default function EPDSDProjectsPage() {
               variant={typeFilter === 'Infrastructure' ? 'default' : 'outline'}
               onClick={() => setTypeFilter('Infrastructure')}
               size="sm"
-              className="h-8 px-2 text-xs"
+              className="h-8 px-3 text-xs"
             >
               Infra
             </Button>
@@ -1158,7 +1463,7 @@ export default function EPDSDProjectsPage() {
               variant={typeFilter === 'Machinery' ? 'default' : 'outline'}
               onClick={() => setTypeFilter('Machinery')}
               size="sm"
-              className="h-8 px-2 text-xs"
+              className="h-8 px-3 text-xs"
             >
               Machinery
             </Button>
@@ -1179,30 +1484,168 @@ export default function EPDSDProjectsPage() {
             </SelectContent>
           </Select>
           
+          {/* Documents Filter */}
+          <Select value={documentsFilter} onValueChange={setDocumentsFilter}>
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="Documents" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Documents</SelectItem>
+              <SelectItem value="complete">Complete</SelectItem>
+              <SelectItem value="partial">Partial</SelectItem>
+              <SelectItem value="none">None</SelectItem>
+            </SelectContent>
+          </Select>
+          
           {/* Results Count */}
           <div className="flex items-center text-xs text-muted-foreground bg-muted px-2 py-1 rounded h-8">
             {filteredProjects.length} projects
           </div>
+          
+          {/* Reset Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResetFilters}
+            className="h-8 px-3 text-xs"
+          >
+            Reset Filters
+          </Button>
         </div>
       </Card>
 
       {/* Projects Table */}
       <Card className="overflow-hidden flex flex-col">
         <CardHeader className="flex-shrink-0">
-          <CardTitle>Projects Pending Evaluation ({filteredProjects.length})</CardTitle>
-          <CardDescription>
-            Infrastructure and Machinery projects requiring EPDSD evaluation
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Projects Pending Evaluation ({filteredProjects.length})</CardTitle>
+              <CardDescription>
+                Infrastructure and Machinery projects requiring EPDSD evaluation
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">View:</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewMode === 'table' ? 'default' : 'outline'}
+                  size="default"
+                  onClick={() => setViewMode('table')}
+                  className="h-10 px-4"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size="default"
+                  onClick={() => setViewMode('grid')}
+                  className="h-10 px-4"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-0 flex-1 flex flex-col">
-          <DataTable
-            data={filteredProjects}
-            columns={columns}
-            onRowClick={(row) => handleRowClick(row as Record<string, unknown>)}
-            enablePagination={true}
-            pageSize={5}
-            pageSizeOptions={[5, 10, 25, 50, 100]}
-          />
+          {viewMode === 'grid' ? (
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredProjects.map((project) => {
+                  const documentStatus = getDocumentStatus(project.id)
+                  const totalDocuments = 6
+                  const uploadedDocuments = Object.values(documentStatus).filter(Boolean).length
+                  
+                  return (
+                    <Card key={project.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleRowClick(project)}>
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-sm leading-tight line-clamp-2">{project.title}</h3>
+                              <p className="text-xs text-muted-foreground mt-1">{project.province}</p>
+                            </div>
+                            <Badge variant={project.type === 'Infrastructure' ? 'default' : 'secondary'} className="text-xs ml-2">
+                              {project.type}
+                            </Badge>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Status</span>
+                              <StatusBadge status={project.status} />
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Documents</span>
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs font-medium">{uploadedDocuments}/{totalDocuments}</span>
+                                <Badge 
+                                  variant={uploadedDocuments === totalDocuments ? "default" : uploadedDocuments > 0 ? "secondary" : "destructive"}
+                                  className="text-xs"
+                                >
+                                  {uploadedDocuments === totalDocuments ? "Complete" : uploadedDocuments > 0 ? "Partial" : "None"}
+                                </Badge>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Budget</span>
+                              <span className="text-xs font-medium">{formatCurrency(project.budget)}</span>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Updated</span>
+                              <span className="text-xs">{formatDate(project.updatedAt)}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="pt-2 border-t">
+                            <div className="flex gap-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 h-7 text-xs"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleRowClick(project)
+                                }}
+                              >
+                                <FileText className="h-3 w-3 mr-1" />
+                                Evaluate
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 h-7 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleApproveProject(project.id)
+                                }}
+                              >
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Approve
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+            <DataTable
+              data={filteredProjects}
+              columns={columns}
+              onRowClick={(row) => handleRowClick(row as Record<string, unknown>)}
+              enablePagination={true}
+              pageSize={5}
+              pageSizeOptions={[5, 10, 25, 50, 100]}
+            />
+          )}
         </CardContent>
       </Card>
 
