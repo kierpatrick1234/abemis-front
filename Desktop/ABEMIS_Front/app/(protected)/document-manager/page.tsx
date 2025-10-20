@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Pagination, usePagination } from '@/components/pagination'
 import { 
   FileText, 
@@ -21,7 +23,9 @@ import {
   AlertTriangle,
   Clock,
   Archive,
-  X
+  X,
+  List,
+  Grid3X3
 } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
 
@@ -46,7 +50,7 @@ const generateMockDocuments = (projects: any[]) => {
   const fileTypes = ['PDF', 'DOC', 'XLS', 'JPG', 'PNG', 'DWG', 'ZIP']
 
   return projects.flatMap(project => {
-    const documents = []
+    const documents: any[] = []
     
     // Generate applicable document types for each project
     // ROW is not applicable for Machinery projects
@@ -99,6 +103,9 @@ export default function DocumentManagerPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDocument, setSelectedDocument] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+  const [documentTypeFilter, setDocumentTypeFilter] = useState<string[]>([])
+  const [projectTypeFilter, setProjectTypeFilter] = useState<string[]>([])
 
   // Get user's assigned region
   const userRegion = user?.regionAssigned || 'Region 1'
@@ -113,19 +120,22 @@ export default function DocumentManagerPage() {
     return generateMockDocuments(regionProjects)
   }, [regionProjects])
 
-  // Filter documents based on search
+  // Filter documents based on search and filters
   const filteredDocuments = useMemo(() => {
     return allDocuments.filter(doc => {
       const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           doc.projectTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           doc.documentType.toLowerCase().includes(searchQuery.toLowerCase())
       
-      return matchesSearch
+      const matchesDocumentType = documentTypeFilter.length === 0 || documentTypeFilter.includes(doc.documentType)
+      const matchesProjectType = projectTypeFilter.length === 0 || projectTypeFilter.includes(doc.projectType)
+      
+      return matchesSearch && matchesDocumentType && matchesProjectType
     }).sort((a, b) => {
       // Default sort by upload date (newest first)
       return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
     })
-  }, [allDocuments, searchQuery])
+  }, [allDocuments, searchQuery, documentTypeFilter, projectTypeFilter])
 
   // Pagination logic
   const {
@@ -138,6 +148,17 @@ export default function DocumentManagerPage() {
     handlePageSizeChange
   } = usePagination(filteredDocuments, 10, 1)
 
+
+  // Get unique document types and project types for filter options
+  const uniqueDocumentTypes = useMemo(() => {
+    const types = Array.from(new Set(allDocuments.map(doc => doc.documentType)))
+    return types.sort()
+  }, [allDocuments])
+
+  const uniqueProjectTypes = useMemo(() => {
+    const types = Array.from(new Set(allDocuments.map(doc => doc.projectType)))
+    return types.sort()
+  }, [allDocuments])
 
   // Statistics
   const totalDocuments = allDocuments.length
@@ -188,6 +209,41 @@ export default function DocumentManagerPage() {
     if (bytes < 1024) return `${bytes} B`
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const handleDocumentTypeFilterChange = (type: string, checked: boolean) => {
+    if (checked) {
+      setDocumentTypeFilter(prev => [...prev, type])
+    } else {
+      setDocumentTypeFilter(prev => prev.filter(t => t !== type))
+    }
+  }
+
+  const handleProjectTypeFilterChange = (type: string, checked: boolean) => {
+    if (checked) {
+      setProjectTypeFilter(prev => [...prev, type])
+    } else {
+      setProjectTypeFilter(prev => prev.filter(t => t !== type))
+    }
+  }
+
+  const clearAllFilters = () => {
+    setSearchQuery('')
+    setDocumentTypeFilter([])
+    setProjectTypeFilter([])
+  }
+
+  const getProjectTypeColor = (projectType: string) => {
+    switch (projectType) {
+      case 'Infrastructure':
+        return 'bg-blue-100 text-blue-800'
+      case 'Machinery':
+        return 'bg-emerald-100 text-emerald-800'
+      case 'FMR':
+        return 'bg-orange-100 text-orange-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
   }
 
   const generateDummyDocumentContent = (document: any) => {
@@ -683,68 +739,132 @@ export default function DocumentManagerPage() {
         </Card>
       </div>
 
-      {/* Search Documents */}
+      {/* Search and Filter Documents */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Search Documents
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Search className="h-4 w-4" />
+            Search & Filter
           </CardTitle>
-          <CardDescription>
-            Find documents quickly by searching document names, projects, or types
-          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search by document name, project, or type..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-              {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              )}
+            {/* Search and Filters - Single Line */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search documents..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-9"
+                />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+
+              {/* Document Type Filter */}
+              <div>
+                <Select>
+                  <SelectTrigger className="w-full h-9">
+                    <SelectValue placeholder="Document Type" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <div className="p-2 space-y-1">
+                      {uniqueDocumentTypes.map((type) => (
+                        <div key={type} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`doc-type-${type}`}
+                            checked={documentTypeFilter.includes(type)}
+                            onCheckedChange={(checked) => 
+                              handleDocumentTypeFilterChange(type, checked as boolean)
+                            }
+                          />
+                          <label
+                            htmlFor={`doc-type-${type}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          >
+                            {type}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Project Type Filter */}
+              <div>
+                <Select>
+                  <SelectTrigger className="w-full h-9">
+                    <SelectValue placeholder="Project Type" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <div className="p-2 space-y-1">
+                      {uniqueProjectTypes.map((type) => (
+                        <div key={type} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`project-type-${type}`}
+                            checked={projectTypeFilter.includes(type)}
+                            onCheckedChange={(checked) => 
+                              handleProjectTypeFilterChange(type, checked as boolean)
+                            }
+                          />
+                          <label
+                            htmlFor={`project-type-${type}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          >
+                            {type}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            {/* Results and Actions */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <span className="text-sm text-muted-foreground">
-                  Showing <span className="font-medium text-foreground">{paginatedData.length}</span> of <span className="font-medium text-foreground">{filteredDocuments.length}</span> documents
-                </span>
-                {searchQuery && (
-                  <div className="flex flex-wrap items-center gap-2">
+            {/* Active Filters - Compact */}
+            {(searchQuery || documentTypeFilter.length > 0 || projectTypeFilter.length > 0) && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t">
+                <div className="flex flex-wrap items-center gap-2">
+                  {searchQuery && (
                     <Badge variant="secondary" className="text-xs">
                       Search: {searchQuery}
                     </Badge>
-                  </div>
-                )}
-              </div>
-              
-              {searchQuery && (
+                  )}
+                  {documentTypeFilter.map((type) => (
+                    <Badge key={type} variant="outline" className="text-xs">
+                      Doc: {type}
+                    </Badge>
+                  ))}
+                  {projectTypeFilter.map((type) => (
+                    <Badge key={type} variant="outline" className="text-xs">
+                      Project: {type}
+                    </Badge>
+                  ))}
+                </div>
+                
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => {
-                    setSearchQuery('')
-                  }}
-                  className="flex items-center gap-2"
+                  onClick={clearAllFilters}
+                  className="flex items-center gap-1 h-7"
                 >
-                  <X className="h-4 w-4" />
-                  Clear Search
+                  <X className="h-3 w-3" />
+                  Clear All
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -752,101 +872,221 @@ export default function DocumentManagerPage() {
       {/* Documents List */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Archive className="h-5 w-5" />
-            Documents ({filteredDocuments.length})
-          </CardTitle>
-          <CardDescription>
-            All documents with project references and status information
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Archive className="h-5 w-5" />
+                Documents ({filteredDocuments.length})
+              </CardTitle>
+              <CardDescription>
+                All documents with project references and status information
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">View:</span>
+              <div className="flex border rounded-lg">
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="rounded-r-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="rounded-l-none"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {paginatedData.map((doc) => (
-              <div 
-                key={doc.id} 
-                className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                onClick={() => {
-                  setSelectedDocument(doc)
-                  setIsModalOpen(true)
-                }}
-              >
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-2xl">
-                    {getFileTypeIcon(doc.fileType)}
-                  </div>
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-sm font-medium truncate">{doc.name}</h3>
-                    <Badge variant="outline" className="text-xs">
-                      v{doc.version}
-                    </Badge>
+          {viewMode === 'list' ? (
+            // List View
+            <div className="space-y-4">
+              {paginatedData.map((doc) => (
+                <div 
+                  key={doc.id} 
+                  className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setSelectedDocument(doc)
+                    setIsModalOpen(true)
+                  }}
+                >
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-2xl">
+                      {getFileTypeIcon(doc.fileType)}
+                    </div>
                   </div>
                   
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <FolderOpen className="h-3 w-3" />
-                      <span className="truncate max-w-[200px]">{doc.projectTitle}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-sm font-medium truncate">{doc.name}</h3>
+                      <Badge variant="outline" className="text-xs">
+                        v{doc.version}
+                      </Badge>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      <span>{formatDateTime(doc.uploadedAt)}</span>
+                    
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <FolderOpen className="h-3 w-3" />
+                        <span className="truncate max-w-[200px]">{doc.projectTitle}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        <span>{formatDateTime(doc.uploadedAt)}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        <span>{doc.uploadedBy}</span>
+                      </div>
+                      <span>{formatFileSize(doc.size)}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <User className="h-3 w-3" />
-                      <span>{doc.uploadedBy}</span>
+                    
+                    <div className="mt-2 flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {doc.documentType}
+                      </Badge>
+                      <Badge className={`text-xs ${getProjectTypeColor(doc.projectType)}`}>
+                        {doc.projectType}
+                      </Badge>
                     </div>
-                    <span>{formatFileSize(doc.size)}</span>
                   </div>
                   
-                  <div className="mt-2 flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      {doc.documentType}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {doc.projectType}
-                    </Badge>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedDocument(doc)
+                        setIsModalOpen(true)
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        console.log('Download document', doc.id)
+                      }}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setSelectedDocument(doc)
-                      setIsModalOpen(true)
-                    }}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      console.log('Download document', doc.id)
-                    }}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
+              ))}
+            </div>
+          ) : (
+            // Grid View
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {paginatedData.map((doc) => (
+                <div 
+                  key={doc.id} 
+                  className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setSelectedDocument(doc)
+                    setIsModalOpen(true)
+                  }}
+                >
+                  <div className="flex flex-col h-full">
+                    {/* Document Icon and Type */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-2xl">
+                        {getFileTypeIcon(doc.fileType)}
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        v{doc.version}
+                      </Badge>
+                    </div>
+                    
+                    {/* Document Name */}
+                    <h3 className="font-medium text-sm mb-2 line-clamp-2">{doc.name}</h3>
+                    
+                    {/* Project Info */}
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                      <FolderOpen className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{doc.projectTitle}</span>
+                    </div>
+                    
+                    {/* Document Type, Project Type and Status */}
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      <Badge variant="outline" className="text-xs">
+                        {doc.documentType}
+                      </Badge>
+                      <Badge className={`text-xs ${getProjectTypeColor(doc.projectType)}`}>
+                        {doc.projectType}
+                      </Badge>
+                      <Badge className={getStatusColor(doc.status)}>
+                        {doc.status}
+                      </Badge>
+                    </div>
+                    
+                    {/* Metadata */}
+                    <div className="space-y-1 text-xs text-muted-foreground mb-3 flex-1">
+                      <div className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        <span>{doc.uploadedBy}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        <span>{formatDateTime(doc.uploadedAt)}</span>
+                      </div>
+                      <div className="text-xs">
+                        {formatFileSize(doc.size)}
+                      </div>
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2 pt-2 border-t">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedDocument(doc)
+                          setIsModalOpen(true)
+                        }}
+                        className="flex-1"
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          console.log('Download document', doc.id)
+                        }}
+                        className="flex-1"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        Download
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-            
-            {paginatedData.length === 0 && (
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium">No documents found</h3>
-                <p className="text-muted-foreground">
-                  Try adjusting your search criteria or filters
-                </p>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
+          
+          {paginatedData.length === 0 && (
+            <div className="text-center py-8">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium">No documents found</h3>
+              <p className="text-muted-foreground">
+                Try adjusting your search criteria or filters
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
