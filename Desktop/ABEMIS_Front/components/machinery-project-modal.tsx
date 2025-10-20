@@ -29,6 +29,7 @@ import {
   Cog
 } from 'lucide-react'
 import { SuccessToast } from './success-toast'
+import { useLocationData } from '@/lib/hooks/use-location-data'
 
 interface MachineryProjectModalProps {
   isOpen: boolean
@@ -431,12 +432,18 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
     }
   }, [allocatedAmount, onBudgetChange])
   
-  // Step 3: Location
-  const [region, setRegion] = useState('')
-  const [province, setProvince] = useState('')
-  const [municipality, setMunicipality] = useState('')
+  // Step 3: Location - Using PSGC API
+  const {
+    locationData,
+    selection,
+    handleRegionChange,
+    handleProvinceChange,
+    handleCityChange,
+    handleBarangayChange
+  } = useLocationData()
+  
+  // Legacy location state for backward compatibility
   const [district, setDistrict] = useState('')
-  const [barangay, setBarangay] = useState('')
   
   // Step 4: Document Upload
   const [documents, setDocuments] = useState<Array<{file: File, label: string, id: string}>>([])
@@ -454,8 +461,6 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
       setProjectTitle(editingDraft.title || '')
       setProjectDescription(editingDraft.description || '')
       setProjectStatus('Draft') // Always set to Draft for editing
-      setRegion(editingDraft.region || '')
-      setProvince(editingDraft.province || '')
       // Set other fields based on available data
       if (editingDraft.budget) {
         setAllocatedAmount(editingDraft.budget.toString())
@@ -478,24 +483,24 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
       // For new projects, any change indicates unsaved changes
       const hasChanges = !!(projectTitle || projectDescription || projectClassification || 
                         projectType || implementationDays || prexcProgram || 
-                        prexcSubProgram || region || province || municipality || 
-                        district || barangay || allocatedAmount || documents.length > 0)
+                        prexcSubProgram || selection.region || selection.province || selection.city || 
+                        district || selection.barangay || allocatedAmount || documents.length > 0)
       setHasUnsavedChanges(hasChanges)
     } else if (isOpen && editingDraft) {
       // For editing drafts, compare with original values
       const hasChanges = !!(
         projectTitle !== (editingDraft.title || '') ||
         projectDescription !== (editingDraft.description || '') ||
-        region !== (editingDraft.region || '') ||
-        province !== (editingDraft.province || '') ||
+        selection.region !== (editingDraft.regionCode || '') ||
+        selection.province !== (editingDraft.provinceCode || '') ||
         allocatedAmount !== (editingDraft.budget ? editingDraft.budget.toString() : '') ||
         documents.length > 0
       )
       setHasUnsavedChanges(hasChanges)
     }
   }, [projectTitle, projectDescription, projectClassification, projectType, 
-      implementationDays, prexcProgram, prexcSubProgram, region, province, 
-      municipality, district, barangay, allocatedAmount, documents, isOpen, editingDraft])
+      implementationDays, prexcProgram, prexcSubProgram, selection.region, selection.province, 
+      selection.city, district, selection.barangay, allocatedAmount, documents, isOpen, editingDraft])
 
   const handleNext = () => {
     if (currentStep < 5) {
@@ -531,12 +536,17 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
       fundingYear,
       allocatedAmount,
       budget: parseFloat(allocatedAmount) || 0,
-      // Step 3
-      region,
-      province,
-      municipality,
+      // Step 3 - Location data from PSGC API
+      region: locationData.regions.find(r => r.code === selection.region)?.name || '',
+      province: locationData.provinces.find(p => p.code === selection.province)?.name || '',
+      municipality: locationData.cities.find(c => c.code === selection.city)?.name || '',
       district,
-      barangay,
+      barangay: locationData.barangays.find(b => b.code === selection.barangay)?.name || '',
+      // PSGC codes for reference
+      regionCode: selection.region,
+      provinceCode: selection.province,
+      cityCode: selection.city,
+      barangayCode: selection.barangay,
       // Step 4
       documents,
       // Status
@@ -567,12 +577,17 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
       bannerProgram,
       fundingYear,
       allocatedAmount,
-      // Step 3
-      region,
-      province,
-      municipality,
+      // Step 3 - Location data from PSGC API
+      region: locationData.regions.find(r => r.code === selection.region)?.name || '',
+      province: locationData.provinces.find(p => p.code === selection.province)?.name || '',
+      municipality: locationData.cities.find(c => c.code === selection.city)?.name || '',
       district,
-      barangay,
+      barangay: locationData.barangays.find(b => b.code === selection.barangay)?.name || '',
+      // PSGC codes for reference
+      regionCode: selection.region,
+      provinceCode: selection.province,
+      cityCode: selection.city,
+      barangayCode: selection.barangay,
       // Step 4
       documents,
       // Status
@@ -610,11 +625,7 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
     setBannerProgram('')
     setFundingYear('')
     setAllocatedAmount('')
-    setRegion('')
-    setProvince('')
-    setMunicipality('')
     setDistrict('')
-    setBarangay('')
     setDocuments([])
     setProjectStatus('Draft')
     setHasUnsavedChanges(false)
@@ -637,7 +648,7 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
   const isStep1Valid = projectClassification && projectType && projectTitle && projectDescription
   const isStep2Valid = implementationDays && prexcProgram && prexcSubProgram && budgetProcess && 
                       proposedFundSource && sourceAgency && bannerProgram && fundingYear && allocatedAmount
-  const isStep3Valid = region && province && municipality && district && barangay
+  const isStep3Valid = selection.region && selection.province && selection.city && selection.barangay
   const isStep4Valid = true // Documents are optional during registration
 
 
@@ -944,60 +955,109 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
 
           {currentStep === 3 && (
             <div className="space-y-4">
+              {locationData.error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-600">{locationData.error}</p>
+                </div>
+              )}
+              
               <div className="space-y-2">
-                <Label htmlFor="region">Region *</Label>
+                <Label htmlFor="region" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-600" />
+                  Region *
+                </Label>
                 <select
                   id="region"
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  value={selection.region}
+                  onChange={(e) => {
+                    const selectedRegion = locationData.regions.find(r => r.code === e.target.value)
+                    if (selectedRegion) {
+                      handleRegionChange(selectedRegion.code, selectedRegion.name)
+                    }
+                  }}
+                  disabled={locationData.loading.regions}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:opacity-50"
                 >
-                  <option value="">Select Region</option>
-                  {regions.map((item) => (
-                    <option key={item} value={item}>{item}</option>
+                  <option value="">{locationData.loading.regions ? 'Loading regions...' : 'Select Region'}</option>
+                  {locationData.regions.map((region) => (
+                    <option key={region.code} value={region.code}>{region.name}</option>
                   ))}
                 </select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="province">Province *</Label>
+                <Label htmlFor="province" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-600" />
+                  Province *
+                </Label>
                 <select
                   id="province"
-                  value={province}
-                  onChange={(e) => setProvince(e.target.value)}
-                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  value={selection.province}
+                  onChange={(e) => {
+                    const selectedProvince = locationData.provinces.find(p => p.code === e.target.value)
+                    if (selectedProvince) {
+                      handleProvinceChange(selectedProvince.code, selectedProvince.name)
+                    }
+                  }}
+                  disabled={!selection.region || locationData.loading.provinces}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:opacity-50"
                 >
-                  <option value="">Select Province</option>
-                  {provinces.map((item) => (
-                    <option key={item} value={item}>{item}</option>
+                  <option value="">
+                    {!selection.region 
+                      ? 'Select a region first' 
+                      : locationData.loading.provinces 
+                        ? 'Loading provinces...' 
+                        : 'Select Province'
+                    }
+                  </option>
+                  {locationData.provinces.map((province) => (
+                    <option key={province.code} value={province.code}>{province.name}</option>
                   ))}
                 </select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="municipality">Municipality *</Label>
+                <Label htmlFor="municipality" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-600" />
+                  Municipality/City *
+                </Label>
                 <select
                   id="municipality"
-                  value={municipality}
-                  onChange={(e) => setMunicipality(e.target.value)}
-                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  value={selection.city}
+                  onChange={(e) => {
+                    const selectedCity = locationData.cities.find(c => c.code === e.target.value)
+                    if (selectedCity) {
+                      handleCityChange(selectedCity.code, selectedCity.name, selectedCity.type)
+                    }
+                  }}
+                  disabled={!selection.province || locationData.loading.cities}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:opacity-50"
                 >
-                  <option value="">Select Municipality</option>
-                  {municipalities.map((item) => (
-                    <option key={item} value={item}>{item}</option>
+                  <option value="">
+                    {!selection.province 
+                      ? 'Select a province first' 
+                      : locationData.loading.cities 
+                        ? 'Loading cities...' 
+                        : 'Select Municipality/City'
+                    }
+                  </option>
+                  {locationData.cities.map((city) => (
+                    <option key={city.code} value={city.code}>
+                      {city.name} {city.type ? `(${city.type})` : ''}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="district">District *</Label>
+                <Label htmlFor="district">District (Optional)</Label>
                 <select
                   id="district"
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
                   className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
                 >
-                  <option value="">Select District</option>
+                  <option value="">Select District (Optional)</option>
                   {districts.map((item) => (
                     <option key={item} value={item}>{item}</option>
                   ))}
@@ -1005,16 +1065,32 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="barangay">Barangay *</Label>
+                <Label htmlFor="barangay" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-600" />
+                  Barangay *
+                </Label>
                 <select
                   id="barangay"
-                  value={barangay}
-                  onChange={(e) => setBarangay(e.target.value)}
-                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  value={selection.barangay}
+                  onChange={(e) => {
+                    const selectedBarangay = locationData.barangays.find(b => b.code === e.target.value)
+                    if (selectedBarangay) {
+                      handleBarangayChange(selectedBarangay.code, selectedBarangay.name)
+                    }
+                  }}
+                  disabled={!selection.city || locationData.loading.barangays}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:opacity-50"
                 >
-                  <option value="">Select Barangay</option>
-                  {barangays.map((item) => (
-                    <option key={item} value={item}>{item}</option>
+                  <option value="">
+                    {!selection.city 
+                      ? 'Select a municipality/city first' 
+                      : locationData.loading.barangays 
+                        ? 'Loading barangays...' 
+                        : 'Select Barangay'
+                    }
+                  </option>
+                  {locationData.barangays.map((barangay) => (
+                    <option key={barangay.code} value={barangay.code}>{barangay.name}</option>
                   ))}
                 </select>
               </div>
@@ -1195,15 +1271,21 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="font-medium">Region:</span>
-                    <p className="text-muted-foreground">{region || 'Not specified'}</p>
+                    <p className="text-muted-foreground">{locationData.regions.find(r => r.code === selection.region)?.name || 'Not specified'}</p>
                   </div>
                   <div>
                     <span className="font-medium">Province:</span>
-                    <p className="text-muted-foreground">{province || 'Not specified'}</p>
+                    <p className="text-muted-foreground">{locationData.provinces.find(p => p.code === selection.province)?.name || 'Not specified'}</p>
                   </div>
                   <div>
-                    <span className="font-medium">Municipality:</span>
-                    <p className="text-muted-foreground">{municipality || 'Not specified'}</p>
+                    <span className="font-medium">Municipality/City:</span>
+                    <p className="text-muted-foreground">
+                      {(() => {
+                        const selectedCity = locationData.cities.find(c => c.code === selection.city)
+                        if (!selectedCity) return 'Not specified'
+                        return `${selectedCity.name} ${selectedCity.type ? `(${selectedCity.type})` : ''}`
+                      })()}
+                    </p>
                   </div>
                   <div>
                     <span className="font-medium">District:</span>
@@ -1211,7 +1293,7 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
                   </div>
                   <div className="md:col-span-2">
                     <span className="font-medium">Barangay:</span>
-                    <p className="text-muted-foreground">{barangay || 'Not specified'}</p>
+                    <p className="text-muted-foreground">{locationData.barangays.find(b => b.code === selection.barangay)?.name || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
