@@ -273,6 +273,12 @@ export const navigationItems: NavItem[] = [
     roles: ['admin', 'manager', 'supervisor', 'superadmin', 'EPDSD', 'PPMD', 'SEPD'],
   },
   {
+    title: 'Form Builder',
+    href: '/form-builder',
+    icon: 'Wrench',
+    roles: ['admin'],
+  },
+  {
     title: 'Users',
     href: '/users',
     icon: 'Users',

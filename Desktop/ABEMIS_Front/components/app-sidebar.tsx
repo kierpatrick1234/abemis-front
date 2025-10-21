@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { Menu, ChevronLeft, ChevronRight, LayoutDashboard, FolderOpen, FileText, BarChart3, Users, Settings, CheckCircle } from 'lucide-react'
+import { Menu, ChevronLeft, ChevronRight, LayoutDashboard, FolderOpen, FileText, BarChart3, Users, Settings, CheckCircle, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { NavItem } from './nav-item'
@@ -21,6 +21,7 @@ const iconMap = {
   Users,
   Settings,
   CheckCircle,
+  Wrench,
 }
 
 interface AppSidebarProps {

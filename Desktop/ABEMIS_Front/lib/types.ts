@@ -151,3 +151,24 @@ export interface AddUserData {
   password: string
   repeatPassword: string
 }
+
+export interface FormField {
+  id: string
+  type: 'text' | 'email' | 'number' | 'date' | 'file' | 'select' | 'textarea' | 'checkbox' | 'radio'
+  label: string
+  placeholder?: string
+  required: boolean
+  options?: string[]
+  validation?: {
+    min?: number
+    max?: number
+    pattern?: string
+  }
+}
+
+export interface FormConfig {
+  id: string
+  title: string
+  description: string
+  fields: FormField[]
+}
