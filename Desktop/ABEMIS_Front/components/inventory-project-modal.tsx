@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/dialog'
 import { Card, CardContent } from '@/components/ui/card'
 import { Building2, Wrench, FileText, Package, CheckCircle } from 'lucide-react'
+import { InventorySingleProjectModal } from './inventory-single-project-modal'
+import { InventoryPackageProjectModal } from './inventory-package-project-modal'
 
 interface InventoryProjectModalProps {
   isOpen: boolean
@@ -45,66 +47,65 @@ const inventoryTypes = [
 
 export function InventoryProjectModal({ isOpen, onClose, onProjectCreate }: InventoryProjectModalProps) {
   const [selectedType, setSelectedType] = useState<string>('')
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [step, setStep] = useState<'type' | 'details'>('type')
+  const [showSingleModal, setShowSingleModal] = useState(false)
+  const [showPackageModal, setShowPackageModal] = useState(false)
 
   const handleTypeSelect = (typeId: string) => {
-    setSelectedType(typeId)
-    setStep('details')
-  }
-
-  const handleBack = () => {
-    setStep('type')
-    setSelectedType('')
-  }
-
-  const handleSubmit = () => {
-    if (!selectedType || !title.trim()) return
-
-    const projectData = {
-      title: title.trim(),
-      type: inventoryTypes.find(p => p.id === selectedType)?.name || '',
-      description: description.trim(),
-      isInventory: true
+    if (typeId === 'single') {
+      setShowSingleModal(true)
+      onClose() // Close the main modal when selecting single project
+      return
     }
-
-    onProjectCreate(projectData)
-    
-    // Reset form
-    setSelectedType('')
-    setTitle('')
-    setDescription('')
-    setStep('type')
-    onClose()
+    if (typeId === 'package') {
+      setShowPackageModal(true)
+      onClose() // Close the main modal when selecting package project
+      return
+    }
   }
 
   const handleClose = () => {
-    // Reset form when closing
     setSelectedType('')
-    setTitle('')
-    setDescription('')
-    setStep('type')
     onClose()
   }
 
-  const selectedInventoryType = inventoryTypes.find(p => p.id === selectedType)
+  const handleSingleProjectCreate = (projectData: Record<string, unknown>) => {
+    // Extract required fields from projectData and add inventory flag
+    const extractedData = {
+      title: (projectData.title as string) || 'New Inventory Project',
+      type: (projectData.type as string) || 'Infrastructure',
+      description: (projectData.description as string) || 'New inventory project description',
+      isInventory: true
+    }
+    onProjectCreate(extractedData)
+    setShowSingleModal(false)
+    onClose()
+  }
+
+  const handlePackageProjectCreate = (projectData: Record<string, unknown>) => {
+    // Extract required fields from projectData and add inventory flag
+    const extractedData = {
+      title: (projectData.title as string) || 'New Inventory Package',
+      type: (projectData.type as string) || 'Project Package',
+      description: (projectData.description as string) || 'New inventory package description',
+      isInventory: true
+    }
+    onProjectCreate(extractedData)
+    setShowPackageModal(false)
+    onClose()
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Add Inventory Project</DialogTitle>
-          <DialogDescription>
-            {step === 'type' 
-              ? 'Select the type of inventory project you want to add'
-              : 'Provide project details'
-            }
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen && !showSingleModal && !showPackageModal} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add Inventory Project</DialogTitle>
+            <DialogDescription>
+              Select the type of inventory project you want to add
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="py-6">
-          {step === 'type' ? (
+          <div className="py-6">
             <div className="space-y-4">
               {inventoryTypes.map((type) => {
                 const Icon = type.icon
@@ -129,60 +130,29 @@ export function InventoryProjectModal({ isOpen, onClose, onProjectCreate }: Inve
                 )
               })}
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2 p-3 bg-muted rounded-lg">
-                {selectedInventoryType && (
-                  <>
-                    <selectedInventoryType.icon className="h-5 w-5" />
-                    <span className="font-medium">{selectedInventoryType.name}</span>
-                  </>
-                )}
-              </div>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="title">Project Title</Label>
-                <Input
-                  id="title"
-                  placeholder="Enter project title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description (Optional)</Label>
-                <textarea
-                  id="description"
-                  placeholder="Enter project description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full min-h-[100px] px-3 py-2 border border-input bg-background rounded-md text-sm resize-none"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        <DialogFooter className="flex gap-2">
-          {step === 'details' && (
-            <Button variant="outline" onClick={handleBack}>
-              Back
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={handleClose}>
+              Cancel
             </Button>
-          )}
-          <Button variant="outline" onClick={handleClose}>
-            Cancel
-          </Button>
-          {step === 'details' && (
-            <Button 
-              onClick={handleSubmit}
-              disabled={!title.trim()}
-            >
-              Add to Inventory
-            </Button>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Single Project Inventory Modal */}
+      <InventorySingleProjectModal
+        isOpen={showSingleModal}
+        onClose={() => setShowSingleModal(false)}
+        onProjectCreate={handleSingleProjectCreate}
+      />
+
+      {/* Package Project Inventory Modal */}
+      <InventoryPackageProjectModal
+        isOpen={showPackageModal}
+        onClose={() => setShowPackageModal(false)}
+        onProjectCreate={handlePackageProjectCreate}
+      />
+    </>
   )
 }

@@ -676,7 +676,7 @@ export default function DocumentManagerPage() {
   }
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Document Manager</h1>
         <p className="text-muted-foreground">
@@ -870,8 +870,8 @@ export default function DocumentManagerPage() {
       </Card>
 
       {/* Documents List */}
-      <Card>
-        <CardHeader>
+      <Card className="overflow-hidden flex flex-col h-[calc(100vh-300px)]">
+        <CardHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -905,10 +905,11 @@ export default function DocumentManagerPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          {viewMode === 'list' ? (
-            // List View
-            <div className="space-y-4">
+        <CardContent className="p-0 flex-1 flex flex-col relative">
+          <div className="p-6 flex-1 overflow-y-auto">
+            {viewMode === 'list' ? (
+              // List View
+              <div className="space-y-4">
               {paginatedData.map((doc) => (
                 <div 
                   key={doc.id} 
@@ -1087,25 +1088,24 @@ export default function DocumentManagerPage() {
               </p>
             </div>
           )}
+          </div>
+          
+          {/* Pagination Controls - Sticky at bottom of card */}
+          {filteredDocuments.length > 0 && (
+            <div className="sticky bottom-0 bg-background border-t border-border">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                pageSizeOptions={[5, 10, 25, 50, 100]}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* Pagination Controls - Sticky at bottom */}
-      {filteredDocuments.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50 shadow-lg">
-          <div className="max-w-7xl mx-auto px-4">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              pageSize={pageSize}
-              totalItems={totalItems}
-              onPageChange={handlePageChange}
-              onPageSizeChange={handlePageSizeChange}
-              pageSizeOptions={[5, 10, 25, 50, 100]}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Document Preview Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
