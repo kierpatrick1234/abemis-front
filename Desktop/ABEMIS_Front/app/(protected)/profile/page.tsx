@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import Image from 'next/image'
+import { useTheme } from 'next-themes'
 import { useAuth } from '@/lib/contexts/auth-context'
+import { useThemeColor } from '@/lib/contexts/theme-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -32,11 +34,16 @@ import {
   VolumeX,
   Volume2,
   Settings,
-  Calendar
+  Calendar,
+  Moon,
+  Sun,
+  Info
 } from 'lucide-react'
 
 export default function ProfilePage() {
   const { user } = useAuth()
+  const { theme, setTheme } = useTheme()
+  const { colorScheme, setColorScheme } = useThemeColor()
   const [activeTab, setActiveTab] = useState('profile')
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
   const [showPasswordSuccess, setShowPasswordSuccess] = useState(false)
@@ -294,6 +301,22 @@ export default function ProfilePage() {
     setIsPasswordModalOpen(false)
   }
 
+  const handleThemeChange = useCallback((newTheme: 'light' | 'dark') => {
+    setTheme(newTheme)
+  }, [setTheme])
+
+  const handleColorSchemeChange = useCallback((scheme: any) => {
+    console.log('Changing color scheme to:', scheme)
+    setColorScheme(scheme)
+    
+    // Direct DOM manipulation as backup
+    const root = document.documentElement
+    root.classList.remove('theme-default', 'theme-red', 'theme-rose', 'theme-orange', 'theme-green', 'theme-blue', 'theme-yellow', 'theme-violet')
+    if (scheme !== 'default') {
+      root.classList.add(`theme-${scheme}`)
+    }
+  }, [setColorScheme])
+
   return (
     <div className="space-y-6">
       <div>
@@ -304,7 +327,7 @@ export default function ProfilePage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Profile
@@ -316,6 +339,14 @@ export default function ProfilePage() {
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             Notifications
+          </TabsTrigger>
+          <TabsTrigger value="appearance" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Appearance
+          </TabsTrigger>
+          <TabsTrigger value="about" className="flex items-center gap-2">
+            <Info className="h-4 w-4" />
+            About
           </TabsTrigger>
         </TabsList>
 
@@ -721,6 +752,151 @@ export default function ProfilePage() {
                     This will enable: Daily frequency, Email & In-App notifications, Mute all OFF
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Appearance Tab */}
+        <TabsContent value="appearance" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Appearance
+              </CardTitle>
+              <CardDescription>
+                Customize the look and feel of the application
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Theme</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Switch between light and dark themes
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant={theme === 'light' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleThemeChange('light')}
+                    className="flex items-center gap-2"
+                  >
+                    <Sun className="h-4 w-4" />
+                    Light
+                  </Button>
+                  <Button
+                    variant={theme === 'dark' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleThemeChange('dark')}
+                    className="flex items-center gap-2"
+                  >
+                    <Moon className="h-4 w-4" />
+                    Dark
+                  </Button>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium">Color Scheme</h4>
+                <div className="flex items-center gap-3">
+                  {[
+                    { name: 'Default', value: 'default', color: 'bg-gray-500' },
+                    { name: 'Red', value: 'red', color: 'bg-red-500' },
+                    { name: 'Rose', value: 'rose', color: 'bg-rose-500' },
+                    { name: 'Orange', value: 'orange', color: 'bg-orange-500' },
+                    { name: 'Green', value: 'green', color: 'bg-green-500' },
+                    { name: 'Blue', value: 'blue', color: 'bg-blue-500' },
+                    { name: 'Yellow', value: 'yellow', color: 'bg-yellow-500' },
+                    { name: 'Violet', value: 'violet', color: 'bg-violet-500' },
+                  ].map((scheme) => (
+                    <button
+                      key={scheme.value}
+                      onClick={() => handleColorSchemeChange(scheme.value)}
+                      className={`h-10 w-10 rounded-full ${scheme.color} border-2 transition-all hover:scale-110 ${
+                        colorScheme === scheme.value
+                          ? 'border-4 border-primary shadow-lg'
+                          : 'border-gray-300 hover:border-primary/50'
+                      }`}
+                      title={scheme.name}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium">Theme Preferences</h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Font Size</Label>
+                    <select className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm">
+                      <option>Small</option>
+                      <option>Medium</option>
+                      <option>Large</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* About Tab */}
+        <TabsContent value="about" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Info className="h-5 w-5" />
+                About ABEMIS 3.0
+              </CardTitle>
+              <CardDescription>
+                System information and version details
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Version</Label>
+                  <p className="text-sm">3.0.0</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Build</Label>
+                  <p className="text-sm">2024.01.15</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Environment</Label>
+                  <p className="text-sm">Development</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Last Updated</Label>
+                  <p className="text-sm">January 15, 2024</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label>System Information</Label>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p>Agricultural & Biosystems Engineering Management Information System</p>
+                  <p>Built with Next.js, React, TypeScript, and Tailwind CSS</p>
+                  <p>UI components powered by shadcn/ui</p>
+                </div>
+              </div>
+
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm">
+                  Check for Updates
+                </Button>
+                <Button variant="outline" size="sm">
+                  View Changelog
+                </Button>
               </div>
             </CardContent>
           </Card>

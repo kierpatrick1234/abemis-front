@@ -35,6 +35,9 @@ export interface Project {
   updatedAt: string
   assignedTo?: string
   evaluator?: string
+  // Inventory project flags
+  isInventory?: boolean
+  tags?: string[]
   // Procurement fields
   budgetYear?: string
   bidOpeningDate?: string

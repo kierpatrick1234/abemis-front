@@ -778,20 +778,28 @@ export default function DocumentManagerPage() {
                   <SelectTrigger className="w-full h-9">
                     <SelectValue placeholder="Document Type" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    <div className="p-2 space-y-1">
+                  <SelectContent className="max-h-80 w-80">
+                    <div className="p-3 space-y-2">
                       {uniqueDocumentTypes.map((type) => (
-                        <div key={type} className="flex items-center space-x-2">
+                        <div 
+                          key={type} 
+                          className="flex items-center space-x-3 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors"
+                          onClick={() => {
+                            const isChecked = documentTypeFilter.includes(type)
+                            handleDocumentTypeFilterChange(type, !isChecked)
+                          }}
+                        >
                           <Checkbox
                             id={`doc-type-${type}`}
                             checked={documentTypeFilter.includes(type)}
                             onCheckedChange={(checked) => 
                               handleDocumentTypeFilterChange(type, checked as boolean)
                             }
+                            className="h-4 w-4"
                           />
                           <label
                             htmlFor={`doc-type-${type}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            className="text-sm font-medium leading-none cursor-pointer flex-1 select-none"
                           >
                             {type}
                           </label>
@@ -808,20 +816,28 @@ export default function DocumentManagerPage() {
                   <SelectTrigger className="w-full h-9">
                     <SelectValue placeholder="Project Type" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    <div className="p-2 space-y-1">
+                  <SelectContent className="max-h-80 w-80">
+                    <div className="p-3 space-y-2">
                       {uniqueProjectTypes.map((type) => (
-                        <div key={type} className="flex items-center space-x-2">
+                        <div 
+                          key={type} 
+                          className="flex items-center space-x-3 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors"
+                          onClick={() => {
+                            const isChecked = projectTypeFilter.includes(type)
+                            handleProjectTypeFilterChange(type, !isChecked)
+                          }}
+                        >
                           <Checkbox
                             id={`project-type-${type}`}
                             checked={projectTypeFilter.includes(type)}
                             onCheckedChange={(checked) => 
                               handleProjectTypeFilterChange(type, checked as boolean)
                             }
+                            className="h-4 w-4"
                           />
                           <label
                             htmlFor={`project-type-${type}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            className="text-sm font-medium leading-none cursor-pointer flex-1 select-none"
                           >
                             {type}
                           </label>
@@ -870,7 +886,7 @@ export default function DocumentManagerPage() {
       </Card>
 
       {/* Documents List */}
-      <Card className="overflow-hidden flex flex-col h-[calc(100vh-300px)]">
+      <Card className="overflow-hidden flex flex-col">
         <CardHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
@@ -905,11 +921,10 @@ export default function DocumentManagerPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-0 flex-1 flex flex-col relative">
-          <div className="p-6 flex-1 overflow-y-auto">
-            {viewMode === 'list' ? (
-              // List View
-              <div className="space-y-4">
+        <CardContent className="p-0 flex-1 flex flex-col">
+          {viewMode === 'list' ? (
+            // List View
+            <div className="p-6 space-y-4">
               {paginatedData.map((doc) => (
                 <div 
                   key={doc.id} 
@@ -984,10 +999,35 @@ export default function DocumentManagerPage() {
                   </div>
                 </div>
               ))}
+              
+              {paginatedData.length === 0 && (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium">No documents found</h3>
+                  <p className="text-muted-foreground">
+                    Try adjusting your search criteria or filters
+                  </p>
+                </div>
+              )}
+              
+              {/* Pagination for list view */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  pageSize={pageSize}
+                  totalItems={totalItems}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                  pageSizeOptions={[5, 10, 25, 50, 100]}
+                  className="border-t"
+                />
+              )}
             </div>
           ) : (
             // Grid View
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {paginatedData.map((doc) => (
                 <div 
                   key={doc.id} 
@@ -1076,32 +1116,31 @@ export default function DocumentManagerPage() {
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-          
-          {paginatedData.length === 0 && (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium">No documents found</h3>
-              <p className="text-muted-foreground">
-                Try adjusting your search criteria or filters
-              </p>
-            </div>
-          )}
-          </div>
-          
-          {/* Pagination Controls - Sticky at bottom of card */}
-          {filteredDocuments.length > 0 && (
-            <div className="sticky bottom-0 bg-background border-t border-border">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                pageSize={pageSize}
-                totalItems={totalItems}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                pageSizeOptions={[5, 10, 25, 50, 100]}
-              />
+              </div>
+              
+              {paginatedData.length === 0 && (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium">No documents found</h3>
+                  <p className="text-muted-foreground">
+                    Try adjusting your search criteria or filters
+                  </p>
+                </div>
+              )}
+              
+              {/* Pagination for grid view */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  pageSize={pageSize}
+                  totalItems={totalItems}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                  pageSizeOptions={[5, 10, 25, 50, 100]}
+                  className="border-t"
+                />
+              )}
             </div>
           )}
         </CardContent>

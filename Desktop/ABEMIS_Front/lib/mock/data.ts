@@ -286,7 +286,7 @@ export const navigationItems: NavItem[] = [
   },
   {
     title: 'Settings',
-    href: '/settings',
+    href: '/profile',
     icon: 'Settings',
     roles: ['admin', 'superadmin', 'RAED', 'EPDSD', 'PPMD', 'SEPD'],
   },

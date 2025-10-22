@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* Default Theme */
+  :root, .theme-default {
     --background: 0 0% 100%;
     --foreground: 0 0% 9%;
     --card: 0 0% 100%;
@@ -46,6 +47,127 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
+  }
+
+  /* Red Theme */
+  .theme-red {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 0 84% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84% 60%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 84% 60%;
+  }
+
+  .theme-red.dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 84% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 84% 60%;
+  }
+
+  /* Rose Theme */
+  .theme-rose {
+    --primary: 330 81% 60%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 330 81% 60%;
+  }
+
+  .theme-rose.dark {
+    --primary: 330 81% 60%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 330 81% 60%;
+  }
+
+  /* Orange Theme */
+  .theme-orange {
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 25 95% 53%;
+  }
+
+  .theme-orange.dark {
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 25 95% 53%;
+  }
+
+  /* Green Theme */
+  .theme-green {
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 142 76% 36%;
+  }
+
+  .theme-green.dark {
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 142 76% 36%;
+  }
+
+  /* Blue Theme */
+  .theme-blue {
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 221 83% 53%;
+  }
+
+  .theme-blue.dark {
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 221 83% 53%;
+  }
+
+  /* Yellow Theme */
+  .theme-yellow {
+    --primary: 45 93% 47%;
+    --primary-foreground: 0 0% 9%;
+    --ring: 45 93% 47%;
+  }
+
+  .theme-yellow.dark {
+    --primary: 45 93% 47%;
+    --primary-foreground: 0 0% 9%;
+    --ring: 45 93% 47%;
+  }
+
+  /* Violet Theme */
+  .theme-violet {
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 262 83% 58%;
+  }
+
+  .theme-violet.dark {
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 262 83% 58%;
   }
 }
 
