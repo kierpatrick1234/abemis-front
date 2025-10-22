@@ -12,6 +12,7 @@ import { InfraProjectModal } from '@/components/infra-project-modal'
 import { SuccessToast } from '@/components/success-toast'
 import { ProjectDetailsModal } from '@/components/project-details-modal'
 import { ProjectPackageModal } from '@/components/project-package-modal'
+import { InventoryProjectModal } from '@/components/inventory-project-modal'
 import { Pagination, usePagination } from '@/components/pagination'
 import { mockProjects } from '@/lib/mock/data'
 import { formatDate } from '@/lib/utils'
@@ -25,6 +26,7 @@ export default function ProjectsPage() {
   const [stageFilter, setStageFilter] = useState('all')
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false)
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false)
+  const [isInventoryProjectModalOpen, setIsInventoryProjectModalOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Type filter options with icons and colors
@@ -417,10 +419,16 @@ export default function ProjectsPage() {
             Manage infrastructure and FMR projects
           </p>
         </div>
-        <Button onClick={() => setIsNewProjectModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Project
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsNewProjectModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Project
+          </Button>
+          <Button variant="outline" onClick={() => setIsInventoryProjectModalOpen(true)}>
+            <Package className="h-4 w-4 mr-2" />
+            Add Inventory Project
+          </Button>
+        </div>
       </div>
 
       {/* Compact Filters */}
@@ -891,6 +899,13 @@ export default function ProjectsPage() {
           setShowIndividualProjectDetails(false)
           setSelectedIndividualProject(null)
         }}
+      />
+
+      {/* Inventory Project Modal */}
+      <InventoryProjectModal
+        isOpen={isInventoryProjectModalOpen}
+        onClose={() => setIsInventoryProjectModalOpen(false)}
+        onProjectCreate={handleCreateProject}
       />
     </div>
   )
