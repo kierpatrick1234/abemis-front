@@ -47,8 +47,9 @@ export default function FormBuilderDetailPage() {
   const [activeTab, setActiveTab] = useState('builder')
   const [isPreviewMode, setIsPreviewMode] = useState(false)
 
-  // Redirect if not admin
-  if (user?.role !== 'admin') {
+  // Redirect if user doesn't have form builder access
+  const allowedRoles = ['admin', 'manager', 'engineer']
+  if (!user || !allowedRoles.includes(user.role)) {
     router.push('/dashboard')
     return null
   }

@@ -60,8 +60,9 @@ export default function FormBuilderPage() {
   const router = useRouter()
   const [selectedFormType, setSelectedFormType] = useState<string | null>(null)
 
-  // Redirect if not admin
-  if (user?.role !== 'admin') {
+  // Redirect if user doesn't have form builder access
+  const allowedRoles = ['admin', 'manager', 'engineer']
+  if (!user || !allowedRoles.includes(user.role)) {
     router.push('/dashboard')
     return null
   }
