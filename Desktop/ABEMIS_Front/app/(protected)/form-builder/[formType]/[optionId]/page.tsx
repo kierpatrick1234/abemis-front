@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ArrowLeft, Eye, Save, Plus } from 'lucide-react'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { FormBuilderInterface } from '@/components/form-builder-interface'
@@ -63,6 +64,43 @@ export default function FormBuilderDetailPage() {
   if (!user || user.role !== 'admin') {
     router.push('/dashboard')
     return null
+  }
+
+  const getBreadcrumbs = () => {
+    const breadcrumbs = [
+      { label: 'Form Builder', href: '/form-builder' }
+    ]
+    
+    // Add category breadcrumb
+    const categoryMap: Record<string, string> = {
+      'project-configuration': 'Project Configuration',
+      'user-configuration': 'User Configuration',
+      'system-configuration': 'System Configuration'
+    }
+    
+    if (formType && categoryMap[formType as string]) {
+      breadcrumbs.push({ label: categoryMap[formType as string], href: null })
+    }
+    
+    // Add subcategory breadcrumb
+    const subcategoryMap: Record<string, string> = {
+      'project-types': 'Project Types',
+      'project-stages': 'Project Stages',
+      'registration-forms': 'Registration Forms',
+      'required-documents': 'Required Documents',
+      'user-roles': 'User Roles',
+      'permissions': 'Permissions',
+      'access-control': 'Access Control',
+      'notifications': 'Notifications',
+      'announcements': 'Announcements',
+      'system-settings': 'System Settings'
+    }
+    
+    if (optionId && subcategoryMap[optionId as string]) {
+      breadcrumbs.push({ label: subcategoryMap[optionId as string], href: null })
+    }
+    
+    return breadcrumbs
   }
 
   useEffect(() => {
@@ -191,6 +229,9 @@ export default function FormBuilderDetailPage() {
 
   return (
     <div className="space-y-6">
+      {/* Breadcrumbs */}
+      <Breadcrumbs items={getBreadcrumbs()} />
+      
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button 

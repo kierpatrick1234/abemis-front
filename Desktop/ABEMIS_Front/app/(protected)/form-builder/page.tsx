@@ -4,53 +4,120 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Building2, Truck, Package, Wrench } from 'lucide-react'
+import { Breadcrumbs } from '@/components/breadcrumbs'
+import { 
+  Building2, 
+  Truck, 
+  Package, 
+  Wrench, 
+  Settings, 
+  Users, 
+  Cog,
+  ChevronRight,
+  Plus,
+  Edit,
+  Trash2,
+  Eye
+} from 'lucide-react'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 
-const formTypes = [
+const formCategories = [
   {
-    id: 'infrastructure',
-    title: 'Infrastructure',
-    description: 'Build and customize infrastructure project forms',
+    id: 'project-configuration',
+    title: 'Project Configuration',
+    description: 'Manage project types, stages, and registration forms',
     icon: Building2,
     color: 'bg-blue-500',
-    options: [
-      { id: 'infra-registration', title: 'Infra Registration Form', description: 'Customize the infrastructure registration form' },
-      { id: 'infra-stages', title: 'Infra Stages', description: 'Configure infrastructure project stages and workflow' }
+    subcategories: [
+      {
+        id: 'project-types',
+        title: 'Project Types',
+        description: 'Add, edit, or remove project types (Infrastructure, Machinery, FMR, etc.)',
+        icon: Package,
+        color: 'bg-blue-100 text-blue-700'
+      },
+      {
+        id: 'project-stages',
+        title: 'Project Stages',
+        description: 'Configure stages and workflow for each project type',
+        icon: Wrench,
+        color: 'bg-green-100 text-green-700'
+      },
+      {
+        id: 'registration-forms',
+        title: 'Registration Forms',
+        description: 'Customize registration forms for each project type',
+        icon: Edit,
+        color: 'bg-purple-100 text-purple-700'
+      },
+      {
+        id: 'required-documents',
+        title: 'Required Documents',
+        description: 'Configure necessary documents for each project stage',
+        icon: Package,
+        color: 'bg-orange-100 text-orange-700'
+      }
     ]
   },
   {
-    id: 'machinery',
-    title: 'Machinery',
-    description: 'Build and customize machinery project forms',
-    icon: Truck,
+    id: 'user-configuration',
+    title: 'User Configuration',
+    description: 'Manage user roles, permissions, and access control',
+    icon: Users,
     color: 'bg-green-500',
-    options: [
-      { id: 'machinery-registration', title: 'Machinery Registration Form', description: 'Customize the machinery registration form' },
-      { id: 'machinery-stages', title: 'Machinery Stages', description: 'Configure machinery project stages and workflow' }
+    subcategories: [
+      {
+        id: 'user-roles',
+        title: 'User Roles',
+        description: 'Create and manage user roles (Admin, Manager, Engineer, etc.)',
+        icon: Users,
+        color: 'bg-blue-100 text-blue-700'
+      },
+      {
+        id: 'permissions',
+        title: 'Permissions',
+        description: 'Configure permissions for each role and feature',
+        icon: Settings,
+        color: 'bg-red-100 text-red-700'
+      },
+      {
+        id: 'access-control',
+        title: 'Access Control',
+        description: 'Set up access rules and restrictions',
+        icon: Cog,
+        color: 'bg-yellow-100 text-yellow-700'
+      }
     ]
   },
   {
-    id: 'fmr',
-    title: 'FMR',
-    description: 'Build and customize FMR project forms',
-    icon: Wrench,
-    color: 'bg-orange-500',
-    options: [
-      { id: 'fmr-registration', title: 'FMR Registration Form', description: 'Customize the FMR registration form' },
-      { id: 'fmr-stages', title: 'FMR Stages', description: 'Configure FMR project stages and workflow' }
-    ]
-  },
-  {
-    id: 'package-project',
-    title: 'Package Project',
-    description: 'Build and customize package project forms',
-    icon: Package,
+    id: 'system-configuration',
+    title: 'System Configuration',
+    description: 'Configure system-wide settings and notifications',
+    icon: Cog,
     color: 'bg-purple-500',
-    options: [
-      { id: 'package-registration', title: 'Package Registration Form', description: 'Customize the package project registration form' },
-      { id: 'package-stages', title: 'Package Stages', description: 'Configure package project stages and workflow' }
+    subcategories: [
+      {
+        id: 'notifications',
+        title: 'Notifications',
+        description: 'Configure notification settings and templates',
+        icon: Settings,
+        color: 'bg-blue-100 text-blue-700'
+      },
+      {
+        id: 'announcements',
+        title: 'Announcements',
+        description: 'Manage system announcements and popups',
+        icon: Edit,
+        color: 'bg-green-100 text-green-700'
+      },
+      {
+        id: 'system-settings',
+        title: 'System Settings',
+        description: 'Configure general system preferences',
+        icon: Cog,
+        color: 'bg-gray-100 text-gray-700'
+      }
     ]
   }
 ]
@@ -58,7 +125,8 @@ const formTypes = [
 export default function FormBuilderPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const [selectedFormType, setSelectedFormType] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null)
 
   // Show loading while auth is being checked
   if (loading) {
@@ -78,92 +146,183 @@ export default function FormBuilderPage() {
     return null
   }
 
-  const handleFormTypeSelect = (formType: string) => {
-    setSelectedFormType(formType)
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId)
+    setSelectedSubcategory(null)
   }
 
-  const handleOptionSelect = (formType: string, optionId: string) => {
-    // Navigate to the specific form builder
-    router.push(`/form-builder/${formType}/${optionId}`)
+  const handleSubcategorySelect = (subcategoryId: string) => {
+    setSelectedSubcategory(subcategoryId)
+    // Navigate to the specific configuration page
+    router.push(`/form-builder/${selectedCategory}/${subcategoryId}`)
+  }
+
+  const handleBack = () => {
+    if (selectedSubcategory) {
+      setSelectedSubcategory(null)
+    } else if (selectedCategory) {
+      setSelectedCategory(null)
+    }
+  }
+
+  const getBreadcrumbs = () => {
+    const breadcrumbs = [
+      { label: 'Form Builder', href: '/form-builder' }
+    ]
+    
+    if (selectedCategory) {
+      const category = formCategories.find(c => c.id === selectedCategory)
+      if (category) {
+        breadcrumbs.push({ label: category.title, href: null })
+      }
+    }
+    
+    if (selectedSubcategory && selectedCategory) {
+      const category = formCategories.find(c => c.id === selectedCategory)
+      const subcategory = category?.subcategories.find(s => s.id === selectedSubcategory)
+      if (subcategory) {
+        breadcrumbs.push({ label: subcategory.title, href: null })
+      }
+    }
+    
+    return breadcrumbs
   }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Form Builder</h1>
         <p className="text-muted-foreground">
-          Create and customize forms for different project types. Select a project type to get started.
+          Configure and customize system settings, project types, and user management.
         </p>
       </div>
 
-      {!selectedFormType ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {formTypes.map((formType) => {
-            const Icon = formType.icon
+      {/* Breadcrumbs */}
+      <Breadcrumbs items={getBreadcrumbs()} />
+
+      {/* Main Content */}
+      {!selectedCategory ? (
+        // Category Selection
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {formCategories.map((category) => {
+            const Icon = category.icon
             return (
               <Card 
-                key={formType.id} 
-                className="cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => handleFormTypeSelect(formType.id)}
+                key={category.id} 
+                className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                onClick={() => handleCategorySelect(category.id)}
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${formType.color} text-white`}>
-                      <Icon className="h-6 w-6" />
+                <CardHeader className="pb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className={`p-3 rounded-lg ${category.color} text-white`}>
+                      <Icon className="h-8 w-8" />
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{formType.title}</CardTitle>
-                      <CardDescription className="text-sm">
-                        {formType.description}
+                    <div className="flex-1">
+                      <CardTitle className="text-xl">{category.title}</CardTitle>
+                      <CardDescription className="text-sm mt-1">
+                        {category.description}
                       </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="outline" className="w-full">
-                    Select Form Type
+                  <Button variant="outline" className="w-full group">
+                    <span>Configure</span>
+                    <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </CardContent>
               </Card>
             )
           })}
         </div>
-      ) : (
+      ) : !selectedSubcategory ? (
+        // Subcategory Selection
         <div className="space-y-6">
           <div className="flex items-center space-x-4">
             <Button 
               variant="outline" 
-              onClick={() => setSelectedFormType(null)}
+              onClick={handleBack}
               className="flex items-center space-x-2"
             >
-              ← Back to Form Types
+              ← Back to Categories
             </Button>
             <Badge variant="secondary" className="text-sm">
-              {formTypes.find(ft => ft.id === selectedFormType)?.title}
+              {formCategories.find(c => c.id === selectedCategory)?.title}
             </Badge>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {formTypes
-              .find(ft => ft.id === selectedFormType)
-              ?.options.map((option) => (
-                <Card 
-                  key={option.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => handleOptionSelect(selectedFormType, option.id)}
-                >
-                  <CardHeader>
-                    <CardTitle className="text-lg">{option.title}</CardTitle>
-                    <CardDescription>{option.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full">
-                      Configure Form
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+            {formCategories
+              .find(c => c.id === selectedCategory)
+              ?.subcategories.map((subcategory) => {
+                const Icon = subcategory.icon
+                return (
+                  <Card 
+                    key={subcategory.id}
+                    className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                    onClick={() => handleSubcategorySelect(subcategory.id)}
+                  >
+                    <CardHeader>
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg ${subcategory.color}`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{subcategory.title}</CardTitle>
+                          <CardDescription className="text-sm">
+                            {subcategory.description}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex space-x-2">
+                        <Button className="flex-1">
+                          <Eye className="h-4 w-4 mr-2" />
+                          Configure
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
           </div>
+        </div>
+      ) : (
+        // Subcategory Details (This would be handled by the dynamic route)
+        <div className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <Button 
+              variant="outline" 
+              onClick={handleBack}
+              className="flex items-center space-x-2"
+            >
+              ← Back to Subcategories
+            </Button>
+            <Badge variant="secondary" className="text-sm">
+              {formCategories
+                .find(c => c.id === selectedCategory)
+                ?.subcategories.find(s => s.id === selectedSubcategory)?.title}
+            </Badge>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuration Panel</CardTitle>
+              <CardDescription>
+                This area will be handled by the dynamic route component.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Redirecting to configuration page...
+              </p>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
