@@ -56,13 +56,24 @@ const formTypes = [
 ]
 
 export default function FormBuilderPage() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const [selectedFormType, setSelectedFormType] = useState<string | null>(null)
 
-  // Redirect if user doesn't have form builder access
-  const allowedRoles = ['admin', 'manager', 'engineer']
-  if (!user || !allowedRoles.includes(user.role)) {
+  // Show loading while auth is being checked
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect if not admin
+  if (!user || user.role !== 'admin') {
     router.push('/dashboard')
     return null
   }
