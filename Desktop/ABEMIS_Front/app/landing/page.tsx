@@ -29,6 +29,7 @@ import {
 import { AbemisLogo } from '@/components/abemis-logo'
 import { Design4 } from '@/components/design4'
 import { Design5 } from '@/components/design5'
+import { Chatbot } from '@/components/chatbot'
 import { mockProjects } from '@/lib/mock/data'
 import { Project } from '@/lib/types'
 
@@ -451,6 +452,9 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Chatbot */}
+      <Chatbot />
     </div>
   )
 }

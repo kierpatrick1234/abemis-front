@@ -4,6 +4,7 @@ import './globals.css'
 import { AuthProvider } from '@/lib/contexts/auth-context'
 import { ThemeProvider } from '@/lib/providers/theme-provider'
 import { ThemeProvider as ColorThemeProvider } from '@/lib/contexts/theme-context'
+import { ChatbotProvider } from '@/lib/contexts/chatbot-context'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -28,7 +29,9 @@ export default function RootLayout({
         >
           <ColorThemeProvider>
             <AuthProvider>
-              {children}
+              <ChatbotProvider>
+                {children}
+              </ChatbotProvider>
             </AuthProvider>
           </ColorThemeProvider>
         </ThemeProvider>

@@ -107,7 +107,7 @@ const bannerPrograms = [
 const fundingYears = ['2024', '2025', '2026', '2027']
 
 // Philippine location data
-const regions = [
+/*const regions = [
   'National Capital Region (NCR)',
   'Region I - Ilocos Region',
   'Region II - Cagayan Valley',
@@ -413,7 +413,7 @@ const barangays = [
   'Barangay 19',
   'Barangay 20'
 ]
-
+*/
 // Required documents for infrastructure projects (from proposal stage)
 const requiredDocuments = [
   {

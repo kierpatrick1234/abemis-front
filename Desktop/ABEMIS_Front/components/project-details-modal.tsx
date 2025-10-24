@@ -62,7 +62,7 @@ export function ProjectDetailsModal({ project, isOpen, onClose }: ProjectDetails
                 </div>
                 {project.assignedTo && (
                   <div className="space-y-2 text-right">
-                    <h4 className="font-medium text-sm text-muted-foreground">Assigned To</h4>
+                    <h4 className="font-medium text-sm text-muted-foreground">Created by:</h4>
                     <div className="flex items-center justify-end gap-2">
                       <User className="h-4 w-4" />
                       <span className="text-sm">{project.assignedTo}</span>

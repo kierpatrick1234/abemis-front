@@ -1193,132 +1193,252 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
           )}
 
           {currentStep === 5 && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Project Summary</h3>
-                <p className="text-sm text-muted-foreground">Review all information before submitting your project</p>
+            <div className="space-y-8">
+              {/* Enhanced Header */}
+              <div className="text-center bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-6 border border-primary/20">
+                <div className="flex items-center justify-center mb-3">
+                  <Wrench className="h-8 w-8 text-primary mr-3" />
+                  <h3 className="text-xl font-bold text-primary">Machinery Project Summary</h3>
+                </div>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  Review all information before submitting your machinery project
+                </p>
               </div>
 
               {/* Step 1: Project Description Summary */}
-              <div className="bg-muted/30 rounded-lg p-4">
-                <h4 className="font-semibold mb-3 text-primary">1. Project Description</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">Classification:</span>
-                    <p className="text-muted-foreground">{projectClassification || 'Not specified'}</p>
+              <div className="bg-white border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                    <FileText className="h-4 w-4 text-primary" />
                   </div>
-                  <div>
-                    <span className="font-medium">Type:</span>
-                    <p className="text-muted-foreground">{projectType || 'Not specified'}</p>
+                  <h4 className="text-lg font-semibold text-primary">1. Project Description</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">Classification:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{projectClassification || 'Not specified'}</p>
+                    </div>
                   </div>
-                  <div className="md:col-span-2">
-                    <span className="font-medium">Title:</span>
-                    <p className="text-muted-foreground">{projectTitle || 'Not specified'}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">Type:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{projectType || 'Not specified'}</p>
+                    </div>
                   </div>
-                  <div className="md:col-span-2">
-                    <span className="font-medium">Description:</span>
-                    <p className="text-muted-foreground">{projectDescription || 'Not specified'}</p>
+                  <div className="md:col-span-2 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">Title:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{projectTitle || 'Not specified'}</p>
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">Description:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground leading-relaxed">{projectDescription || 'Not specified'}</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Step 2: Budget Source Summary */}
-              <div className="bg-muted/30 rounded-lg p-4">
-                <h4 className="font-semibold mb-3 text-primary">2. Budget Source</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">Implementation Days:</span>
-                    <p className="text-muted-foreground">{implementationDays || 'Not specified'}</p>
+              <div className="bg-white border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <DollarSign className="h-4 w-4 text-green-600" />
                   </div>
-                  <div>
-                    <span className="font-medium">PREXC Program:</span>
-                    <p className="text-muted-foreground">{prexcProgram || 'Not specified'}</p>
+                  <h4 className="text-lg font-semibold text-primary">2. Budget & Funding Information</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">Implementation Days:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{implementationDays || 'Not specified'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium">PREXC Sub Program:</span>
-                    <p className="text-muted-foreground">{prexcSubProgram || 'Not specified'}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">PREXC Program:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{prexcProgram || 'Not specified'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium">Budget Process:</span>
-                    <p className="text-muted-foreground">{budgetProcess || 'Not specified'}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">PREXC Sub Program:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{prexcSubProgram || 'Not specified'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium">Fund Source:</span>
-                    <p className="text-muted-foreground">{proposedFundSource || 'Not specified'}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Banknote className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">Budget Process:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{budgetProcess || 'Not specified'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium">Source Agency:</span>
-                    <p className="text-muted-foreground">{sourceAgency || 'Not specified'}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">Fund Source:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{proposedFundSource || 'Not specified'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium">Banner Program:</span>
-                    <p className="text-muted-foreground">{bannerProgram || 'Not specified'}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">Source Agency:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{sourceAgency || 'Not specified'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium">Funding Year:</span>
-                    <p className="text-muted-foreground">{fundingYear || 'Not specified'}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">Banner Program:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{bannerProgram || 'Not specified'}</p>
+                    </div>
                   </div>
-                  <div className="md:col-span-2">
-                    <span className="font-medium">Allocated Amount:</span>
-                    <p className="text-muted-foreground">{allocatedAmount ? `₱${parseFloat(allocatedAmount).toLocaleString()}` : 'Not specified'}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">Funding Year:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{fundingYear || 'Not specified'}</p>
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-foreground">Allocated Amount:</span>
+                    </div>
+                    <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                      <p className="text-sm font-bold text-green-700">
+                        {allocatedAmount ? `₱${parseFloat(allocatedAmount).toLocaleString()}` : 'Not specified'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Step 3: Location Summary */}
-              <div className="bg-muted/30 rounded-lg p-4">
-                <h4 className="font-semibold mb-3 text-primary">3. Location</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">Region:</span>
-                    <p className="text-muted-foreground">{locationData.regions.find(r => r.code === selection.region)?.name || 'Not specified'}</p>
+              <div className="bg-white border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                    <MapPin className="h-4 w-4 text-blue-600" />
                   </div>
-                  <div>
-                    <span className="font-medium">Province:</span>
-                    <p className="text-muted-foreground">{locationData.provinces.find(p => p.code === selection.province)?.name || 'Not specified'}</p>
+                  <h4 className="text-lg font-semibold text-primary">3. Project Location</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">Region:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{locationData.regions.find(r => r.code === selection.region)?.name || 'Not specified'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium">Municipality/City:</span>
-                    <p className="text-muted-foreground">
-                      {(() => {
-                        const selectedCity = locationData.cities.find(c => c.code === selection.city)
-                        if (!selectedCity) return 'Not specified'
-                        return `${selectedCity.name} ${selectedCity.type ? `(${selectedCity.type})` : ''}`
-                      })()}
-                    </p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">Province:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{locationData.provinces.find(p => p.code === selection.province)?.name || 'Not specified'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium">District:</span>
-                    <p className="text-muted-foreground">{district || 'Not specified'}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">Municipality/City:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">
+                        {(() => {
+                          const selectedCity = locationData.cities.find(c => c.code === selection.city)
+                          if (!selectedCity) return 'Not specified'
+                          return `${selectedCity.name} ${selectedCity.type ? `(${selectedCity.type})` : ''}`
+                        })()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="md:col-span-2">
-                    <span className="font-medium">Barangay:</span>
-                    <p className="text-muted-foreground">{locationData.barangays.find(b => b.code === selection.barangay)?.name || 'Not specified'}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">District:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{district || 'Not specified'}</p>
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">Barangay:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{locationData.barangays.find(b => b.code === selection.barangay)?.name || 'Not specified'}</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Step 4: Document Upload Summary */}
-              <div className="bg-muted/30 rounded-lg p-4">
-                <h4 className="font-semibold mb-3 text-primary">4. Document Upload</h4>
-                <div className="text-sm">
-                  <span className="font-medium">Uploaded Documents:</span>
+              <div className="bg-white border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
+                    <Upload className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-primary">4. Document Upload</h4>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">Uploaded Documents:</span>
+                    <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full font-medium">
+                      {documents.length} file{documents.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
                   {documents.length > 0 ? (
-                    <div className="mt-2 space-y-2">
+                    <div className="space-y-3">
                       {documents.map((doc) => (
-                        <div key={doc.id} className="flex items-center justify-between p-2 bg-background rounded border">
-                          <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <span className="font-medium">{doc.label || doc.file.name}</span>
-                            <span className="text-xs text-muted-foreground">({(doc.file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                        <div key={doc.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors duration-200">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm text-foreground">{doc.label || doc.file.name}</p>
+                              <p className="text-xs text-muted-foreground">{(doc.file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
                           </div>
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground mt-2">No documents uploaded</p>
+                    <div className="text-center py-8 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/30">
+                      <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No documents uploaded</p>
+                    </div>
                   )}
                 </div>
               </div>
