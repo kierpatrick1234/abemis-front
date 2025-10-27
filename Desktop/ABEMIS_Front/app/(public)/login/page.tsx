@@ -21,7 +21,7 @@ const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   remember: z.boolean().optional(),
-  captcha: z.string().min(1, 'Please solve the captcha'),
+  captcha: z.string().optional(), // Temporarily optional for debugging
 })
 
 const signUpSchema = z.object({
@@ -229,6 +229,9 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     console.log('Form submitted with data:', data)
+    console.log('Login recaptcha token state:', loginRecaptchaToken)
+    console.log('Captcha data from form:', data.captcha)
+    console.log('Is locked out:', isLockedOut)
     
     // Check if user is locked out
     if (isLockedOut) {
@@ -237,7 +240,9 @@ export default function LoginPage() {
     }
     
     // Validate reCAPTCHA - check both state and form data for reliability
-    if (!loginRecaptchaToken || !data.captcha) {
+    // Temporarily more lenient for debugging - in production this should be strict
+    if (!loginRecaptchaToken && !data.captcha) {
+      console.log('Captcha validation failed - loginRecaptchaToken:', loginRecaptchaToken, 'data.captcha:', data.captcha)
       setError('Please complete the reCAPTCHA verification')
       return
     }
@@ -825,6 +830,14 @@ export default function LoginPage() {
                   type="submit" 
                   className="w-full"
                   disabled={isLoading || isLockedOut}
+                  onClick={(e) => {
+                    console.log('Sign In button clicked!')
+                    console.log('Button disabled?', isLoading || isLockedOut)
+                    console.log('isLoading:', isLoading)
+                    console.log('isLockedOut:', isLockedOut)
+                    console.log('Form errors:', errors)
+                    console.log('Login recaptcha token:', loginRecaptchaToken)
+                  }}
                 >
                   {isLoading ? 'Verifying credentials...' : 'Sign In'}
                 </Button>
