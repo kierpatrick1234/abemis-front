@@ -37,6 +37,9 @@ const signUpSchema = z.object({
       'Password must contain letters, numbers, and special characters'),
   confirmPassword: z.string(),
   captcha: z.string().min(1, 'Please solve the captcha'),
+  acceptTerms: z.boolean().refine((val) => val === true, {
+    message: 'You must accept the terms and conditions to proceed',
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -75,6 +78,10 @@ export default function LoginPage() {
   // reCAPTCHA state
   const [loginRecaptchaToken, setLoginRecaptchaToken] = useState<string | null>(null)
   const [signupRecaptchaToken, setSignupRecaptchaToken] = useState<string | null>(null)
+  
+  // Terms and conditions state
+  const [showTermsModal, setShowTermsModal] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   
   const { user, loading, signIn } = useAuth()
   const router = useRouter()
@@ -444,6 +451,7 @@ export default function LoginPage() {
             {isSignUp ? (
               <form onSubmit={handleSignUpSubmit(onSignUpSubmit)} className="space-y-6">
                 <input type="hidden" {...registerSignUp('captcha')} value={signupRecaptchaToken || ''} />
+                <input type="hidden" {...registerSignUp('acceptTerms')} value={acceptedTerms.toString()} />
                 {/* Personal Information Section */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium text-foreground">Personal Information</h3>
@@ -624,6 +632,36 @@ export default function LoginPage() {
                   error={signUpErrors.captcha?.message}
                 />
 
+                {/* Terms and Conditions */}
+                <div className="space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <Checkbox 
+                      id="acceptTerms" 
+                      checked={acceptedTerms}
+                      onCheckedChange={(checked) => {
+                        setAcceptedTerms(checked as boolean)
+                        registerSignUp('acceptTerms').onChange({ target: { value: checked } })
+                      }}
+                      className="mt-1"
+                    />
+                    <Label htmlFor="acceptTerms" className="text-sm leading-5 cursor-pointer">
+                      I accept the{' '}
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="p-0 h-auto text-sm text-primary underline"
+                        onClick={() => setShowTermsModal(true)}
+                      >
+                        Terms and Conditions
+                      </Button>
+                      {' '}for registering *
+                    </Label>
+                  </div>
+                  {signUpErrors.acceptTerms && (
+                    <p className="text-sm text-red-600 ml-6">{signUpErrors.acceptTerms.message}</p>
+                  )}
+                </div>
+
                 {error && (
                   <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
                     {error}
@@ -641,6 +679,7 @@ export default function LoginPage() {
                       setError(null)
                       setSignUpEmailValidationStatus('idle')
                       setSignupRecaptchaToken(null)
+                      setAcceptedTerms(false)
                     }}
                   >
                     Cancel
@@ -648,7 +687,7 @@ export default function LoginPage() {
                   <Button 
                     type="submit" 
                     className="flex-1"
-                    disabled={isLoading || signUpEmailValidationStatus === 'invalid' || signUpEmailValidationStatus === 'exists' || !signupRecaptchaToken}
+                    disabled={isLoading || signUpEmailValidationStatus === 'invalid' || signUpEmailValidationStatus === 'exists' || !signupRecaptchaToken || !acceptedTerms}
                   >
                     {isLoading ? 'Creating account...' : 'Create Account'}
                   </Button>
@@ -773,6 +812,7 @@ export default function LoginPage() {
                         setError(null)
                         setSignUpEmailValidationStatus('idle')
                         setSignupRecaptchaToken(null)
+                        setAcceptedTerms(false)
                       }}
                       className="p-0 h-auto font-normal"
                     >
@@ -788,6 +828,7 @@ export default function LoginPage() {
                         setIsSignUp(true)
                         setSignUpEmailValidationStatus('idle')
                         setLoginRecaptchaToken(null)
+                        setAcceptedTerms(false)
                       }}
                       className="p-0 h-auto font-normal"
                     >
@@ -937,6 +978,81 @@ export default function LoginPage() {
                   {forgotPasswordLoading ? 'Sending...' : 'Send Reset Link'}
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Terms and Conditions Modal */}
+        <Dialog open={showTermsModal} onOpenChange={setShowTermsModal}>
+          <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Terms and Conditions</DialogTitle>
+              <DialogDescription>
+                Please read and understand the terms and conditions before registering.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 text-sm text-muted-foreground">
+              <div className="space-y-3">
+                <h3 className="text-base font-semibold text-foreground">1. Agreement to Terms</h3>
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                </p>
+
+                <h3 className="text-base font-semibold text-foreground">2. User Registration</h3>
+                <p>
+                  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                </p>
+                <p>
+                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+                </p>
+
+                <h3 className="text-base font-semibold text-foreground">3. Privacy Policy</h3>
+                <p>
+                  Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.
+                </p>
+                <p>
+                  Consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam.
+                </p>
+
+                <h3 className="text-base font-semibold text-foreground">4. Data Usage</h3>
+                <p>
+                  Nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.
+                </p>
+
+                <h3 className="text-base font-semibold text-foreground">5. Account Responsibilities</h3>
+                <p>
+                  At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.
+                </p>
+                <p>
+                  Similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio.
+                </p>
+
+                <h3 className="text-base font-semibold text-foreground">6. Termination</h3>
+                <p>
+                  Cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowTermsModal(false)}
+              >
+                Close
+              </Button>
+              <Button
+                type="button"
+                className="flex-1"
+                onClick={() => {
+                  setAcceptedTerms(true)
+                  registerSignUp('acceptTerms').onChange({ target: { value: true } })
+                  setShowTermsModal(false)
+                }}
+              >
+                Accept Terms
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
