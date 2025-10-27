@@ -23,6 +23,8 @@ declare global {
 
 interface GoogleRecaptchaProps {
   onVerify: (token: string | null) => void
+  onExpired?: () => void
+  onError?: () => void
   siteKey?: string
   error?: string
   className?: string
@@ -32,6 +34,8 @@ interface GoogleRecaptchaProps {
 
 export function GoogleRecaptcha({ 
   onVerify, 
+  onExpired,
+  onError,
   siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI", // Test site key fallback
   error,
   className,
@@ -84,10 +88,12 @@ export function GoogleRecaptcha({
             'expired-callback': () => {
               setIsVerified(false)
               onVerify(null)
+              onExpired?.()
             },
             'error-callback': () => {
               setIsVerified(false)
               onVerify(null)
+              onError?.()
             },
             theme,
             size
@@ -95,7 +101,7 @@ export function GoogleRecaptcha({
         }
       })
     }
-  }, [isLoaded, siteKey, onVerify, theme, size])
+  }, [isLoaded, siteKey, onVerify, onExpired, onError, theme, size])
 
   const resetCaptcha = () => {
     if (window.grecaptcha && widgetIdRef.current !== null) {

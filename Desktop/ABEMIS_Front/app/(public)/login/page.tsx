@@ -201,6 +201,7 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
     // reset,
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -235,8 +236,8 @@ export default function LoginPage() {
       return
     }
     
-    // Validate reCAPTCHA
-    if (!loginRecaptchaToken) {
+    // Validate reCAPTCHA - check both state and form data for reliability
+    if (!loginRecaptchaToken || !data.captcha) {
       setError('Please complete the reCAPTCHA verification')
       return
     }
@@ -273,6 +274,7 @@ export default function LoginPage() {
           setError(`${errorMessage} ${attemptsRemaining} attempt${attemptsRemaining > 1 ? 's' : ''} remaining before lockout.`)
           // Reset reCAPTCHA on failed login
           setLoginRecaptchaToken(null)
+          setValue('captcha', '')
         }
       }
     } catch (error) {
@@ -286,8 +288,8 @@ export default function LoginPage() {
   const onSignUpSubmit = async (data: SignUpForm) => {
     console.log('Sign up form submitted with data:', data)
     
-    // Validate reCAPTCHA
-    if (!signupRecaptchaToken) {
+    // Validate reCAPTCHA - check both state and form data for reliability
+    if (!signupRecaptchaToken || !data.captcha) {
       setError('Please complete the reCAPTCHA verification')
       return
     }
@@ -646,7 +648,17 @@ export default function LoginPage() {
                 <GoogleRecaptcha
                   onVerify={(token) => {
                     setSignupRecaptchaToken(token)
-                    registerSignUp('captcha').onChange({ target: { value: token || '' } })
+                    setValueSignUp('captcha', token || '')
+                  }}
+                  onExpired={() => {
+                    setSignupRecaptchaToken(null)
+                    setValueSignUp('captcha', '')
+                    setError('reCAPTCHA expired. Please verify again.')
+                  }}
+                  onError={() => {
+                    setSignupRecaptchaToken(null)
+                    setValueSignUp('captcha', '')
+                    setError('reCAPTCHA error. Please try again.')
                   }}
                   error={signUpErrors.captcha?.message}
                 />
@@ -694,6 +706,7 @@ export default function LoginPage() {
                       setError(null)
                       setSignUpEmailValidationStatus('idle')
                       setSignupRecaptchaToken(null)
+                      setValue('captcha', '')
                     }}
                   >
                     Cancel
@@ -756,7 +769,17 @@ export default function LoginPage() {
                 <GoogleRecaptcha
                   onVerify={(token) => {
                     setLoginRecaptchaToken(token)
-                    register('captcha').onChange({ target: { value: token || '' } })
+                    setValue('captcha', token || '')
+                  }}
+                  onExpired={() => {
+                    setLoginRecaptchaToken(null)
+                    setValue('captcha', '')
+                    setError('reCAPTCHA expired. Please verify again.')
+                  }}
+                  onError={() => {
+                    setLoginRecaptchaToken(null)
+                    setValue('captcha', '')
+                    setError('reCAPTCHA error. Please try again.')
                   }}
                   error={errors.captcha?.message}
                 />
@@ -821,6 +844,7 @@ export default function LoginPage() {
                         setError(null)
                         setSignUpEmailValidationStatus('idle')
                         setSignupRecaptchaToken(null)
+                        setValue('captcha', '')
                       }}
                       className="p-0 h-auto font-normal"
                     >
@@ -836,6 +860,7 @@ export default function LoginPage() {
                         setIsSignUp(true)
                         setSignUpEmailValidationStatus('idle')
                         setLoginRecaptchaToken(null)
+                        setValue('captcha', '')
                       }}
                       className="p-0 h-auto font-normal"
                     >
