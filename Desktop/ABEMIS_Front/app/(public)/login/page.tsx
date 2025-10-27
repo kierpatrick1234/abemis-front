@@ -15,11 +15,13 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { mockUsers } from '@/lib/mock/auth'
+import { GoogleRecaptcha } from '@/components/google-recaptcha'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   remember: z.boolean().optional(),
+  captcha: z.string().min(1, 'Please solve the captcha'),
 })
 
 const signUpSchema = z.object({
@@ -34,6 +36,7 @@ const signUpSchema = z.object({
     .regex(/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/, 
       'Password must contain letters, numbers, and special characters'),
   confirmPassword: z.string(),
+  captcha: z.string().min(1, 'Please solve the captcha'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -68,6 +71,10 @@ export default function LoginPage() {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false)
   const [forgotPasswordMessage, setForgotPasswordMessage] = useState('')
+  
+  // reCAPTCHA state
+  const [loginRecaptchaToken, setLoginRecaptchaToken] = useState<string | null>(null)
+  const [signupRecaptchaToken, setSignupRecaptchaToken] = useState<string | null>(null)
   
   const { user, loading, signIn } = useAuth()
   const router = useRouter()
@@ -217,6 +224,12 @@ export default function LoginPage() {
       return
     }
     
+    // Validate reCAPTCHA
+    if (!loginRecaptchaToken) {
+      setError('Please complete the reCAPTCHA verification')
+      return
+    }
+    
     setIsLoading(true)
     setError(null)
     
@@ -245,6 +258,8 @@ export default function LoginPage() {
           setError('Too many failed attempts. Account is locked for 2 minutes.')
         } else {
           setError(result.error || `Login failed. ${5 - newFailedAttempts} attempts remaining.`)
+          // Reset reCAPTCHA on failed login
+          setLoginRecaptchaToken(null)
         }
       }
     } catch (error) {
@@ -257,6 +272,13 @@ export default function LoginPage() {
 
   const onSignUpSubmit = async (data: SignUpForm) => {
     console.log('Sign up form submitted with data:', data)
+    
+    // Validate reCAPTCHA
+    if (!signupRecaptchaToken) {
+      setError('Please complete the reCAPTCHA verification')
+      return
+    }
+    
     setIsLoading(true)
     setError(null)
     
@@ -421,6 +443,7 @@ export default function LoginPage() {
           <CardContent>
             {isSignUp ? (
               <form onSubmit={handleSignUpSubmit(onSignUpSubmit)} className="space-y-6">
+                <input type="hidden" {...registerSignUp('captcha')} value={signupRecaptchaToken || ''} />
                 {/* Personal Information Section */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium text-foreground">Personal Information</h3>
@@ -593,6 +616,14 @@ export default function LoginPage() {
                   </div>
                 </div>
 
+                <GoogleRecaptcha
+                  onVerify={(token) => {
+                    setSignupRecaptchaToken(token)
+                    registerSignUp('captcha').onChange({ target: { value: token || '' } })
+                  }}
+                  error={signUpErrors.captcha?.message}
+                />
+
                 {error && (
                   <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
                     {error}
@@ -609,6 +640,7 @@ export default function LoginPage() {
                       resetSignUp()
                       setError(null)
                       setSignUpEmailValidationStatus('idle')
+                      setSignupRecaptchaToken(null)
                     }}
                   >
                     Cancel
@@ -616,7 +648,7 @@ export default function LoginPage() {
                   <Button 
                     type="submit" 
                     className="flex-1"
-                    disabled={isLoading || signUpEmailValidationStatus === 'invalid' || signUpEmailValidationStatus === 'exists'}
+                    disabled={isLoading || signUpEmailValidationStatus === 'invalid' || signUpEmailValidationStatus === 'exists' || !signupRecaptchaToken}
                   >
                     {isLoading ? 'Creating account...' : 'Create Account'}
                   </Button>
@@ -624,6 +656,7 @@ export default function LoginPage() {
               </form>
             ) : (
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <input type="hidden" {...register('captcha')} value={loginRecaptchaToken || ''} />
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -665,6 +698,14 @@ export default function LoginPage() {
                   )}
                 </div>
 
+                <GoogleRecaptcha
+                  onVerify={(token) => {
+                    setLoginRecaptchaToken(token)
+                    register('captcha').onChange({ target: { value: token || '' } })
+                  }}
+                  error={errors.captcha?.message}
+                />
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Checkbox id="remember" {...register('remember')} />
@@ -705,12 +746,13 @@ export default function LoginPage() {
                 <Button 
                   type="button" 
                   className="w-full"
-                  disabled={isLoading || isLockedOut}
+                  disabled={isLoading || isLockedOut || !loginRecaptchaToken}
                   onClick={() => {
                     const formData = new FormData(document.querySelector('form') as HTMLFormElement)
                     const email = formData.get('email') as string
                     const password = formData.get('password') as string
-                    onSubmit({ email, password, remember: false })
+                    const remember = formData.get('remember') === 'on'
+                    onSubmit({ email, password, remember, captcha: loginRecaptchaToken || '' })
                   }}
                 >
                   {isLoading ? 'Logging in...' : 'Login'}
@@ -730,6 +772,7 @@ export default function LoginPage() {
                         resetSignUp()
                         setError(null)
                         setSignUpEmailValidationStatus('idle')
+                        setSignupRecaptchaToken(null)
                       }}
                       className="p-0 h-auto font-normal"
                     >
@@ -744,6 +787,7 @@ export default function LoginPage() {
                       onClick={() => {
                         setIsSignUp(true)
                         setSignUpEmailValidationStatus('idle')
+                        setLoginRecaptchaToken(null)
                       }}
                       className="p-0 h-auto font-normal"
                     >

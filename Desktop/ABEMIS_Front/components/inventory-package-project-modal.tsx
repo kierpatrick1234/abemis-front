@@ -13,10 +13,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Card, CardContent } from '@/components/ui/card'
-import { Package, CheckCircle, Building2, Wrench, FileText, Plus, X } from 'lucide-react'
+import { Package, CheckCircle, Building2, Wrench, Plus, X } from 'lucide-react'
 import { InventoryInfraProjectModal } from './inventory-infra-project-modal'
 import { InventoryMachineryProjectModal } from './inventory-machinery-project-modal'
-import { InventoryFMRProjectModal } from './inventory-fmr-project-modal'
 
 interface InventoryPackageProjectModalProps {
   isOpen: boolean
@@ -26,7 +25,7 @@ interface InventoryPackageProjectModalProps {
 
 interface ProjectForm {
   id: string
-  type: 'Infrastructure' | 'Machinery' | 'FMR'
+  type: 'Infrastructure' | 'Machinery'
   title: string
   description: string
   data?: Record<string, unknown>
@@ -39,7 +38,6 @@ export function InventoryPackageProjectModal({ isOpen, onClose, onProjectCreate 
   const [projects, setProjects] = useState<ProjectForm[]>([])
   const [showInfraModal, setShowInfraModal] = useState(false)
   const [showMachineryModal, setShowMachineryModal] = useState(false)
-  const [showFMRModal, setShowFMRModal] = useState(false)
   const [editingProject, setEditingProject] = useState<ProjectForm | null>(null)
 
   const handleNext = () => {
@@ -54,7 +52,7 @@ export function InventoryPackageProjectModal({ isOpen, onClose, onProjectCreate 
     }
   }
 
-  const handleAddProject = (type: 'Infrastructure' | 'Machinery' | 'FMR') => {
+  const handleAddProject = (type: 'Infrastructure' | 'Machinery') => {
     const newProject: ProjectForm = {
       id: `project-${Date.now()}`,
       type,
@@ -70,8 +68,6 @@ export function InventoryPackageProjectModal({ isOpen, onClose, onProjectCreate 
       setShowInfraModal(true)
     } else if (type === 'Machinery') {
       setShowMachineryModal(true)
-    } else {
-      setShowFMRModal(true)
     }
   }
 
@@ -83,8 +79,6 @@ export function InventoryPackageProjectModal({ isOpen, onClose, onProjectCreate 
       setShowInfraModal(true)
     } else if (project.type === 'Machinery') {
       setShowMachineryModal(true)
-    } else {
-      setShowFMRModal(true)
     }
   }
 
@@ -103,7 +97,6 @@ export function InventoryPackageProjectModal({ isOpen, onClose, onProjectCreate 
     setEditingProject(null)
     setShowInfraModal(false)
     setShowMachineryModal(false)
-    setShowFMRModal(false)
   }
 
   const handleSubmit = () => {
@@ -117,8 +110,7 @@ export function InventoryPackageProjectModal({ isOpen, onClose, onProjectCreate 
       status: 'Inventory',
       packageProjects: {
         infrastructure: projects.filter(p => p.type === 'Infrastructure').length,
-        machinery: projects.filter(p => p.type === 'Machinery').length,
-        fmr: projects.filter(p => p.type === 'FMR').length
+        machinery: projects.filter(p => p.type === 'Machinery').length
       },
       individualProjects: projects.map(project => ({
         ...project.data,
@@ -157,7 +149,6 @@ export function InventoryPackageProjectModal({ isOpen, onClose, onProjectCreate 
     switch (type) {
       case 'Infrastructure': return <Building2 className="h-4 w-4" />
       case 'Machinery': return <Wrench className="h-4 w-4" />
-      case 'FMR': return <FileText className="h-4 w-4" />
       default: return <Package className="h-4 w-4" />
     }
   }
@@ -166,14 +157,13 @@ export function InventoryPackageProjectModal({ isOpen, onClose, onProjectCreate 
     switch (type) {
       case 'Infrastructure': return 'bg-blue-50 border-blue-200 text-blue-700'
       case 'Machinery': return 'bg-green-50 border-green-200 text-green-700'
-      case 'FMR': return 'bg-orange-50 border-orange-200 text-orange-700'
       default: return 'bg-gray-50 border-gray-200 text-gray-700'
     }
   }
 
   return (
     <>
-      <Dialog open={isOpen && !showInfraModal && !showMachineryModal && !showFMRModal} onOpenChange={handleClose}>
+      <Dialog open={isOpen && !showInfraModal && !showMachineryModal} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -243,15 +233,6 @@ export function InventoryPackageProjectModal({ isOpen, onClose, onProjectCreate 
                       <Wrench className="h-4 w-4" />
                       Add Machinery
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddProject('FMR')}
-                      className="flex items-center gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Add FMR
-                    </Button>
                   </div>
                 </div>
 
@@ -309,8 +290,7 @@ export function InventoryPackageProjectModal({ isOpen, onClose, onProjectCreate 
                     <p className="text-sm text-green-800">
                       <strong>Package Summary:</strong> {projects.length} project{projects.length > 1 ? 's' : ''} 
                       ({projects.filter(p => p.type === 'Infrastructure').length} Infrastructure, 
-                      {projects.filter(p => p.type === 'Machinery').length} Machinery, 
-                      {projects.filter(p => p.type === 'FMR').length} FMR)
+                      {projects.filter(p => p.type === 'Machinery').length} Machinery)
                     </p>
                   </div>
                 )}
@@ -369,15 +349,6 @@ export function InventoryPackageProjectModal({ isOpen, onClose, onProjectCreate 
         editingDraft={editingProject?.data}
       />
 
-      <InventoryFMRProjectModal
-        isOpen={showFMRModal}
-        onClose={() => {
-          setShowFMRModal(false)
-          setEditingProject(null)
-        }}
-        onProjectCreate={handleProjectFormSubmit}
-        editingDraft={editingProject?.data}
-      />
     </>
   )
 }

@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Card, CardContent } from '@/components/ui/card'
-import { Building2, Wrench, FileText } from 'lucide-react'
+import { Building2, Wrench } from 'lucide-react'
 import { InfraProjectModal } from './infra-project-modal'
 import { MachineryProjectModal } from './machinery-project-modal'
 
@@ -42,13 +42,6 @@ const projectTypes = [
     description: 'Machinery and equipment projects',
     icon: Wrench,
     color: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
-  },
-  {
-    id: 'fmr',
-    name: 'FMR project',
-    description: 'Farm-to-Market Road projects',
-    icon: FileText,
-    color: 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100'
   }
 ]
 
