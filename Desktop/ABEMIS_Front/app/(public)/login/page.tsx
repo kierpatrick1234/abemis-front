@@ -81,7 +81,6 @@ export default function LoginPage() {
   
   // Terms and conditions state
   const [showTermsModal, setShowTermsModal] = useState(false)
-  const [acceptedTerms, setAcceptedTerms] = useState(false)
   
   const { user, loading, signIn } = useAuth()
   const router = useRouter()
@@ -212,9 +211,14 @@ export default function LoginPage() {
     handleSubmit: handleSignUpSubmit,
     formState: { errors: signUpErrors },
     reset: resetSignUp,
+    watch: watchSignUp,
+    setValue: setValueSignUp,
   } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
   })
+
+  // Watch the acceptTerms field
+  const acceptedTerms = watchSignUp('acceptTerms')
 
   useEffect(() => {
     if (!loading && user) {
@@ -451,7 +455,6 @@ export default function LoginPage() {
             {isSignUp ? (
               <form onSubmit={handleSignUpSubmit(onSignUpSubmit)} className="space-y-6">
                 <input type="hidden" {...registerSignUp('captcha')} value={signupRecaptchaToken || ''} />
-                <input type="hidden" {...registerSignUp('acceptTerms')} value={acceptedTerms.toString()} />
                 {/* Personal Information Section */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium text-foreground">Personal Information</h3>
@@ -464,6 +467,7 @@ export default function LoginPage() {
                         id="firstName"
                         placeholder="Enter first name"
                         {...registerSignUp('firstName')}
+                        className={signUpErrors.firstName ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                       />
                       {signUpErrors.firstName && (
                         <p className="text-sm text-red-600">{signUpErrors.firstName.message}</p>
@@ -486,6 +490,7 @@ export default function LoginPage() {
                         id="lastName"
                         placeholder="Enter last name"
                         {...registerSignUp('lastName')}
+                        className={signUpErrors.lastName ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                       />
                       {signUpErrors.lastName && (
                         <p className="text-sm text-red-600">{signUpErrors.lastName.message}</p>
@@ -536,7 +541,11 @@ export default function LoginPage() {
                       <Label htmlFor="sex">Sex *</Label>
                       <select
                         id="sex"
-                        className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                        className={`w-full h-10 px-3 py-2 border bg-background rounded-md text-sm ${
+                          signUpErrors.sex 
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                            : 'border-input'
+                        }`}
                         {...registerSignUp('sex')}
                       >
                         <option value="">Select sex</option>
@@ -558,7 +567,11 @@ export default function LoginPage() {
                     <Label htmlFor="region">Region/Operating Unit *</Label>
                     <select
                       id="region"
-                      className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
+                      className={`w-full h-10 px-3 py-2 border bg-background rounded-md text-sm ${
+                        signUpErrors.region 
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                          : 'border-input'
+                      }`}
                       {...registerSignUp('region')}
                     >
                       <option value="">Select your region</option>
@@ -587,6 +600,7 @@ export default function LoginPage() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder="Create a strong password"
                         {...registerSignUp('password')}
+                        className={signUpErrors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                       />
                       <Button
                         type="button"
@@ -617,6 +631,7 @@ export default function LoginPage() {
                       type="password"
                       placeholder="Confirm your password"
                       {...registerSignUp('confirmPassword')}
+                      className={signUpErrors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                     />
                     {signUpErrors.confirmPassword && (
                       <p className="text-sm text-red-600">{signUpErrors.confirmPassword.message}</p>
@@ -637,11 +652,7 @@ export default function LoginPage() {
                   <div className="flex items-start space-x-2">
                     <Checkbox 
                       id="acceptTerms" 
-                      checked={acceptedTerms}
-                      onCheckedChange={(checked) => {
-                        setAcceptedTerms(checked as boolean)
-                        registerSignUp('acceptTerms').onChange({ target: { value: checked } })
-                      }}
+                      {...registerSignUp('acceptTerms')}
                       className="mt-1"
                     />
                     <Label htmlFor="acceptTerms" className="text-sm leading-5 cursor-pointer">
@@ -679,7 +690,6 @@ export default function LoginPage() {
                       setError(null)
                       setSignUpEmailValidationStatus('idle')
                       setSignupRecaptchaToken(null)
-                      setAcceptedTerms(false)
                     }}
                   >
                     Cancel
@@ -703,6 +713,7 @@ export default function LoginPage() {
                     type="email"
                     placeholder="Enter your email"
                     {...register('email')}
+                    className={errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                   />
                   {errors.email && (
                     <p className="text-sm text-red-600">{errors.email.message}</p>
@@ -717,6 +728,7 @@ export default function LoginPage() {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
                       {...register('password')}
+                      className={errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                     />
                     <Button
                       type="button"
@@ -783,16 +795,9 @@ export default function LoginPage() {
                 )}
 
                 <Button 
-                  type="button" 
+                  type="submit" 
                   className="w-full"
-                  disabled={isLoading || isLockedOut || !loginRecaptchaToken}
-                  onClick={() => {
-                    const formData = new FormData(document.querySelector('form') as HTMLFormElement)
-                    const email = formData.get('email') as string
-                    const password = formData.get('password') as string
-                    const remember = formData.get('remember') === 'on'
-                    onSubmit({ email, password, remember, captcha: loginRecaptchaToken || '' })
-                  }}
+                  disabled={isLoading || isLockedOut}
                 >
                   {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
@@ -812,7 +817,6 @@ export default function LoginPage() {
                         setError(null)
                         setSignUpEmailValidationStatus('idle')
                         setSignupRecaptchaToken(null)
-                        setAcceptedTerms(false)
                       }}
                       className="p-0 h-auto font-normal"
                     >
@@ -828,7 +832,6 @@ export default function LoginPage() {
                         setIsSignUp(true)
                         setSignUpEmailValidationStatus('idle')
                         setLoginRecaptchaToken(null)
-                        setAcceptedTerms(false)
                       }}
                       className="p-0 h-auto font-normal"
                     >
@@ -1046,8 +1049,7 @@ export default function LoginPage() {
                 type="button"
                 className="flex-1"
                 onClick={() => {
-                  setAcceptedTerms(true)
-                  registerSignUp('acceptTerms').onChange({ target: { value: true } })
+                  setValueSignUp('acceptTerms', true)
                   setShowTermsModal(false)
                 }}
               >
