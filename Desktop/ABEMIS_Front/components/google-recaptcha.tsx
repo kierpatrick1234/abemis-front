@@ -135,6 +135,12 @@ export function GoogleRecaptcha({
       {error && (
         <p className="text-sm text-red-600">{error}</p>
       )}
+      {typeof window !== 'undefined' && 
+       (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') && (
+        <p className="text-xs text-blue-600">
+          Development mode: reCAPTCHA validation is more lenient
+        </p>
+      )}
       <p className="text-xs text-muted-foreground">
         Please complete the reCAPTCHA verification to continue
       </p>

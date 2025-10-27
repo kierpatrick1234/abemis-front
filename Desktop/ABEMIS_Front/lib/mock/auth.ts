@@ -316,10 +316,13 @@ export function getSession(): Session | null {
 }
 
 export function signIn(email: string, password: string): { success: boolean; user?: User; error?: string } {
+  console.log('🔐 signIn called with:', email, '(password length:', password?.length, ')')
+  
   // Check if email exists in credentials
   const credentials = mockCredentials[email as keyof typeof mockCredentials]
   
   if (!credentials) {
+    console.log('❌ Email not found in credentials')
     // Check if user exists in pending registrations
     if (typeof window !== 'undefined') {
       const pendingRegistrations = JSON.parse(localStorage.getItem('abemis-pending-registrations') || '[]')
@@ -333,13 +336,20 @@ export function signIn(email: string, password: string): { success: boolean; use
       }
     }
     
-    return { success: false, error: 'Invalid login credentials. Please check your email and password and try again.' }
+    return { success: false, error: 'Invalid email address. Please check your email and try again.' }
   }
+  
+  console.log('✅ Email found, checking password...')
+  console.log('Expected password:', credentials.password)
+  console.log('Provided password:', password)
   
   // Check if password matches
   if (credentials.password !== password) {
-    return { success: false, error: 'Invalid login credentials. Please check your email and password and try again.' }
+    console.log('❌ Password mismatch')
+    return { success: false, error: 'Invalid password, please try again' }
   }
+  
+  console.log('✅ Password matches!')
   
   // Find user by email instead of role to get the specific user
   const user = mockUsers.find(u => u.email === email)
