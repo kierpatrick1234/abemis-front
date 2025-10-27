@@ -82,6 +82,25 @@ export default function LoginPage() {
   // Terms and conditions state
   const [showTermsModal, setShowTermsModal] = useState(false)
   
+  // Individual field validation errors
+  const [fieldErrors, setFieldErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    region: '',
+    sex: '',
+    password: '',
+    confirmPassword: '',
+    acceptTerms: ''
+  })
+  
+  // Helper function to clear specific field error
+  const clearFieldError = (fieldName: keyof typeof fieldErrors) => {
+    if (fieldErrors[fieldName]) {
+      setFieldErrors(prev => ({ ...prev, [fieldName]: '' }))
+    }
+  }
+  
   const { user, loading, signIn } = useAuth()
   const router = useRouter()
 
@@ -195,6 +214,7 @@ export default function LoginPage() {
     } else {
       setSignUpEmailValidationStatus('valid')
     }
+    // Email validation completed
   }
 
   const {
@@ -216,10 +236,27 @@ export default function LoginPage() {
     setValue: setValueSignUp,
   } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      acceptTerms: false,
+      region: '',
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      email: '',
+      sex: undefined,
+      password: '',
+      confirmPassword: '',
+      captcha: ''
+    }
   })
 
   // Watch the acceptTerms field
   const acceptedTerms = watchSignUp('acceptTerms')
+  
+  // Watch password fields for matching indicator
+  const watchedPassword = watchSignUp('password')
+  const watchedConfirmPassword = watchSignUp('confirmPassword')
+  const passwordsMatch = watchedPassword && watchedConfirmPassword && watchedPassword === watchedConfirmPassword
 
   useEffect(() => {
     if (!loading && user) {
@@ -287,7 +324,7 @@ export default function LoginPage() {
   }
 
   const onSignUpSubmit = async (data: SignUpForm) => {
-    console.log('Sign up form submitted with data:', data)
+    console.log('🚀 Creating account for:', data.email)
     
     // Captcha validation temporarily disabled for testing
     
@@ -456,7 +493,97 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             {isSignUp ? (
-              <form onSubmit={handleSignUpSubmit(onSignUpSubmit)} className="space-y-6">
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  console.log('📝 FORM SUBMISSION STARTED!')
+                  
+                  // Get form data directly
+                  const formData = new FormData(e.currentTarget)
+                  const data = {
+                    region: (document.getElementById('region') as HTMLSelectElement)?.value || '',
+                    firstName: (document.getElementById('firstName') as HTMLInputElement)?.value || '',
+                    middleName: (document.getElementById('middleName') as HTMLInputElement)?.value || '',
+                    lastName: (document.getElementById('lastName') as HTMLInputElement)?.value || '',
+                    email: (document.getElementById('signup-email') as HTMLInputElement)?.value || '',
+                    sex: (document.querySelector('input[name="sex"]:checked') as HTMLInputElement)?.value || '',
+                    password: (document.getElementById('signup-password') as HTMLInputElement)?.value || '',
+                    confirmPassword: (document.getElementById('confirmPassword') as HTMLInputElement)?.value || '',
+                    captcha: '',
+                    acceptTerms: acceptedTerms === true  // Use React state instead of DOM
+                  }
+                  
+                  console.log('📊 Form data collected successfully')
+                  
+                  // Clear all previous errors
+                  setError(null)
+                  setFieldErrors({
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    region: '',
+                    sex: '',
+                    password: '',
+                    confirmPassword: '',
+                    acceptTerms: ''
+                  })
+                  
+                  // Individual field validation
+                  const newFieldErrors = { ...fieldErrors }
+                  let hasErrors = false
+                  
+                  if (!data.firstName) {
+                    newFieldErrors.firstName = 'First name is required'
+                    hasErrors = true
+                  }
+                  if (!data.lastName) {
+                    newFieldErrors.lastName = 'Last name is required'
+                    hasErrors = true
+                  }
+                  if (!data.email) {
+                    newFieldErrors.email = 'Email address is required'
+                    hasErrors = true
+                  }
+                  if (!data.region) {
+                    newFieldErrors.region = 'Please select your region'
+                    hasErrors = true
+                  }
+                  if (!data.sex) {
+                    newFieldErrors.sex = 'Please select your sex'
+                    hasErrors = true
+                  }
+                  if (!data.password) {
+                    newFieldErrors.password = 'Password is required'
+                    hasErrors = true
+                  }
+                  if (!data.confirmPassword) {
+                    newFieldErrors.confirmPassword = 'Please confirm your password'
+                    hasErrors = true
+                  }
+                  if (data.password && data.confirmPassword && data.password !== data.confirmPassword) {
+                    newFieldErrors.confirmPassword = 'Passwords do not match'
+                    hasErrors = true
+                  }
+                  if (!data.acceptTerms) {
+                    newFieldErrors.acceptTerms = 'You must accept the Terms and Conditions'
+                    hasErrors = true
+                  }
+                  
+                  if (hasErrors) {
+                    setFieldErrors(newFieldErrors)
+                    return
+                  }
+                  
+                  console.log('📝 Validation passed, calling onSignUpSubmit...')
+                  
+                  try {
+                    await onSignUpSubmit(data as any)
+                  } catch (error) {
+                    console.error('📝 Form submission error:', error)
+                  }
+                }} 
+                className="space-y-6"
+              >
                 <input type="hidden" {...registerSignUp('captcha')} value={signupRecaptchaToken || ''} />
                 {/* Personal Information Section */}
                 <div className="space-y-4">
@@ -470,10 +597,14 @@ export default function LoginPage() {
                         id="firstName"
                         placeholder="Enter first name"
                         {...registerSignUp('firstName')}
-                        className={signUpErrors.firstName ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+                        onChange={(e) => {
+                          registerSignUp('firstName').onChange(e)
+                          clearFieldError('firstName')
+                        }}
+                        className={fieldErrors.firstName ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                       />
-                      {signUpErrors.firstName && (
-                        <p className="text-sm text-red-600">{signUpErrors.firstName.message}</p>
+                      {fieldErrors.firstName && (
+                        <p className="text-sm text-red-600">{fieldErrors.firstName}</p>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -493,10 +624,14 @@ export default function LoginPage() {
                         id="lastName"
                         placeholder="Enter last name"
                         {...registerSignUp('lastName')}
-                        className={signUpErrors.lastName ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+                        onChange={(e) => {
+                          registerSignUp('lastName').onChange(e)
+                          clearFieldError('lastName')
+                        }}
+                        className={fieldErrors.lastName ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                       />
-                      {signUpErrors.lastName && (
-                        <p className="text-sm text-red-600">{signUpErrors.lastName.message}</p>
+                      {fieldErrors.lastName && (
+                        <p className="text-sm text-red-600">{fieldErrors.lastName}</p>
                       )}
                     </div>
                   </div>
@@ -514,8 +649,9 @@ export default function LoginPage() {
                           onChange={(e) => {
                             registerSignUp('email').onChange(e)
                             handleSignUpEmailChange(e.target.value)
+                            clearFieldError('email')
                           }}
-                          className={`pr-8 ${signUpErrors.email || signUpEmailValidationStatus === 'exists' ? 'border-red-500' : signUpEmailValidationStatus === 'valid' ? 'border-green-500' : ''}`}
+                          className={`pr-8 ${fieldErrors.email || signUpErrors.email || signUpEmailValidationStatus === 'exists' ? 'border-red-500' : signUpEmailValidationStatus === 'valid' ? 'border-green-500' : ''}`}
                         />
                         {signUpEmailValidationStatus === 'valid' && (
                           <CheckCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
@@ -527,36 +663,52 @@ export default function LoginPage() {
                           <XCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-red-500" />
                         )}
                       </div>
-                      {signUpErrors.email && (
+                      {fieldErrors.email && (
+                        <p className="text-sm text-red-600">{fieldErrors.email}</p>
+                      )}
+                      {signUpErrors.email && !fieldErrors.email && (
                         <p className="text-sm text-red-600">{signUpErrors.email.message}</p>
                       )}
-                      {signUpEmailValidationStatus === 'valid' && !signUpErrors.email && (
+                      {signUpEmailValidationStatus === 'valid' && !signUpErrors.email && !fieldErrors.email && (
                         <p className="text-green-500 text-sm">✓ Email is available</p>
                       )}
-                      {signUpEmailValidationStatus === 'exists' && !signUpErrors.email && (
+                      {signUpEmailValidationStatus === 'exists' && !signUpErrors.email && !fieldErrors.email && (
                         <p className="text-red-500 text-sm">⚠ This email is already registered</p>
                       )}
-                      {signUpEmailValidationStatus === 'invalid' && !signUpErrors.email && (
+                      {signUpEmailValidationStatus === 'invalid' && !signUpErrors.email && !fieldErrors.email && (
                         <p className="text-red-500 text-sm">Please enter a valid email address</p>
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="sex">Sex *</Label>
-                      <select
-                        id="sex"
-                        className={`w-full h-10 px-3 py-2 border bg-background rounded-md text-sm ${
-                          signUpErrors.sex 
-                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
-                            : 'border-input'
-                        }`}
-                        {...registerSignUp('sex')}
-                      >
-                        <option value="">Select sex</option>
-                        <option value="m">Male</option>
-                        <option value="f">Female</option>
-                      </select>
-                      {signUpErrors.sex && (
-                        <p className="text-sm text-red-600">{signUpErrors.sex.message}</p>
+                      <Label>Sex *</Label>
+                      <div className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            id="sex-male"
+                            name="sex"
+                            value="m"
+                            className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                          />
+                          <Label htmlFor="sex-male" className="text-sm font-normal cursor-pointer">
+                            Male
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            id="sex-female"
+                            name="sex"
+                            value="f"
+                            className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                          />
+                          <Label htmlFor="sex-female" className="text-sm font-normal cursor-pointer">
+                            Female
+                          </Label>
+                        </div>
+                      </div>
+                      {fieldErrors.sex && (
+                        <p className="text-sm text-red-600">{fieldErrors.sex}</p>
                       )}
                     </div>
                   </div>
@@ -571,11 +723,15 @@ export default function LoginPage() {
                     <select
                       id="region"
                       className={`w-full h-10 px-3 py-2 border bg-background rounded-md text-sm ${
-                        signUpErrors.region 
+                        fieldErrors.region 
                           ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
                           : 'border-input'
                       }`}
                       {...registerSignUp('region')}
+                      onChange={(e) => {
+                        registerSignUp('region').onChange(e)
+                        clearFieldError('region')
+                      }}
                     >
                       <option value="">Select your region</option>
                       {regions.map((region) => (
@@ -584,8 +740,8 @@ export default function LoginPage() {
                         </option>
                       ))}
                     </select>
-                    {signUpErrors.region && (
-                      <p className="text-sm text-red-600">{signUpErrors.region.message}</p>
+                    {fieldErrors.region && (
+                      <p className="text-sm text-red-600">{fieldErrors.region}</p>
                     )}
                   </div>
 
@@ -603,8 +759,15 @@ export default function LoginPage() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder="Create a strong password"
                         {...registerSignUp('password')}
-                        className={signUpErrors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+                        onChange={(e) => {
+                          registerSignUp('password').onChange(e)
+                          clearFieldError('password')
+                        }}
+                        className={`pr-16 ${fieldErrors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : passwordsMatch ? 'border-green-500' : ''}`}
                       />
+                      {passwordsMatch && (
+                        <CheckCircle className="absolute right-10 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
+                      )}
                       <Button
                         type="button"
                         variant="ghost"
@@ -622,21 +785,36 @@ export default function LoginPage() {
                     <p className="text-xs text-muted-foreground">
                       Password must be at least 8 characters with letters, numbers, and special characters
                     </p>
-                    {signUpErrors.password && (
-                      <p className="text-sm text-red-600">{signUpErrors.password.message}</p>
+                    {fieldErrors.password && (
+                      <p className="text-sm text-red-600">{fieldErrors.password}</p>
                     )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Confirm your password"
-                      {...registerSignUp('confirmPassword')}
-                      className={signUpErrors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
-                    />
-                    {signUpErrors.confirmPassword && (
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirm your password"
+                        {...registerSignUp('confirmPassword')}
+                        onChange={(e) => {
+                          registerSignUp('confirmPassword').onChange(e)
+                          clearFieldError('confirmPassword')
+                        }}
+                        className={`pr-8 ${fieldErrors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : passwordsMatch ? 'border-green-500' : ''}`}
+                      />
+                      {passwordsMatch && (
+                        <CheckCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
+                      )}
+                    </div>
+                    {fieldErrors.confirmPassword && (
+                      <p className="text-sm text-red-600">{fieldErrors.confirmPassword}</p>
+                    )}
+                    {!fieldErrors.confirmPassword && passwordsMatch && !signUpErrors.confirmPassword && (
+                      <p className="text-sm text-green-600">✓ Passwords match</p>
+                    )}
+                    {!fieldErrors.confirmPassword && signUpErrors.confirmPassword && (
                       <p className="text-sm text-red-600">{signUpErrors.confirmPassword.message}</p>
                     )}
                   </div>
@@ -669,6 +847,10 @@ export default function LoginPage() {
                     <Checkbox 
                       id="acceptTerms" 
                       {...registerSignUp('acceptTerms')}
+                      checked={acceptedTerms === true}
+                      onCheckedChange={(checked) => {
+                        setValueSignUp('acceptTerms', checked === true)
+                      }}
                       className="mt-1"
                     />
                     <Label htmlFor="acceptTerms" className="text-sm leading-5 cursor-pointer">
@@ -684,8 +866,8 @@ export default function LoginPage() {
                       {' '}for registering *
                     </Label>
                   </div>
-                  {signUpErrors.acceptTerms && (
-                    <p className="text-sm text-red-600 ml-6">{signUpErrors.acceptTerms.message}</p>
+                  {fieldErrors.acceptTerms && (
+                    <p className="text-sm text-red-600 ml-6">{fieldErrors.acceptTerms}</p>
                   )}
                 </div>
 
@@ -714,11 +896,12 @@ export default function LoginPage() {
                   <Button 
                     type="submit" 
                     className="flex-1"
-                    disabled={isLoading || signUpEmailValidationStatus === 'invalid' || signUpEmailValidationStatus === 'exists' || !acceptedTerms}
+                    disabled={isLoading}
                   >
                     {isLoading ? 'Processing registration...' : 'Create Account'}
                   </Button>
                 </div>
+
               </form>
             ) : (
               <form onSubmit={(e) => {
