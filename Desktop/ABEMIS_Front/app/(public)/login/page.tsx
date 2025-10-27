@@ -266,9 +266,11 @@ export default function LoginPage() {
           const lockoutEndTime = Date.now() + (2 * 60 * 1000) // 2 minutes
           setIsLockedOut(true)
           setLockoutEndTime(lockoutEndTime)
-          setError('Too many failed attempts. Account is locked for 2 minutes.')
+          setError('Too many failed login attempts. Your account is temporarily locked for 2 minutes for security reasons.')
         } else {
-          setError(result.error || `Login failed. ${5 - newFailedAttempts} attempts remaining.`)
+          const attemptsRemaining = 5 - newFailedAttempts
+          const errorMessage = result.error || 'Login failed with invalid credentials.'
+          setError(`${errorMessage} ${attemptsRemaining} attempt${attemptsRemaining > 1 ? 's' : ''} remaining before lockout.`)
           // Reset reCAPTCHA on failed login
           setLoginRecaptchaToken(null)
         }
@@ -296,7 +298,7 @@ export default function LoginPage() {
     try {
       // Check if email already exists
       if (checkEmailExists(data.email)) {
-        setError('This email is already registered. Please use a different email address.')
+        setError('This email is already registered. Please use a different email address or try logging in instead.')
         setIsLoading(false)
         return
       }
@@ -304,7 +306,7 @@ export default function LoginPage() {
       // In a real app, this would call a sign-up API
       console.log('Creating new account for:', data.email)
       
-      // Simulate API call
+      // Simulate API call with progress indication
       await new Promise(resolve => setTimeout(resolve, 2000))
       
       // Create new user with pending status
@@ -332,6 +334,8 @@ export default function LoginPage() {
       setPendingUsers(updatedPendingUsers)
       localStorage.setItem('abemis-pending-users', JSON.stringify(updatedPendingUsers))
       
+      console.log('Registration successful! Redirecting to email verification...')
+      
       // Redirect to email verification page with user data
       const params = new URLSearchParams({
         email: data.email,
@@ -341,7 +345,7 @@ export default function LoginPage() {
       router.push(`/verify-email?${params.toString()}`)
     } catch (error) {
       console.error('Sign up error:', error)
-      setError('An unexpected error occurred during sign up')
+      setError('Registration failed. Please check your information and try again.')
     } finally {
       setIsLoading(false)
     }
@@ -699,7 +703,7 @@ export default function LoginPage() {
                     className="flex-1"
                     disabled={isLoading || signUpEmailValidationStatus === 'invalid' || signUpEmailValidationStatus === 'exists' || !signupRecaptchaToken || !acceptedTerms}
                   >
-                    {isLoading ? 'Creating account...' : 'Create Account'}
+                    {isLoading ? 'Processing registration...' : 'Create Account'}
                   </Button>
                 </div>
               </form>
@@ -799,7 +803,7 @@ export default function LoginPage() {
                   className="w-full"
                   disabled={isLoading || isLockedOut}
                 >
-                  {isLoading ? 'Logging in...' : 'Login'}
+                  {isLoading ? 'Verifying credentials...' : 'Sign In'}
                 </Button>
               </form>
             )}

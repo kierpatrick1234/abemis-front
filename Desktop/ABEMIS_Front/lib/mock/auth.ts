@@ -333,12 +333,12 @@ export function signIn(email: string, password: string): { success: boolean; use
       }
     }
     
-    return { success: false, error: 'Invalid email address' }
+    return { success: false, error: 'Invalid login credentials. Please check your email and password and try again.' }
   }
   
   // Check if password matches
   if (credentials.password !== password) {
-    return { success: false, error: 'Invalid password' }
+    return { success: false, error: 'Invalid login credentials. Please check your email and password and try again.' }
   }
   
   // Find user by email instead of role to get the specific user
