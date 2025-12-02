@@ -21,7 +21,9 @@ export default function FormBuilderPage() {
 
   // Redirect if not admin
   if (!user || user.role !== 'admin') {
-    router.push('/dashboard')
+    // Redirect VIEWER users to summary, others to dashboard
+    const redirectPath = user?.role === 'VIEWER' ? '/summary' : '/dashboard'
+    router.push(redirectPath)
     return null
   }
 

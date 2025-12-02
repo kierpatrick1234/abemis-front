@@ -21,28 +21,47 @@ export default function NotificationsPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
         <p className="text-muted-foreground">
-          Department notifications for RAED accounts
+          {user?.role === 'VIEWER' 
+            ? 'National summary and reporting notifications' 
+            : 'Department notifications for RAED accounts'}
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {raedRegions.map((region) => (
-          <Card key={region} className="w-full">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <MapPin className="h-5 w-5 text-blue-600" />
-                {region}
-              </CardTitle>
-              <CardDescription>
-                RAED notifications for this region
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <NotificationTemplate raedRegion={region} userRole={user?.role} />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {user?.role === 'VIEWER' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              National Summary Notifications
+            </CardTitle>
+            <CardDescription>
+              Updates on national project summaries, reports, and milestones
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <NotificationTemplate raedRegion="National" userRole={user?.role} />
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {raedRegions.map((region) => (
+            <Card key={region} className="w-full">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <MapPin className="h-5 w-5 text-blue-600" />
+                  {region}
+                </CardTitle>
+                <CardDescription>
+                  RAED notifications for this region
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <NotificationTemplate raedRegion={region} userRole={user?.role} />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Card>
         <CardHeader>

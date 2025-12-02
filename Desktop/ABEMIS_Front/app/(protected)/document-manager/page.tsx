@@ -783,11 +783,7 @@ export default function DocumentManagerPage() {
                       {uniqueDocumentTypes.map((type) => (
                         <div 
                           key={type} 
-                          className="flex items-center space-x-3 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors"
-                          onClick={() => {
-                            const isChecked = documentTypeFilter.includes(type)
-                            handleDocumentTypeFilterChange(type, !isChecked)
-                          }}
+                          className="flex items-center space-x-3 p-2 rounded-md hover:bg-accent transition-colors"
                         >
                           <Checkbox
                             id={`doc-type-${type}`}
@@ -821,11 +817,7 @@ export default function DocumentManagerPage() {
                       {uniqueProjectTypes.map((type) => (
                         <div 
                           key={type} 
-                          className="flex items-center space-x-3 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors"
-                          onClick={() => {
-                            const isChecked = projectTypeFilter.includes(type)
-                            handleProjectTypeFilterChange(type, !isChecked)
-                          }}
+                          className="flex items-center space-x-3 p-2 rounded-md hover:bg-accent transition-colors"
                         >
                           <Checkbox
                             id={`project-type-${type}`}

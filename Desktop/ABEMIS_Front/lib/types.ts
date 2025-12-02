@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'engineer' | 'stakeholder' | 'read' | 'manager' | 'supervisor' | 'superadmin' | 'RAED' | 'EPDSD' | 'PPMD' | 'SEPD'
+export type Role = 'admin' | 'engineer' | 'stakeholder' | 'read' | 'manager' | 'supervisor' | 'superadmin' | 'RAED' | 'EPDSD' | 'PPMD' | 'SEPD' | 'VIEWER'
 
 export interface User {
   id: string

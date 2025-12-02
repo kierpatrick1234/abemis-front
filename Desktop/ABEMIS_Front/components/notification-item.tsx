@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Clock, CheckCircle, AlertCircle, Eye, UserPlus, Database, Wrench, FileText, Upload, CheckSquare } from 'lucide-react'
+import { Clock, CheckCircle, AlertCircle, Eye, UserPlus, Database, Wrench, FileText, Upload, CheckSquare, BarChart3, Trophy, FileBarChart, DollarSign } from 'lucide-react'
 
 interface NotificationItemProps {
   id: string
   message: string
   timestamp: string
-  type: 'approval' | 'remark' | 'monitoring' | 'update' | 'user_registration' | 'system' | 'maintenance' | 'compliance' | 'submission' | 'upload'
+  type: 'approval' | 'remark' | 'monitoring' | 'update' | 'user_registration' | 'system' | 'maintenance' | 'compliance' | 'submission' | 'upload' | 'report' | 'milestone' | 'summary' | 'budget'
   isRead: boolean
   onClick: () => void
 }
@@ -24,7 +24,11 @@ const notificationIcons = {
   maintenance: Wrench,
   compliance: CheckSquare,
   submission: FileText,
-  upload: Upload
+  upload: Upload,
+  report: FileBarChart,
+  milestone: Trophy,
+  summary: BarChart3,
+  budget: DollarSign
 }
 
 const notificationColors = {
@@ -37,7 +41,11 @@ const notificationColors = {
   maintenance: 'text-yellow-600',
   compliance: 'text-green-600',
   submission: 'text-blue-600',
-  upload: 'text-purple-600'
+  upload: 'text-purple-600',
+  report: 'text-indigo-600',
+  milestone: 'text-emerald-600',
+  summary: 'text-cyan-600',
+  budget: 'text-amber-600'
 }
 
 export function NotificationItem({ 
@@ -49,8 +57,8 @@ export function NotificationItem({
   onClick 
 }: NotificationItemProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const Icon = notificationIcons[type]
-  const colorClass = notificationColors[type]
+  const Icon = notificationIcons[type] || Clock
+  const colorClass = notificationColors[type] || 'text-gray-600'
 
   return (
     <Card 

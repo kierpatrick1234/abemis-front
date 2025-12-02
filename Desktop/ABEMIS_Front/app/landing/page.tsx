@@ -106,6 +106,10 @@ export default function LandingPage() {
     })
   }
 
+  const handleAlertClick = () => {
+    alert('ABEMIS alert: please contact your administrator for access details.')
+  }
+
   const handleLoginClick = (buttonType = 'unknown') => {
     console.log(`${buttonType} button clicked!`) // Debug log
     console.log('Router object:', router) // Debug router
@@ -334,6 +338,7 @@ export default function LandingPage() {
       {selectedDesign === 'design1' && (
         <Design1 
           handleLoginClick={handleLoginClick}
+          handleAlertClick={handleAlertClick}
           trackingCode={trackingCode}
           setTrackingCode={setTrackingCode}
           trackingResult={trackingResult}
@@ -349,6 +354,7 @@ export default function LandingPage() {
       {selectedDesign === 'design2' && (
         <Design2 
           handleLoginClick={handleLoginClick}
+          handleAlertClick={handleAlertClick}
           trackingCode={trackingCode}
           setTrackingCode={setTrackingCode}
           trackingResult={trackingResult}
@@ -364,6 +370,7 @@ export default function LandingPage() {
       {selectedDesign === 'design3' && (
         <Design3 
           handleLoginClick={handleLoginClick}
+          handleAlertClick={handleAlertClick}
           trackingCode={trackingCode}
           setTrackingCode={setTrackingCode}
           trackingResult={trackingResult}
@@ -462,6 +469,7 @@ export default function LandingPage() {
 // Design 1: Modern Card-based Layout
 function Design1({ 
   handleLoginClick, 
+  handleAlertClick,
   trackingCode, 
   setTrackingCode, 
   trackingResult, 
@@ -502,6 +510,15 @@ function Design1({
               >
                 Access System
                 <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button
+                onClick={handleAlertClick}
+                size="lg"
+                variant="outline"
+                className="border-border text-foreground hover:bg-muted"
+                type="button"
+              >
+                Show Alert
               </Button>
               <Button 
                 variant="outline" 
@@ -763,6 +780,7 @@ function Design1({
 // Design 2: Minimalist Clean Layout
 function Design2({ 
   handleLoginClick, 
+  handleAlertClick,
   trackingCode, 
   setTrackingCode, 
   trackingResult, 
@@ -800,6 +818,15 @@ function Design2({
                 type="button"
               >
                 Access System
+              </Button>
+              <Button
+                onClick={handleAlertClick}
+                size="lg"
+                variant="outline"
+                className="border border-foreground/30 text-foreground hover:bg-muted"
+                type="button"
+              >
+                Show Alert
               </Button>
               <Button 
                 variant="ghost" 
@@ -988,6 +1015,7 @@ function Design2({
 // Design 3: Dashboard-style Layout
 function Design3({ 
   handleLoginClick, 
+  handleAlertClick,
   trackingCode, 
   setTrackingCode, 
   trackingResult, 
@@ -1058,6 +1086,15 @@ function Design3({
                 >
                   Access System
                   <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button
+                  onClick={handleAlertClick}
+                  size="lg"
+                  variant="secondary"
+                  className="transition-all duration-300 transform hover:scale-105"
+                  type="button"
+                >
+                  Show Alert
                 </Button>
                 <Button 
                   variant="outline"

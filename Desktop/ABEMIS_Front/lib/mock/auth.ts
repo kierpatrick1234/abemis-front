@@ -277,6 +277,17 @@ export const mockUsers: User[] = [
     createdAt: '2024-01-01T00:00:00Z',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sepd1',
   },
+  // VIEWER User (National Viewer)
+  {
+    id: 'viewer-1',
+    email: 'viewer@abemis.com',
+    name: 'National Viewer',
+    role: 'VIEWER',
+    status: 'active',
+    lastLogin: '2025-10-10T08:00:00Z',
+    createdAt: '2024-01-01T00:00:00Z',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=viewer1',
+  },
 ]
 
 // Credentials mapping for easy testing
@@ -307,6 +318,7 @@ export const mockCredentials = {
   'epdsd@abemis.com': { password: 'epdsd123', role: 'EPDSD' },
   'ppmd@abemis.com': { password: 'ppmd123', role: 'PPMD' },
   'sepd@abemis.com': { password: 'sepd123', role: 'SEPD' },
+  'viewer@abemis.com': { password: 'viewer123', role: 'VIEWER' },
 }
 
 export function getSession(): Session | null {

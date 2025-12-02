@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { StatCard } from '@/components/stat-card'
@@ -42,6 +42,18 @@ export default function DashboardPage() {
   const router = useRouter()
   const { user } = useAuth()
   const [hoveredProject, setHoveredProject] = useState<string | null>(null)
+
+  // Redirect VIEWER users to summary page
+  useEffect(() => {
+    if (user?.role === 'VIEWER') {
+      router.push('/summary')
+    }
+  }, [user, router])
+
+  // Don't render dashboard content for VIEWER users
+  if (user?.role === 'VIEWER') {
+    return null
+  }
 
   // Get user's assigned region
   const userRegion = user?.regionAssigned || 'Region 1' // Default to Region 1 if not set

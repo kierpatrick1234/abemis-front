@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { AppSidebar } from '@/components/app-sidebar'
 import { Topbar } from '@/components/topbar'
 import { AnnouncementPopup } from '@/components/announcement-popup'
@@ -15,6 +15,7 @@ export default function ProtectedLayout({
 }) {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [showAnnouncement, setShowAnnouncement] = useState(false)
 
@@ -23,6 +24,13 @@ export default function ProtectedLayout({
       router.push('/login')
     }
   }, [user, loading, router])
+
+  // Redirect VIEWER users away from dashboard to summary
+  useEffect(() => {
+    if (user && user.role === 'VIEWER' && pathname === '/dashboard') {
+      router.push('/summary')
+    }
+  }, [user, router, pathname])
 
   useEffect(() => {
     // Show announcement for RAED users on every login

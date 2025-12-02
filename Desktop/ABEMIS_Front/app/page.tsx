@@ -13,7 +13,12 @@ export default function HomePage() {
     const timer = setTimeout(() => {
       if (!loading) {
         if (user) {
-          router.push('/dashboard')
+          // Redirect VIEWER users to summary page
+          if (user.role === 'VIEWER') {
+            router.push('/summary')
+          } else {
+            router.push('/dashboard')
+          }
         } else {
           router.push('/landing')
         }

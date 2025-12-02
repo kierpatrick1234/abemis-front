@@ -9,7 +9,7 @@ import { Bell } from 'lucide-react'
 interface Notification {
   id: string
   message: string
-  type: 'approval' | 'remark' | 'monitoring' | 'update' | 'user_registration' | 'system' | 'maintenance' | 'compliance' | 'upload' | 'submission'
+  type: 'approval' | 'remark' | 'monitoring' | 'update' | 'user_registration' | 'system' | 'maintenance' | 'compliance' | 'upload' | 'submission' | 'report' | 'milestone' | 'summary' | 'budget'
   timestamp: string
   isRead?: boolean
 }
@@ -181,6 +181,58 @@ const epdsdNotifications = [
   }
 ]
 
+// VIEWER-specific notifications (National Summary & Reports)
+const viewerNotifications = [
+  {
+    id: 'viewer-1',
+    message: 'National project summary updated: 245 projects across all regions',
+    type: 'summary' as const,
+    timestamp: '15 mins ago'
+  },
+  {
+    id: 'viewer-2',
+    message: 'Region 3 achieved 75% completion rate - Top performing region this month',
+    type: 'milestone' as const,
+    timestamp: '1 hour ago'
+  },
+  {
+    id: 'viewer-3',
+    message: 'Budget utilization report: 68.5% of national budget utilized',
+    type: 'budget' as const,
+    timestamp: '2 hours ago'
+  },
+  {
+    id: 'viewer-4',
+    message: 'Q4 2025 summary report available for review',
+    type: 'report' as const,
+    timestamp: '3 hours ago'
+  },
+  {
+    id: 'viewer-5',
+    message: '15 new projects added across 5 regions this week',
+    type: 'update' as const,
+    timestamp: '5 hours ago'
+  },
+  {
+    id: 'viewer-6',
+    message: 'Infrastructure projects: 45 completed nationwide this month',
+    type: 'milestone' as const,
+    timestamp: '1 day ago'
+  },
+  {
+    id: 'viewer-7',
+    message: 'Regional performance comparison report generated',
+    type: 'report' as const,
+    timestamp: '1 day ago'
+  },
+  {
+    id: 'viewer-8',
+    message: 'Budget allocation: Infrastructure leads with 42% of total budget',
+    type: 'budget' as const,
+    timestamp: '2 days ago'
+  }
+]
+
 // Default notifications for regions not specified
 const defaultNotifications = [
   {
@@ -216,8 +268,11 @@ export function NotificationTemplate({ raedRegion, userRole }: NotificationTempl
   useEffect(() => {
     let selectedNotifications = []
     
-    // Show EPDSD-specific notifications for EPDSD users
-    if (userRole === 'EPDSD') {
+    // Show VIEWER-specific notifications for VIEWER users
+    if (userRole === 'VIEWER') {
+      selectedNotifications = viewerNotifications
+    } else if (userRole === 'EPDSD') {
+      // Show EPDSD-specific notifications for EPDSD users
       selectedNotifications = epdsdNotifications
     } else {
       // Get notifications for the specific region or use default
@@ -260,7 +315,7 @@ export function NotificationTemplate({ raedRegion, userRole }: NotificationTempl
           )}
         </CardTitle>
         <CardDescription>
-          Updates for {raedRegion} region
+          {userRole === 'VIEWER' ? 'National summary and report updates' : `Updates for ${raedRegion} region`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

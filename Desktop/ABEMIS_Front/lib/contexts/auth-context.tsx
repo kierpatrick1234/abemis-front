@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  signIn: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>
   signOut: () => void
 }
 
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(newSession)
           setUser(newSession.user)
         }
-        return { success: true }
+        return { success: true, user: result.user }
       } else {
         return { success: false, error: result.error || 'Login failed' }
       }

@@ -282,7 +282,7 @@ export default function LoginPage() {
       const result = await signIn(data.email, data.password)
       console.log('📡 SignIn result received:', result)
       
-      if (result.success) {
+      if (result.success && result.user) {
         console.log('✅ Login successful - redirecting to dashboard')
         // Reset failed attempts on successful login
         setFailedAttempts(0)
@@ -290,12 +290,15 @@ export default function LoginPage() {
         // Try multiple redirect methods
         console.log('🔄 Attempting redirect...')
         
+        // Redirect VIEWER users to summary page, others to dashboard
+        const redirectPath = result.user.role === 'VIEWER' ? '/summary' : '/dashboard'
+        
         // Method 1: Router push
-        router.push('/dashboard')
+        router.push(redirectPath)
         
         // Method 2: Force redirect after a small delay
         setTimeout(() => {
-          window.location.href = '/dashboard'
+          window.location.href = redirectPath
         }, 100)
       } else {
         console.log('❌ Login failed with error:', result.error)
@@ -429,6 +432,7 @@ export default function LoginPage() {
     { email: 'epdsd@abemis.com', password: 'epdsd123', role: 'EPDSD', description: 'Engineering Planning & Design Services Division - Evaluate infra/machinery proposals' },
     { email: 'sepd@abemis.com', password: 'sepd123', role: 'SEPD', description: 'Special Engineering Projects Division - Evaluate FMR proposals' },
     { email: 'ppmd@abemis.com', password: 'ppmd123', role: 'PPMD', description: 'Project Planning & Monitoring Division - Monitor completed projects' },
+    { email: 'viewer@abemis.com', password: 'viewer123', role: 'VIEWER', description: 'National Viewer - View-only access to national project summaries and reports' },
   ]
 
   if (loading) {
@@ -1113,11 +1117,13 @@ export default function LoginPage() {
                               const result = await signIn(cred.email, cred.password)
                               console.log('Auto-login result:', result)
                               
-                              if (result.success) {
-                                console.log('Auto-login successful, redirecting to dashboard')
+                              if (result.success && result.user) {
+                                console.log('Auto-login successful, redirecting')
                                 // Reset failed attempts on successful login
                                 setFailedAttempts(0)
-                                router.push('/dashboard')
+                                // Redirect VIEWER users to summary page, others to dashboard
+                                const redirectPath = result.user.role === 'VIEWER' ? '/summary' : '/dashboard'
+                                router.push(redirectPath)
                               } else {
                                 console.log('Auto-login failed:', result.error)
                                 setError(result.error || 'Auto-login failed')

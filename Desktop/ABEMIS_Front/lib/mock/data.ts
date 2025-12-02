@@ -219,6 +219,12 @@ export const mockStatCards: StatCard[] = [
 
 export const navigationItems: NavItem[] = [
   {
+    title: 'Summary',
+    href: '/summary',
+    icon: 'BarChart3',
+    roles: ['VIEWER'],
+  },
+  {
     title: 'Dashboard',
     href: '/dashboard',
     icon: 'LayoutDashboard',
