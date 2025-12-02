@@ -32,8 +32,15 @@ import {
   Wrench,
   Route,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  LineChart as LineChartIcon,
+  Search,
+  X,
+  Globe,
+  FolderOpen,
+  Clock
 } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 const regions = [
   'All Regions',
@@ -43,7 +50,8 @@ const regions = [
 ]
 
 const projectTypes = ['All Types', 'FMR', 'Infrastructure', 'Machinery', 'Project Package']
-const years = ['All Years', '2024', '2025', '2026', '2027']
+const years = ['All Years', '2023', '2024', '2025', '2026', '2027']
+const graphYears = ['All Years', '2023', '2024', '2025', '2026', '2027']
 
 // Project templates for generating additional projects
 const projectTemplates = {
@@ -172,6 +180,8 @@ export default function SummaryPage() {
   const [selectedYear, setSelectedYear] = useState<string>('All Years')
   const [selectedPeriod, setSelectedPeriod] = useState<string>('All Periods')
   const [viewMode, setViewMode] = useState<'overview' | 'regional' | 'detailed'>('overview')
+  const [graphYearFilter, setGraphYearFilter] = useState<string>('All Years')
+  const [graphQuarterFilter, setGraphQuarterFilter] = useState<string>('All Quarters')
 
   // Get all projects (national view) with additional generated projects (50-250 range)
   const allProjects = useMemo(() => {
@@ -320,6 +330,175 @@ export default function SummaryPage() {
       .sort((a, b) => b.completionRate - a.completionRate)
       .slice(0, 5)
   }, [regionalStats])
+
+  // Static data for graph (2023-2025)
+  const staticGraphData = {
+    '2023': [
+      { month: 'Jan 2023', proposed: 12, completed: 8 },
+      { month: 'Feb 2023', proposed: 15, completed: 10 },
+      { month: 'Mar 2023', proposed: 18, completed: 12 },
+      { month: 'Apr 2023', proposed: 20, completed: 15 },
+      { month: 'May 2023', proposed: 22, completed: 18 },
+      { month: 'Jun 2023', proposed: 25, completed: 20 },
+      { month: 'Jul 2023', proposed: 28, completed: 22 },
+      { month: 'Aug 2023', proposed: 30, completed: 25 },
+      { month: 'Sep 2023', proposed: 32, completed: 28 },
+      { month: 'Oct 2023', proposed: 35, completed: 30 },
+      { month: 'Nov 2023', proposed: 38, completed: 32 },
+      { month: 'Dec 2023', proposed: 40, completed: 35 },
+    ],
+    '2024': [
+      { month: 'Jan 2024', proposed: 15, completed: 12 },
+      { month: 'Feb 2024', proposed: 18, completed: 15 },
+      { month: 'Mar 2024', proposed: 22, completed: 18 },
+      { month: 'Apr 2024', proposed: 25, completed: 20 },
+      { month: 'May 2024', proposed: 28, completed: 23 },
+      { month: 'Jun 2024', proposed: 30, completed: 25 },
+      { month: 'Jul 2024', proposed: 32, completed: 28 },
+      { month: 'Aug 2024', proposed: 35, completed: 30 },
+      { month: 'Sep 2024', proposed: 38, completed: 33 },
+      { month: 'Oct 2024', proposed: 40, completed: 35 },
+      { month: 'Nov 2024', proposed: 42, completed: 38 },
+      { month: 'Dec 2024', proposed: 45, completed: 40 },
+    ],
+    '2025': [
+      { month: 'Jan 2025', proposed: 20, completed: 15 },
+      { month: 'Feb 2025', proposed: 22, completed: 18 },
+      { month: 'Mar 2025', proposed: 25, completed: 20 },
+      { month: 'Apr 2025', proposed: 28, completed: 23 },
+      { month: 'May 2025', proposed: 30, completed: 25 },
+      { month: 'Jun 2025', proposed: 32, completed: 28 },
+      { month: 'Jul 2025', proposed: 35, completed: 30 },
+      { month: 'Aug 2025', proposed: 38, completed: 33 },
+      { month: 'Sep 2025', proposed: 40, completed: 35 },
+      { month: 'Oct 2025', proposed: 42, completed: 38 },
+    ],
+  }
+
+  // Graph data: Proposed vs Completed projects over time
+  const graphData = useMemo(() => {
+    // Use static data for 2023, 2024, and All Years (2023-2025)
+    if (graphYearFilter === '2023' || graphYearFilter === '2024' || graphYearFilter === 'All Years') {
+      let data: Array<{ month: string, proposed: number, completed: number }> = []
+      
+      if (graphYearFilter === 'All Years') {
+        // Combine all years data
+        data = [
+          ...staticGraphData['2023'],
+          ...staticGraphData['2024'],
+          ...staticGraphData['2025'],
+        ]
+      } else {
+        data = [...staticGraphData[graphYearFilter as '2023' | '2024']]
+      }
+      
+      // Apply quarterly filter if selected
+      if (graphQuarterFilter !== 'All Quarters') {
+        const quarterMonths: Record<string, number[]> = {
+          'Q1': [1, 2, 3],
+          'Q2': [4, 5, 6],
+          'Q3': [7, 8, 9],
+          'Q4': [10, 11, 12],
+        }
+        
+        const monthsToInclude = quarterMonths[graphQuarterFilter] || []
+        data = data.filter(item => {
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+          const monthIndex = monthNames.findIndex(m => item.month.startsWith(m))
+          return monthIndex !== -1 && monthsToInclude.includes(monthIndex + 1)
+        })
+      }
+      
+      return data
+    }
+    
+    // For other years, use actual project data
+    let projectsForGraph = [...allProjects]
+    
+    if (graphYearFilter !== 'All Years') {
+      projectsForGraph = projectsForGraph.filter(p => {
+        const projectYear = new Date(p.startDate).getFullYear().toString()
+        if (projectYear !== graphYearFilter) return false
+        
+        // Apply quarterly filter if selected
+        if (graphQuarterFilter !== 'All Quarters') {
+          const projectDate = new Date(p.startDate)
+          const month = projectDate.getMonth() + 1 // 1-12
+          
+          if (graphQuarterFilter === 'Q1') {
+            return month >= 1 && month <= 3
+          } else if (graphQuarterFilter === 'Q2') {
+            return month >= 4 && month <= 6
+          } else if (graphQuarterFilter === 'Q3') {
+            return month >= 7 && month <= 9
+          } else if (graphQuarterFilter === 'Q4') {
+            return month >= 10 && month <= 12
+          }
+        }
+        
+        return true
+      })
+    }
+
+    // Group by month
+    const monthlyData: Record<string, { month: string, proposed: number, completed: number }> = {}
+    
+    projectsForGraph.forEach(project => {
+      // Handle proposed projects (Draft, Proposal) - count by start date month
+      if (project.status === 'Draft' || project.status === 'Proposal') {
+        const date = new Date(project.startDate)
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        const monthLabel = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { month: monthLabel, proposed: 0, completed: 0 }
+        }
+        monthlyData[monthKey].proposed++
+      }
+      
+      // Handle completed projects (Completed, Delivered) - count by completion date month
+      if (project.status === 'Completed' || project.status === 'Delivered') {
+        const completionDate = project.endDate ? new Date(project.endDate) : new Date(project.updatedAt)
+        const completionMonthKey = `${completionDate.getFullYear()}-${String(completionDate.getMonth() + 1).padStart(2, '0')}`
+        const completionMonthLabel = completionDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        
+        // Apply year filter to completion date if filter is set
+        if (graphYearFilter === 'All Years' || completionDate.getFullYear().toString() === graphYearFilter) {
+          // Apply quarterly filter to completion date if selected
+          let shouldInclude = true
+          if (graphQuarterFilter !== 'All Quarters' && graphYearFilter !== 'All Years') {
+            const completionMonth = completionDate.getMonth() + 1 // 1-12
+            
+            if (graphQuarterFilter === 'Q1') {
+              shouldInclude = completionMonth >= 1 && completionMonth <= 3
+            } else if (graphQuarterFilter === 'Q2') {
+              shouldInclude = completionMonth >= 4 && completionMonth <= 6
+            } else if (graphQuarterFilter === 'Q3') {
+              shouldInclude = completionMonth >= 7 && completionMonth <= 9
+            } else if (graphQuarterFilter === 'Q4') {
+              shouldInclude = completionMonth >= 10 && completionMonth <= 12
+            }
+          }
+          
+          if (shouldInclude) {
+            if (!monthlyData[completionMonthKey]) {
+              monthlyData[completionMonthKey] = { month: completionMonthLabel, proposed: 0, completed: 0 }
+            }
+            monthlyData[completionMonthKey].completed++
+          }
+        }
+      }
+    })
+    
+    // Convert to array and sort by date
+    return Object.entries(monthlyData)
+      .map(([key, value]) => ({
+        ...value,
+        sortKey: key
+      }))
+      .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+      .map(({ sortKey, ...rest }) => rest)
+  }, [allProjects, graphYearFilter, graphQuarterFilter])
 
   // Export to Excel function
   const exportToExcel = () => {
@@ -552,7 +731,7 @@ export default function SummaryPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-2 border-b-2">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-2 border-b-2 animate-in fade-in slide-in-from-top-4 duration-500">
         <div>
           <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             National Project Summary
@@ -572,97 +751,21 @@ export default function SummaryPage() {
       </div>
 
       {/* Filters */}
-      <Card className="border-2">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Filter className="h-5 w-5" />
-            Filters & Search
-          </CardTitle>
-          <CardDescription>
-            Filter projects by region, type, year, and period for detailed analysis
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">Region</Label>
-              <Select value={selectedRegion} onValueChange={(value) => {
-                setSelectedRegion(value)
-                setSelectedPeriod('All Periods') // Reset period when region changes
-              }}>
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select region" />
-                </SelectTrigger>
-                <SelectContent>
-                  {regions.map(region => (
-                    <SelectItem key={region} value={region}>
-                      {region}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      <Card className="border-2 animate-in fade-in slide-in-from-bottom-4 duration-600 shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Filter className="h-5 w-5 text-primary" />
+                </div>
+                Filters & Search
+              </CardTitle>
+              <CardDescription className="mt-2">
+                Filter projects by region, type, year, and period for detailed analysis
+              </CardDescription>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">Project Type</Label>
-              <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projectTypes.map(type => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">Year</Label>
-              <Select value={selectedYear} onValueChange={(value) => {
-                setSelectedYear(value)
-                if (value === 'All Years') {
-                  setSelectedPeriod('All Periods')
-                }
-              }}>
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map(year => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">
-                Period {selectedYear !== 'All Years' ? '(Quarterly/Semestral)' : ''}
-              </Label>
-              <Select 
-                value={selectedPeriod} 
-                onValueChange={setSelectedPeriod}
-                disabled={selectedYear === 'All Years'}
-              >
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder={selectedYear === 'All Years' ? 'Select year first' : 'Select period'} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All Periods">All Periods</SelectItem>
-                  <SelectItem value="Q1">Q1 (Jan-Mar)</SelectItem>
-                  <SelectItem value="Q2">Q2 (Apr-Jun)</SelectItem>
-                  <SelectItem value="Q3">Q3 (Jul-Sep)</SelectItem>
-                  <SelectItem value="Q4">Q4 (Oct-Dec)</SelectItem>
-                  <SelectItem value="1st Semester">1st Semester (Jan-Jun)</SelectItem>
-                  <SelectItem value="2nd Semester">2nd Semester (Jul-Dec)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          {(selectedRegion !== 'All Regions' || selectedType !== 'All Types' || selectedYear !== 'All Years' || selectedPeriod !== 'All Periods') && (
-            <div className="mt-4 pt-4 border-t">
+            {(selectedRegion !== 'All Regions' || selectedType !== 'All Types' || selectedYear !== 'All Years' || selectedPeriod !== 'All Periods') && (
               <Button 
                 variant="outline" 
                 size="sm"
@@ -672,18 +775,214 @@ export default function SummaryPage() {
                   setSelectedYear('All Years')
                   setSelectedPeriod('All Periods')
                 }}
-                className="gap-2"
+                className="gap-2 hover:bg-destructive hover:text-destructive-foreground transition-colors"
               >
-                <Filter className="h-4 w-4" />
-                Clear All Filters
+                <X className="h-4 w-4" />
+                Clear All
               </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {/* Region Filter */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                <MapPin className="h-4 w-4 text-primary" />
+                Region
+              </Label>
+              <Select value={selectedRegion} onValueChange={(value) => {
+                setSelectedRegion(value)
+                setSelectedPeriod('All Periods') // Reset period when region changes
+              }}>
+                <SelectTrigger className="h-11 border-2 hover:border-primary/50 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder="Select region" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {regions.map(region => (
+                    <SelectItem key={region} value={region} className="cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        {region !== 'All Regions' && <MapPin className="h-3.5 w-3.5 text-muted-foreground" />}
+                        {region}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Project Type Filter */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                <FolderOpen className="h-4 w-4 text-primary" />
+                Project Type
+              </Label>
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger className="h-11 border-2 hover:border-primary/50 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder="Select type" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {projectTypes.map(type => {
+                    const getIcon = () => {
+                      if (type === 'All Types') return null
+                      if (type === 'FMR') return <Route className="h-3.5 w-3.5 text-orange-500" />
+                      if (type === 'Infrastructure') return <Building2 className="h-3.5 w-3.5 text-blue-500" />
+                      if (type === 'Machinery') return <Wrench className="h-3.5 w-3.5 text-purple-500" />
+                      if (type === 'Project Package') return <Package className="h-3.5 w-3.5 text-green-500" />
+                      return null
+                    }
+                    return (
+                      <SelectItem key={type} value={type} className="cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          {getIcon()}
+                          {type}
+                        </div>
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Year Filter */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                <Calendar className="h-4 w-4 text-primary" />
+                Year
+              </Label>
+              <Select value={selectedYear} onValueChange={(value) => {
+                setSelectedYear(value)
+                if (value === 'All Years') {
+                  setSelectedPeriod('All Periods')
+                }
+              }}>
+                <SelectTrigger className="h-11 border-2 hover:border-primary/50 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder="Select year" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map(year => (
+                    <SelectItem key={year} value={year} className="cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        {year !== 'All Years' && <Calendar className="h-3.5 w-3.5 text-muted-foreground" />}
+                        {year}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Period Filter */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                <Clock className="h-4 w-4 text-primary" />
+                Period {selectedYear !== 'All Years' ? <span className="text-xs text-muted-foreground">(Quarterly/Semestral)</span> : ''}
+              </Label>
+              <Select 
+                value={selectedPeriod} 
+                onValueChange={setSelectedPeriod}
+                disabled={selectedYear === 'All Years'}
+              >
+                <SelectTrigger className="h-11 border-2 hover:border-primary/50 transition-colors disabled:opacity-50">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder={selectedYear === 'All Years' ? 'Select year first' : 'Select period'} />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All Periods" className="cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                      All Periods
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Q1" className="cursor-pointer">Q1 (Jan-Mar)</SelectItem>
+                  <SelectItem value="Q2" className="cursor-pointer">Q2 (Apr-Jun)</SelectItem>
+                  <SelectItem value="Q3" className="cursor-pointer">Q3 (Jul-Sep)</SelectItem>
+                  <SelectItem value="Q4" className="cursor-pointer">Q4 (Oct-Dec)</SelectItem>
+                  <SelectItem value="1st Semester" className="cursor-pointer">1st Semester (Jan-Jun)</SelectItem>
+                  <SelectItem value="2nd Semester" className="cursor-pointer">2nd Semester (Jul-Dec)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Active Filters Display */}
+          {(selectedRegion !== 'All Regions' || selectedType !== 'All Types' || selectedYear !== 'All Years' || selectedPeriod !== 'All Periods') && (
+            <div className="mt-6 pt-4 border-t">
+              <div className="flex items-center gap-2 mb-3">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold text-muted-foreground">Active Filters:</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {selectedRegion !== 'All Regions' && (
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5">
+                    <MapPin className="h-3 w-3" />
+                    {selectedRegion}
+                    <button
+                      onClick={() => setSelectedRegion('All Regions')}
+                      className="ml-1 hover:text-destructive transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {selectedType !== 'All Types' && (
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5">
+                    <FolderOpen className="h-3 w-3" />
+                    {selectedType}
+                    <button
+                      onClick={() => setSelectedType('All Types')}
+                      className="ml-1 hover:text-destructive transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {selectedYear !== 'All Years' && (
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5">
+                    <Calendar className="h-3 w-3" />
+                    {selectedYear}
+                    <button
+                      onClick={() => {
+                        setSelectedYear('All Years')
+                        setSelectedPeriod('All Periods')
+                      }}
+                      className="ml-1 hover:text-destructive transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {selectedPeriod !== 'All Periods' && (
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5">
+                    <Clock className="h-3 w-3" />
+                    {selectedPeriod}
+                    <button
+                      onClick={() => setSelectedPeriod('All Periods')}
+                      className="ml-1 hover:text-destructive transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Key Statistics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <StatCard
           title="Total Projects"
           value={stats.totalProjects}
@@ -714,12 +1013,137 @@ export default function SummaryPage() {
         />
       </div>
 
+      {/* Proposed vs Completed Projects Line Graph */}
+      <Card className="border-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 transition-all hover:shadow-xl hover:scale-[1.01]">
+        <CardHeader>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <LineChartIcon className="h-6 w-6 text-primary" />
+                Proposed vs Completed Projects
+              </CardTitle>
+              <CardDescription className="mt-2">
+                Track the trend of proposed projects versus completed projects over time
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-semibold whitespace-nowrap">Filter by Year:</Label>
+                <Select 
+                  value={graphYearFilter} 
+                  onValueChange={(value) => {
+                    setGraphYearFilter(value)
+                    if (value === 'All Years') {
+                      setGraphQuarterFilter('All Quarters')
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-10 w-[140px]">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {graphYears.map(year => (
+                      <SelectItem key={year} value={year}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {graphYearFilter !== 'All Years' && (
+                <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <Label className="text-sm font-semibold whitespace-nowrap">Quarter:</Label>
+                  <Select 
+                    value={graphQuarterFilter} 
+                    onValueChange={setGraphQuarterFilter}
+                  >
+                    <SelectTrigger className="h-10 w-[140px]">
+                      <SelectValue placeholder="Select quarter" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All Quarters">All Quarters</SelectItem>
+                      <SelectItem value="Q1">Q1 (Jan-Mar)</SelectItem>
+                      <SelectItem value="Q2">Q2 (Apr-Jun)</SelectItem>
+                      <SelectItem value="Q3">Q3 (Jul-Sep)</SelectItem>
+                      <SelectItem value="Q4">Q4 (Oct-Dec)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="w-full h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={graphData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#6b7280"
+                  style={{ fontSize: '12px' }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis 
+                  stroke="#6b7280"
+                  style={{ fontSize: '12px' }}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                  labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
+                  formatter={(value: number, name: string) => [`${value} projects`, name]}
+                />
+                <Legend 
+                  wrapperStyle={{ paddingTop: '20px' }}
+                  iconType="line"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="proposed" 
+                  stroke="#f97316" 
+                  strokeWidth={3}
+                  dot={{ fill: '#f97316', r: 5 }}
+                  activeDot={{ r: 7 }}
+                  name="Proposed Projects"
+                  animationDuration={1000}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="completed" 
+                  stroke="#10b981" 
+                  strokeWidth={3}
+                  dot={{ fill: '#10b981', r: 5 }}
+                  activeDot={{ r: 7 }}
+                  name="Completed Projects"
+                  animationDuration={1000}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          {graphData.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              No data available for the selected year
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Project Type Breakdown */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-2">
+      <div className="grid gap-6 md:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+        <Card className="border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <PieChart className="h-5 w-5" />
+              <PieChart className="h-5 w-5 animate-pulse" />
               Project Type Distribution
             </CardTitle>
             <CardDescription>
@@ -734,10 +1158,10 @@ export default function SummaryPage() {
                   ? (item.count / stats.totalProjects) * 100 
                   : 0
                 return (
-                  <div key={item.type} className="space-y-2">
+                  <div key={item.type} className="space-y-2 transition-all duration-300 hover:translate-x-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <Icon className="h-4 w-4 text-muted-foreground" />
+                        <Icon className="h-4 w-4 text-muted-foreground transition-transform duration-300 hover:scale-125" />
                         <span className="text-sm font-medium">{item.type}</span>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -760,10 +1184,10 @@ export default function SummaryPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-2">
+        <Card className="border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Activity className="h-5 w-5" />
+              <Activity className="h-5 w-5 animate-pulse" />
               Status Distribution
             </CardTitle>
             <CardDescription>
@@ -777,10 +1201,10 @@ export default function SummaryPage() {
                   ? (item.count / stats.totalProjects) * 100 
                   : 0
                 return (
-                  <div key={item.status} className="space-y-2">
+                  <div key={item.status} className="space-y-2 transition-all duration-300 hover:translate-x-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-4 h-4 rounded-full ${item.color}`}></div>
+                        <div className={`w-4 h-4 rounded-full ${item.color} transition-transform duration-300 hover:scale-125`}></div>
                         <span className="text-sm font-medium">{item.status}</span>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -805,12 +1229,12 @@ export default function SummaryPage() {
       </div>
 
       {/* Budget Analysis & Project Trends - Moved Above Regional Performance */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
         {/* Budget by Project Type */}
-        <Card className="border-2">
+        <Card className="border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <DollarSign className="h-5 w-5" />
+              <DollarSign className="h-5 w-5 animate-pulse" />
               Budget by Project Type
             </CardTitle>
             <CardDescription>
@@ -827,10 +1251,10 @@ export default function SummaryPage() {
                   : 0
                 const Icon = item.icon
                 return (
-                  <div key={item.type} className="space-y-2 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                  <div key={item.type} className="space-y-2 p-3 rounded-lg hover:bg-muted/30 transition-all duration-300 hover:translate-x-2 hover:shadow-md">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Icon className="h-4 w-4 text-muted-foreground" />
+                        <Icon className="h-4 w-4 text-muted-foreground transition-transform duration-300 hover:scale-125" />
                         <span className="text-sm font-semibold">{item.type}</span>
                       </div>
                       <span className="text-sm font-bold">₱{(typeBudget / 1000000).toFixed(1)}M</span>
@@ -853,10 +1277,10 @@ export default function SummaryPage() {
         </Card>
 
         {/* Budget Utilization */}
-        <Card className="border-2">
+        <Card className="border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Target className="h-5 w-5" />
+              <Target className="h-5 w-5 animate-pulse" />
               Budget Utilization
             </CardTitle>
             <CardDescription>
@@ -914,12 +1338,12 @@ export default function SummaryPage() {
       </div>
 
       {/* Projects by Year & Project Type Performance */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400">
         {/* Projects by Year */}
-        <Card className="border-2">
+        <Card className="border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Calendar className="h-5 w-5" />
+              <Calendar className="h-5 w-5 animate-pulse" />
               Projects by Year
             </CardTitle>
             <CardDescription>
@@ -942,10 +1366,10 @@ export default function SummaryPage() {
                   : 0
                 
                 return (
-                  <div key={year} className="space-y-2 p-3 rounded-lg hover:bg-muted/30 transition-colors border">
+                  <div key={year} className="space-y-2 p-3 rounded-lg hover:bg-muted/30 transition-all duration-300 hover:translate-x-2 hover:shadow-md border">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-14 text-center bg-primary/10 rounded-lg py-1">
+                        <div className="w-14 text-center bg-primary/10 rounded-lg py-1 transition-transform duration-300 hover:scale-110">
                           <div className="text-lg font-bold text-primary">{year}</div>
                         </div>
                         <div className="flex-1">
@@ -975,10 +1399,10 @@ export default function SummaryPage() {
         </Card>
 
         {/* Project Type Performance */}
-        <Card className="border-2">
+        <Card className="border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <BarChart3 className="h-5 w-5" />
+              <BarChart3 className="h-5 w-5 animate-pulse" />
               Project Type Performance
             </CardTitle>
             <CardDescription>
@@ -998,10 +1422,10 @@ export default function SummaryPage() {
                 const Icon = item.icon
                 
                 return (
-                  <div key={item.type} className="space-y-2 p-3 rounded-lg hover:bg-muted/30 transition-colors border">
+                  <div key={item.type} className="space-y-2 p-3 rounded-lg hover:bg-muted/30 transition-all duration-300 hover:translate-x-2 hover:shadow-md border">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Icon className="h-5 w-5 text-muted-foreground" />
+                        <Icon className="h-5 w-5 text-muted-foreground transition-transform duration-300 hover:scale-125" />
                         <div>
                           <div className="text-sm font-semibold">{item.type}</div>
                           <div className="text-xs text-muted-foreground">
@@ -1041,7 +1465,7 @@ export default function SummaryPage() {
       </div>
 
       {/* Regional Performance */}
-      <Card className="border-2 shadow-lg">
+      <Card className="border-2 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
         <CardHeader className="bg-muted/30 border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -1085,7 +1509,8 @@ export default function SummaryPage() {
               return (
                 <div 
                   key={region.region}
-                  className="grid grid-cols-1 md:grid-cols-12 gap-4 px-4 py-4 rounded-lg border-2 hover:bg-primary/5 hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group bg-card"
+                  className="grid grid-cols-1 md:grid-cols-12 gap-4 px-4 py-4 rounded-lg border-2 hover:bg-primary/5 hover:border-primary/50 hover:shadow-md hover:scale-[1.02] transition-all duration-300 cursor-pointer group bg-card animate-in fade-in slide-in-from-left-4"
+                  style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => {
                     setSelectedRegion(region.region)
                     setViewMode('detailed')
@@ -1193,7 +1618,7 @@ export default function SummaryPage() {
       </Card>
 
       {/* Top Performing Regions */}
-      <Card className="border-2">
+      <Card className="border-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-600">
         <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
           <CardTitle className="flex items-center gap-2 text-xl">
             <TrendingUp className="h-6 w-6 text-green-600" />
@@ -1208,7 +1633,8 @@ export default function SummaryPage() {
             {topRegions.map((region, index) => (
               <div 
                 key={region.region}
-                className="p-4 rounded-lg border text-center hover:bg-muted/50 transition-colors cursor-pointer"
+                className="p-4 rounded-lg border text-center hover:bg-muted/50 hover:scale-110 hover:shadow-lg transition-all duration-300 cursor-pointer animate-in fade-in zoom-in-95"
+                style={{ animationDelay: `${index * 100}ms` }}
                 onClick={() => {
                   setSelectedRegion(region.region)
                   setViewMode('detailed')
