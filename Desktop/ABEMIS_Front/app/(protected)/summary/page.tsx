@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -41,6 +41,16 @@ import {
   Clock
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import dynamic from 'next/dynamic'
+import L from 'leaflet'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
+
+// Dynamically import MapContainer to avoid SSR issues
+const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
+const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false })
+const CreateClusterLayer = dynamic(() => import('@/components/project-map').then(mod => mod.default), { ssr: false })
+const MapZoomControl = dynamic(() => import('@/components/map-zoom-control').then(mod => mod.default), { ssr: false })
 
 const regions = [
   'All Regions',
@@ -91,6 +101,128 @@ const regionProvinces: Record<string, string[]> = {
   'Region 11': ['Davao del Norte', 'Davao del Sur', 'Davao Occidental', 'Davao Oriental', 'Davao de Oro'],
   'Region 12': ['Cotabato', 'Sarangani', 'South Cotabato', 'Sultan Kudarat'],
   'Region 13': ['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur']
+}
+
+// Philippine region coordinates (accurate land-based coordinates)
+const regionCoordinates: Record<string, [number, number]> = {
+  'Region 1': [16.6167, 120.3167], // Ilocos Region (Vigan area)
+  'Region 2': [17.6167, 121.7167], // Cagayan Valley (Tuguegarao area)
+  'Region 3': [15.1475, 120.5847], // Central Luzon (Angeles/Pampanga area)
+  'Region 4': [14.6042, 121.0000], // CALABARZON (Laguna area)
+  'Region 4B': [13.1333, 121.2833], // MIMAROPA (Oriental Mindoro area)
+  'Region 5': [13.1333, 123.7333], // Bicol Region (Naga area)
+  'Region 6': [10.7167, 122.5667], // Western Visayas (Iloilo area)
+  'Region 7': [10.3167, 123.9000], // Central Visayas (Cebu area)
+  'NIR': [10.6667, 122.9500], // Negros Island Region (Bacolod area)
+  'Region 8': [11.2500, 125.0000], // Eastern Visayas (Tacloban area)
+  'Region 9': [6.9167, 122.0833], // Zamboanga Peninsula (Zamboanga City area)
+  'Region 10': [8.4833, 124.6500], // Northern Mindanao (Cagayan de Oro area)
+  'Region 11': [7.0667, 125.6000], // Davao Region (Davao City area)
+  'Region 12': [6.1167, 124.6500], // SOCCSKSARGEN (General Santos area)
+  'Region 13': [9.7833, 125.4833], // Caraga (Butuan area)
+}
+
+// Province coordinates for more accurate project placement (land-based cities/towns)
+const provinceCoordinates: Record<string, [number, number]> = {
+  // Region 1 - More inland coordinates
+  'Ilocos Norte': [18.2000, 120.6000], // Laoag area
+  'Ilocos Sur': [17.5667, 120.4000], // Vigan area
+  'La Union': [16.6167, 120.3500], // San Fernando area
+  'Pangasinan': [16.0500, 120.3500], // Dagupan area
+  
+  // Region 2 - Inland areas
+  'Batanes': [20.4500, 121.9667], // Basco
+  'Cagayan': [17.6167, 121.7167], // Tuguegarao
+  'Isabela': [17.0000, 121.7500], // Ilagan
+  'Nueva Vizcaya': [16.4833, 121.1500], // Bayombong
+  'Quirino': [16.2833, 121.5833], // Cabarroguis
+  
+  // Region 3 - Central Luzon inland
+  'Bataan': [14.6833, 120.5500], // Balanga
+  'Bulacan': [14.8000, 120.9000], // Malolos
+  'Nueva Ecija': [15.4833, 120.9667], // Cabanatuan
+  'Pampanga': [15.1475, 120.6000], // San Fernando
+  'Tarlac': [15.4833, 120.6000], // Tarlac City
+  'Zambales': [15.3000, 120.0500], // Iba
+  'Aurora': [15.7833, 121.5500], // Baler
+  
+  // Region 4 - CALABARZON
+  'Batangas': [13.8000, 121.0500], // Batangas City
+  'Cavite': [14.4833, 120.9000], // Cavite City
+  'Laguna': [14.3000, 121.4167], // Santa Cruz
+  'Quezon': [14.0500, 121.6500], // Lucena
+  'Rizal': [14.6500, 121.2000], // Antipolo
+  
+  // Region 4B - MIMAROPA
+  'Marinduque': [13.4167, 121.9500], // Boac
+  'Occidental Mindoro': [13.0500, 120.7500], // Mamburao
+  'Oriental Mindoro': [13.1500, 121.3000], // Calapan
+  'Palawan': [9.8333, 118.7500], // Puerto Princesa
+  'Romblon': [12.5833, 122.2833], // Romblon
+  
+  // Region 5 - Bicol
+  'Albay': [13.1500, 123.7500], // Legazpi
+  'Camarines Norte': [14.1500, 122.9500], // Daet
+  'Camarines Sur': [13.6167, 123.2000], // Naga
+  'Catanduanes': [13.6000, 124.2500], // Virac
+  'Masbate': [12.4000, 123.6500], // Masbate City
+  'Sorsogon': [12.9833, 124.0000], // Sorsogon City
+  
+  // Region 6 - Western Visayas
+  'Aklan': [11.7167, 122.3667], // Kalibo
+  'Antique': [11.0500, 122.1000], // San Jose
+  'Capiz': [11.5833, 122.7500], // Roxas
+  'Guimaras': [10.5667, 122.6000], // Jordan
+  'Iloilo': [10.7167, 122.5667], // Iloilo City
+  
+  // Region 7 - Central Visayas
+  'Bohol': [9.6500, 123.9000], // Tagbilaran
+  'Cebu': [10.3167, 123.9000], // Cebu City
+  
+  // NIR
+  'Negros Occidental': [10.6667, 122.9500], // Bacolod
+  'Negros Oriental': [9.3167, 123.3000], // Dumaguete
+  'Siquijor': [9.2000, 123.5167], // Siquijor
+  
+  // Region 8 - Eastern Visayas
+  'Biliran': [11.5833, 124.4833], // Naval
+  'Eastern Samar': [11.6500, 125.4500], // Borongan
+  'Leyte': [11.0500, 124.8500], // Tacloban
+  'Northern Samar': [12.3500, 124.7000], // Catarman
+  'Samar': [11.7500, 125.0000], // Catbalogan
+  'Southern Leyte': [10.3667, 125.0167], // Maasin
+  
+  // Region 9 - Zamboanga Peninsula
+  'Zamboanga del Norte': [8.0833, 123.0167], // Dipolog
+  'Zamboanga del Sur': [7.8500, 123.4500], // Pagadian
+  'Zamboanga Sibugay': [7.7833, 122.7000], // Ipil
+  
+  // Region 10 - Northern Mindanao
+  'Bukidnon': [8.1500, 125.1333], // Malaybalay
+  'Camiguin': [9.1667, 124.7167], // Mambajao
+  'Lanao del Norte': [8.2500, 124.2667], // Tubod
+  'Misamis Occidental': [8.1833, 123.7167], // Oroquieta
+  'Misamis Oriental': [8.4833, 124.6500], // Cagayan de Oro
+  
+  // Region 11 - Davao Region
+  'Davao del Norte': [7.4667, 125.8333], // Tagum
+  'Davao del Sur': [7.0667, 125.6000], // Davao City
+  'Davao Occidental': [6.1000, 125.7000], // Malita
+  'Davao Oriental': [7.1333, 126.3833], // Mati
+  'Davao de Oro': [7.6167, 126.0833], // Nabunturan
+  
+  // Region 12 - SOCCSKSARGEN
+  'Cotabato': [7.2167, 124.2500], // Kidapawan
+  'Sarangani': [5.9000, 125.3000], // Alabel
+  'South Cotabato': [6.1167, 124.6500], // Koronadal
+  'Sultan Kudarat': [6.5667, 124.3000], // Isulan
+  
+  // Region 13 - Caraga
+  'Agusan del Norte': [9.0167, 125.5167], // Butuan
+  'Agusan del Sur': [8.2500, 125.7500], // Prosperidad
+  'Dinagat Islands': [10.1167, 125.6000], // San Jose
+  'Surigao del Norte': [9.7833, 125.4833], // Surigao City
+  'Surigao del Sur': [8.9500, 126.0833], // Tandag
 }
 
 // Generate additional random projects to ensure 50-250 projects
@@ -182,11 +314,158 @@ export default function SummaryPage() {
   const [viewMode, setViewMode] = useState<'overview' | 'regional' | 'detailed'>('overview')
   const [graphYearFilter, setGraphYearFilter] = useState<string>('All Years')
   const [graphQuarterFilter, setGraphQuarterFilter] = useState<string>('All Quarters')
+  const [mapRegionFilter, setMapRegionFilter] = useState<string>('All Regions')
 
   // Get all projects (national view) with additional generated projects (50-250 range)
   const allProjects = useMemo(() => {
     return generateAdditionalProjects(raedSpecificProjects, 50, 250)
   }, [])
+
+  // Load Leaflet CSS dynamically
+  useEffect(() => {
+    const links = [
+      {
+        rel: 'stylesheet',
+        href: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+        integrity: 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=',
+        crossOrigin: ''
+      },
+      {
+        rel: 'stylesheet',
+        href: 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css'
+      },
+      {
+        rel: 'stylesheet',
+        href: 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css'
+      }
+    ]
+
+    const linkElements = links.map(linkConfig => {
+      const link = document.createElement('link')
+      Object.assign(link, linkConfig)
+      document.head.appendChild(link)
+      return link
+    })
+
+    return () => {
+      linkElements.forEach(link => document.head.removeChild(link))
+    }
+  }, [])
+
+  // Generate fixed projects for map (50-100 per region) with accurate coordinates
+  const mapProjects = useMemo(() => {
+    const projects: Array<Project & { coordinates: [number, number] }> = []
+    const allRegions = regions.slice(1) // Exclude 'All Regions'
+    
+    allRegions.forEach((region, regionIndex) => {
+      const baseCoords = regionCoordinates[region]
+      if (!baseCoords) return
+      
+      // Fixed number of projects per region (50-100)
+      const projectCount = 50 + (regionIndex % 51) // 50-100 projects
+      const regionProjects = allProjects.filter(p => p.region === region)
+      const provinces = regionProvinces[region] || ['Unknown Province']
+      
+      // Use existing projects if available, otherwise generate
+      for (let i = 0; i < projectCount; i++) {
+        let project: Project
+        if (i < regionProjects.length) {
+          project = regionProjects[i]
+        } else {
+          // Generate additional project for this region
+          const type = ['FMR', 'Infrastructure', 'Machinery'][i % 3] as 'FMR' | 'Infrastructure' | 'Machinery'
+          const template = projectTemplates[type][i % projectTemplates[type].length]
+          const province = provinces[i % provinces.length]
+          
+          // Status distribution: 40% completed, 40% in progress, 20% other
+          const statusIndex = i % 10
+          let status: Project['status']
+          if (statusIndex < 4) {
+            status = 'Completed'
+          } else if (statusIndex < 8) {
+            status = 'Implementation'
+          } else {
+            status = ['Draft', 'Proposal', 'Procurement'][statusIndex % 3] as Project['status']
+          }
+          
+          const startYear = 2023 + (i % 3) // 2023-2025
+          const startMonth = (i % 12)
+          const startDay = ((i * 7) % 28) + 1
+          const startDate = new Date(startYear, startMonth, startDay).toISOString().split('T')[0]
+          
+          let endDate: string | undefined
+          if (status === 'Completed') {
+            const duration = 60 + (i % 300)
+            const end = new Date(startDate)
+            end.setDate(end.getDate() + duration)
+            endDate = end.toISOString().split('T')[0]
+          }
+          
+          const budget = 2000000 + ((i * 1000000) % 48000000)
+          
+          project = {
+            id: `PRJ-MAP-${region.replace(/\s+/g, '')}-${String(i + 1).padStart(4, '0')}`,
+            title: `${template} - ${province}`,
+            type,
+            province,
+            region,
+            status,
+            description: `This is a ${type.toLowerCase()} project in ${province}, ${region}.`,
+            budget,
+            startDate,
+            endDate,
+            updatedAt: new Date().toISOString(),
+            assignedTo: `RAED - ${region}`
+          }
+        }
+        
+        // Get province coordinates for accurate placement
+        const province = project.province
+        const provinceCoords = provinceCoordinates[province]
+        
+        let coordinates: [number, number]
+        
+        if (provinceCoords) {
+          // Use province coordinates with very small variation (within 0.15 degrees = ~16km radius)
+          // Reduced variation to keep projects on land
+          const latOffset = ((i % 8) - 3.5) * 0.03 // -0.105 to +0.105
+          const lngOffset = ((Math.floor(i / 8) % 8) - 3.5) * 0.03 // -0.105 to +0.105
+          
+          // Ensure coordinates stay within safe land boundaries
+          let lat = provinceCoords[0] + latOffset
+          let lng = provinceCoords[1] + lngOffset
+          
+          // Additional safety checks for coastal provinces
+          // Keep projects more inland for coastal areas
+          if (province.includes('Mindoro') || province.includes('Palawan') || 
+              province.includes('Catanduanes') || province.includes('Masbate') ||
+              province.includes('Biliran') || province.includes('Camiguin') ||
+              province.includes('Dinagat')) {
+            // For island provinces, use even smaller variation
+            lat = provinceCoords[0] + ((i % 6) - 2.5) * 0.02
+            lng = provinceCoords[1] + ((Math.floor(i / 6) % 6) - 2.5) * 0.02
+          }
+          
+          coordinates = [
+            Math.max(5.5, Math.min(20.5, lat)), // Tighter bounds to avoid sea
+            Math.max(116.5, Math.min(126.5, lng))
+          ]
+        } else {
+          // Fallback to region coordinates with smaller variation
+          const latOffset = ((i % 8) - 3.5) * 0.05 // -0.175 to +0.175
+          const lngOffset = ((Math.floor(i / 8) % 8) - 3.5) * 0.05 // -0.175 to +0.175
+          coordinates = [
+            Math.max(5.5, Math.min(20.5, baseCoords[0] + latOffset)),
+            Math.max(116.5, Math.min(126.5, baseCoords[1] + lngOffset))
+          ]
+        }
+        
+        projects.push({ ...project, coordinates })
+      }
+    })
+    
+    return projects
+  }, [allProjects])
 
   // Filter projects based on selections
   const filteredProjects = useMemo(() => {
@@ -1659,6 +1938,91 @@ export default function SummaryPage() {
         </CardContent>
       </Card>
 
+      {/* Project Locations Map */}
+      <Card className="border-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-700">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <MapPin className="h-6 w-6 text-blue-600" />
+                Project Locations Map
+              </CardTitle>
+              <CardDescription className="text-base mt-2">
+                Visualize project distribution across the Philippines
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-semibold whitespace-nowrap flex items-center gap-2">
+                <Globe className="h-4 w-4 text-primary" />
+                Filter by Region:
+              </Label>
+              <Select value={mapRegionFilter} onValueChange={setMapRegionFilter}>
+                <SelectTrigger className="h-10 w-[180px] border-2">
+                  <SelectValue placeholder="Select region" />
+                </SelectTrigger>
+                <SelectContent>
+                  {regions.map(region => (
+                    <SelectItem key={region} value={region}>
+                      {region}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="mb-4 flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                <span className="text-muted-foreground">Completed</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-blue-500"></div>
+                <span className="text-muted-foreground">In Progress</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-gray-500"></div>
+                <span className="text-muted-foreground">Other Status</span>
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {mapProjects.filter(p => mapRegionFilter === 'All Regions' || p.region === mapRegionFilter).length} projects displayed
+            </div>
+          </div>
+          <div className="w-full h-[600px] rounded-lg overflow-hidden border-2">
+            {typeof window !== 'undefined' && (
+              <MapContainer
+                center={[12.5, 122.5]}
+                zoom={6}
+                style={{ height: '100%', width: '100%', zIndex: 0 }}
+                className="z-0"
+                scrollWheelZoom={true}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <MapZoomControl regionFilter={mapRegionFilter} />
+                <CreateClusterLayer 
+                  projects={mapProjects.filter(p => 
+                    mapRegionFilter === 'All Regions' || p.region === mapRegionFilter
+                  )}
+                />
+              </MapContainer>
+            )}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2 items-center text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4" />
+            <span>
+              {mapRegionFilter === 'All Regions' 
+                ? `Showing all ${mapProjects.length} projects across all regions. Zoom in to see individual projects or click clusters to expand.` 
+                : `Showing ${mapProjects.filter(p => p.region === mapRegionFilter).length} projects in ${mapRegionFilter}`}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
 
     </div>
   )
