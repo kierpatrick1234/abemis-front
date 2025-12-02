@@ -162,7 +162,7 @@ function UsersPageContent() {
   const regions = [
     'NCR', 'BARMM', 'Region 1', 'Region 2', 'Region 3', 'Region 4A', 'Region 4B', 
     'Region 5', 'Region 6', 'Region 7', 'Region 8', 'Region 9', 'Region 10', 
-    'Region 11', 'Region 12', 'Region 13'
+    'Region 11', 'Region 12', 'Region 13', 'NIR'
   ]
 
   const filteredUsers = useMemo(() => {

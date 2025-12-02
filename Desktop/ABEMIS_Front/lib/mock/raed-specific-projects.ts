@@ -73,8 +73,9 @@ const regionProvinces = {
   'Region 4': ['Batangas', 'Cavite', 'Laguna', 'Quezon', 'Rizal'],
   'Region 4B': ['Marinduque', 'Occidental Mindoro', 'Oriental Mindoro', 'Palawan', 'Romblon'],
   'Region 5': ['Albay', 'Camarines Norte', 'Camarines Sur', 'Catanduanes', 'Masbate', 'Sorsogon'],
-  'Region 6': ['Aklan', 'Antique', 'Capiz', 'Guimaras', 'Iloilo', 'Negros Occidental'],
-  'Region 7': ['Bohol', 'Cebu', 'Negros Oriental', 'Siquijor'],
+  'Region 6': ['Aklan', 'Antique', 'Capiz', 'Guimaras', 'Iloilo'],
+  'Region 7': ['Bohol', 'Cebu'],
+  'NIR': ['Negros Occidental', 'Negros Oriental', 'Siquijor'],
   'Region 8': ['Biliran', 'Eastern Samar', 'Leyte', 'Northern Samar', 'Samar', 'Southern Leyte'],
   'Region 9': ['Zamboanga del Norte', 'Zamboanga del Sur', 'Zamboanga Sibugay'],
   'Region 10': ['Bukidnon', 'Camiguin', 'Lanao del Norte', 'Misamis Occidental', 'Misamis Oriental'],
@@ -255,7 +256,7 @@ export function generateAllRAEDProjects(): Project[] {
   const regions = [
     'Region 1', 'Region 2', 'Region 3', 'Region 4', 'Region 4B',
     'Region 5', 'Region 6', 'Region 7', 'Region 8', 'Region 9',
-    'Region 10', 'Region 11', 'Region 12', 'Region 13'
+    'Region 10', 'Region 11', 'Region 12', 'Region 13', 'NIR'
   ]
   
   let allProjects: Project[] = []

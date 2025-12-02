@@ -232,6 +232,18 @@ export const mockUsers: User[] = [
     createdAt: '2024-01-01T00:00:00Z',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=raed13',
   },
+  // RAED Users - NIR (Negros Island Region)
+  {
+    id: 'raed-nir',
+    email: 'raed-nir@abemis.com',
+    name: getRAEDName('NIR'),
+    role: 'RAED',
+    regionAssigned: 'NIR',
+    status: 'active',
+    lastLogin: '2025-08-20T09:30:00Z',
+    createdAt: '2024-01-01T00:00:00Z',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=raednir',
+  },
   // EPDSD User
   {
     id: 'epdsd-1',
@@ -290,6 +302,7 @@ export const mockCredentials = {
   'raed-11@abemis.com': { password: 'raed123', role: 'RAED' },
   'raed-12@abemis.com': { password: 'raed123', role: 'RAED' },
   'raed-13@abemis.com': { password: 'raed123', role: 'RAED' },
+  'raed-nir@abemis.com': { password: 'raed123', role: 'RAED' },
   // New role users
   'epdsd@abemis.com': { password: 'epdsd123', role: 'EPDSD' },
   'ppmd@abemis.com': { password: 'ppmd123', role: 'PPMD' },

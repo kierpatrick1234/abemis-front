@@ -215,10 +215,13 @@ export const mockProjectPackages: Project[] = [
   ...generateProjectPackagesForRegion('Region 5', 6, ['Albay', 'Camarines Norte', 'Camarines Sur', 'Catanduanes', 'Masbate', 'Sorsogon']),
   
   // Region 6
-  ...generateProjectPackagesForRegion('Region 6', 7, ['Aklan', 'Antique', 'Capiz', 'Guimaras', 'Iloilo', 'Negros Occidental']),
+  ...generateProjectPackagesForRegion('Region 6', 7, ['Aklan', 'Antique', 'Capiz', 'Guimaras', 'Iloilo']),
   
   // Region 7
-  ...generateProjectPackagesForRegion('Region 7', 8, ['Bohol', 'Cebu', 'Negros Oriental', 'Siquijor']),
+  ...generateProjectPackagesForRegion('Region 7', 8, ['Bohol', 'Cebu']),
+  
+  // NIR (Negros Island Region)
+  ...generateProjectPackagesForRegion('NIR', 15, ['Negros Occidental', 'Negros Oriental', 'Siquijor']),
   
   // Region 8
   ...generateProjectPackagesForRegion('Region 8', 9, ['Biliran', 'Eastern Samar', 'Leyte', 'Northern Samar', 'Samar', 'Southern Leyte']),
