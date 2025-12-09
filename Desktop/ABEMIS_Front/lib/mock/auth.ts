@@ -244,6 +244,18 @@ export const mockUsers: User[] = [
     createdAt: '2024-01-01T00:00:00Z',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=raednir',
   },
+  // RAED Users - CAR (Cordillera Administrative Region)
+  {
+    id: 'raed-car',
+    email: 'raed-car@abemis.com',
+    name: getRAEDName('CAR'),
+    role: 'RAED',
+    regionAssigned: 'CAR',
+    status: 'active',
+    lastLogin: '2025-08-20T09:30:00Z',
+    createdAt: '2024-01-01T00:00:00Z',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=raedcar',
+  },
   // EPDSD User
   {
     id: 'epdsd-1',
@@ -314,6 +326,7 @@ export const mockCredentials = {
   'raed-12@abemis.com': { password: 'raed123', role: 'RAED' },
   'raed-13@abemis.com': { password: 'raed123', role: 'RAED' },
   'raed-nir@abemis.com': { password: 'raed123', role: 'RAED' },
+  'raed-car@abemis.com': { password: 'raed123', role: 'RAED' },
   // New role users
   'epdsd@abemis.com': { password: 'epdsd123', role: 'EPDSD' },
   'ppmd@abemis.com': { password: 'ppmd123', role: 'PPMD' },

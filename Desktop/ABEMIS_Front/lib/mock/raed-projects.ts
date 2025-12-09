@@ -206,7 +206,7 @@ export function generateAllRAEDProjectsLegacy(): Project[] {
   const regions = [
     'Region 1', 'Region 2', 'Region 3', 'Region 4', 'Region 4B',
     'Region 5', 'Region 6', 'Region 7', 'Region 8', 'Region 9',
-    'Region 10', 'Region 11', 'Region 12', 'Region 13', 'NIR'
+    'Region 10', 'Region 11', 'Region 12', 'Region 13', 'NIR', 'CAR'
   ]
   
   let allProjects: Project[] = []

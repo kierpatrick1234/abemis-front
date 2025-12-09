@@ -24,6 +24,7 @@ const regionCoordinates: Record<string, [number, number]> = {
   'Region 11': [7.0667, 125.6000],
   'Region 12': [6.1167, 124.6500],
   'Region 13': [9.7833, 125.4833],
+  'CAR': [16.4023, 120.5960],
 }
 
 function MapZoomControl({ regionFilter }: MapZoomControlProps) {
@@ -54,4 +55,5 @@ function MapZoomControl({ regionFilter }: MapZoomControlProps) {
 }
 
 export default MapZoomControl
+
 

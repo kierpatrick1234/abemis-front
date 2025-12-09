@@ -318,5 +318,8 @@ export const mockProjectPackages: Project[] = [
   ...generateProjectPackagesForRegion('Region 12', 13, ['Cotabato', 'Sarangani', 'South Cotabato', 'Sultan Kudarat']),
   
   // Region 13
-  ...generateProjectPackagesForRegion('Region 13', 14, ['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur'])
+  ...generateProjectPackagesForRegion('Region 13', 14, ['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur']),
+  
+  // CAR (Cordillera Administrative Region)
+  ...generateProjectPackagesForRegion('CAR', 16, ['Abra', 'Apayao', 'Benguet', 'Ifugao', 'Kalinga', 'Mountain Province'])
 ]

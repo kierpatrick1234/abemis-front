@@ -14,7 +14,8 @@ export const raedAssignments = {
   'Region 11': 'Teresa Esperanza Perez',
   'Region 12': 'Carlos Eduardo Sanchez',
   'Region 13': 'Dolores Concepcion Ramirez',
-  'NIR': 'Ricardo Antonio Villanueva'
+  'NIR': 'Ricardo Antonio Villanueva',
+  'CAR': 'Fernando Jose Cordillera'
 }
 
 // Function to get RAED name for a region
@@ -28,6 +29,9 @@ export function getRAEDLabel(region: string): string {
   if (region === 'NIR') {
     return `${name}\nRAED-NIR`
   }
+  if (region === 'CAR') {
+    return `${name}\nRAED-CAR`
+  }
   const regionNumber = region === 'Region 4B' ? '4B' : region.split(' ')[1]
   return `${name}\nRAED-${regionNumber}`
 }
@@ -36,6 +40,9 @@ export function getRAEDLabel(region: string): string {
 export function getRAEDIdentifier(region: string): string {
   if (region === 'NIR') {
     return 'RAED-NIR'
+  }
+  if (region === 'CAR') {
+    return 'RAED-CAR'
   }
   const regionNumber = region === 'Region 4B' ? '4B' : region.split(' ')[1]
   return `RAED-${regionNumber}`

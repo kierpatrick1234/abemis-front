@@ -81,7 +81,8 @@ const regionProvinces = {
   'Region 10': ['Bukidnon', 'Camiguin', 'Lanao del Norte', 'Misamis Occidental', 'Misamis Oriental'],
   'Region 11': ['Davao del Norte', 'Davao del Sur', 'Davao Occidental', 'Davao Oriental', 'Davao de Oro'],
   'Region 12': ['Cotabato', 'Sarangani', 'South Cotabato', 'Sultan Kudarat'],
-  'Region 13': ['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur']
+  'Region 13': ['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur'],
+  'CAR': ['Abra', 'Apayao', 'Benguet', 'Ifugao', 'Kalinga', 'Mountain Province']
 }
 
 // const statuses: Array<'Proposal' | 'Procurement' | 'Implementation' | 'Completed'> = [
@@ -256,7 +257,7 @@ export function generateAllRAEDProjects(): Project[] {
   const regions = [
     'Region 1', 'Region 2', 'Region 3', 'Region 4', 'Region 4B',
     'Region 5', 'Region 6', 'Region 7', 'Region 8', 'Region 9',
-    'Region 10', 'Region 11', 'Region 12', 'Region 13', 'NIR'
+    'Region 10', 'Region 11', 'Region 12', 'Region 13', 'NIR', 'CAR'
   ]
   
   let allProjects: Project[] = []

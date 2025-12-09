@@ -407,12 +407,14 @@ export default function LoginPage() {
     'Region XIII - Caraga',
     'NIR - Negros Island Region',
     'BARMM - Bangsamoro Autonomous Region in Muslim Mindanao',
-    'NCR - National Capital Region'
+    'NCR - National Capital Region',
+    'CAR - Cordillera Administrative Region'
   ]
 
   const testCredentials = [
     { email: 'admin@abemis.com', password: 'admin123', role: 'Admin', description: 'Full system access' },
     { email: 'raed-nir@abemis.com', password: 'raed123', role: 'RAED-NIR', description: 'NIR - Negros Island Region - Dashboard, Projects, Settings only' },
+    { email: 'raed-car@abemis.com', password: 'raed123', role: 'RAED-CAR', description: 'CAR - Cordillera Administrative Region - Dashboard, Projects, Settings only' },
     // RAED Users - Region 1 to Region 12
     { email: 'raed-1@abemis.com', password: 'raed123', role: 'RAED-1', description: 'Region 1 - Dashboard, Projects, Settings only' },
     { email: 'raed-2@abemis.com', password: 'raed123', role: 'RAED-2', description: 'Region 2 - Dashboard, Projects, Settings only' },

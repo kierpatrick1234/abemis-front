@@ -56,7 +56,7 @@ const regions = [
   'All Regions',
   'Region 1', 'Region 2', 'Region 3', 'Region 4', 'Region 4B',
   'Region 5', 'Region 6', 'Region 7', 'Region 8', 'Region 9',
-  'Region 10', 'Region 11', 'Region 12', 'Region 13', 'NIR'
+  'Region 10', 'Region 11', 'Region 12', 'Region 13', 'NIR', 'CAR'
 ]
 
 const projectTypes = ['All Types', 'FMR', 'Infrastructure', 'Machinery', 'Project Package']
@@ -100,7 +100,8 @@ const regionProvinces: Record<string, string[]> = {
   'Region 10': ['Bukidnon', 'Camiguin', 'Lanao del Norte', 'Misamis Occidental', 'Misamis Oriental'],
   'Region 11': ['Davao del Norte', 'Davao del Sur', 'Davao Occidental', 'Davao Oriental', 'Davao de Oro'],
   'Region 12': ['Cotabato', 'Sarangani', 'South Cotabato', 'Sultan Kudarat'],
-  'Region 13': ['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur']
+  'Region 13': ['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur'],
+  'CAR': ['Abra', 'Apayao', 'Benguet', 'Ifugao', 'Kalinga', 'Mountain Province']
 }
 
 // Philippine region coordinates (accurate land-based coordinates)
@@ -120,6 +121,7 @@ const regionCoordinates: Record<string, [number, number]> = {
   'Region 11': [7.0667, 125.6000], // Davao Region (Davao City area)
   'Region 12': [6.1167, 124.6500], // SOCCSKSARGEN (General Santos area)
   'Region 13': [9.7833, 125.4833], // Caraga (Butuan area)
+  'CAR': [16.4023, 120.5960], // Cordillera Administrative Region (Baguio area)
 }
 
 // Province coordinates for more accurate project placement (land-based cities/towns)
@@ -223,6 +225,14 @@ const provinceCoordinates: Record<string, [number, number]> = {
   'Dinagat Islands': [10.1167, 125.6000], // San Jose
   'Surigao del Norte': [9.7833, 125.4833], // Surigao City
   'Surigao del Sur': [8.9500, 126.0833], // Tandag
+  
+  // CAR - Cordillera Administrative Region
+  'Abra': [17.5833, 120.7500], // Bangued
+  'Apayao': [18.0333, 121.1667], // Kabugao
+  'Benguet': [16.4023, 120.5960], // La Trinidad (near Baguio)
+  'Ifugao': [16.8333, 121.1000], // Lagawe
+  'Kalinga': [17.6167, 121.4167], // Tabuk
+  'Mountain Province': [17.0833, 120.9167], // Bontoc
 }
 
 // Generate additional random projects to ensure 50-250 projects
