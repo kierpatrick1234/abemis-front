@@ -127,3 +127,69 @@ export function generateBreadcrumbs(pathname: string): Array<{ label: string; hr
 
   return breadcrumbs
 }
+
+/**
+ * Maps region assignment names (e.g., "Region 1", "Region 2") to PSGC region names
+ * This helps find the matching PSGC region code for RAED users
+ */
+export function findPSGCRegionCode(regionAssigned: string, psgcRegions: Array<{ code: string; name: string }>): string | null {
+  if (!regionAssigned || !psgcRegions || psgcRegions.length === 0) {
+    return null
+  }
+
+  // Normalize the region assignment (e.g., "Region 1" -> "Region I", "Region 2" -> "Region II")
+  const regionNumber = regionAssigned.match(/\d+/)?.[0]
+  const regionName = regionAssigned.toLowerCase()
+
+  // Map region numbers to Roman numerals
+  const romanNumerals: Record<string, string> = {
+    '1': 'I',
+    '2': 'II',
+    '3': 'III',
+    '4': 'IV',
+    '5': 'V',
+    '6': 'VI',
+    '7': 'VII',
+    '8': 'VIII',
+    '9': 'IX',
+    '10': 'X',
+    '11': 'XI',
+    '12': 'XII',
+    '13': 'XIII'
+  }
+
+  // Try to find matching region
+  for (const region of psgcRegions) {
+    const regionNameLower = region.name.toLowerCase()
+    
+    // Check for exact match (e.g., "Region 1" matches "Region I - Ilocos Region")
+    if (regionNumber && romanNumerals[regionNumber]) {
+      const romanNumeral = romanNumerals[regionNumber]
+      if (regionNameLower.includes(`region ${romanNumeral.toLowerCase()}`) || 
+          regionNameLower.includes(`region ${regionNumber}`)) {
+        return region.code
+      }
+    }
+    
+    // Check for special cases
+    if (regionName.includes('4b') || regionName.includes('4-b')) {
+      if (regionNameLower.includes('mimaropa') || regionNameLower.includes('iv-b')) {
+        return region.code
+      }
+    }
+    
+    if (regionName.includes('nir') || regionName.includes('negros island')) {
+      if (regionNameLower.includes('negros island') || regionNameLower.includes('nir')) {
+        return region.code
+      }
+    }
+    
+    if (regionName.includes('car') || regionName.includes('cordillera')) {
+      if (regionNameLower.includes('cordillera') || regionNameLower.includes('car')) {
+        return region.code
+      }
+    }
+  }
+
+  return null
+}

@@ -22,16 +22,20 @@ export function SuccessToast({ isVisible, onClose, countdown, message = 'Project
   }, [countdown, onClose])
 
   return (
-    <div className="fixed top-4 right-4 z-50">
-      <div className="bg-white border border-green-200 rounded-lg shadow-lg p-4 max-w-sm cursor-pointer" onClick={onClose}>
-        <div className="flex items-center space-x-3">
-          <CheckCircle className="h-6 w-6 text-green-600" />
-          <div>
-            <h4 className="font-semibold text-green-800">{message}</h4>
-            <p className="text-sm text-green-700">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      {/* Backdrop overlay */}
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose}></div>
+      
+      {/* Toast content */}
+      <div className="relative bg-white border-2 border-green-300 rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 cursor-pointer transform transition-all hover:scale-105" onClick={onClose}>
+        <div className="flex items-start space-x-4">
+          <CheckCircle className="h-12 w-12 text-green-600 flex-shrink-0 mt-1" />
+          <div className="flex-1">
+            <h4 className="text-2xl font-bold text-green-800 mb-2">{message}</h4>
+            <p className="text-base text-green-700 mb-3 leading-relaxed">
               {message.includes('draft') ? 'Your project has been saved as draft.' : 'Your infrastructure project has been added to the list.'}
             </p>
-            <p className="text-xs text-green-600 mt-1">
+            <p className="text-sm text-green-600 font-medium">
               {countdown > 0 ? `Auto-closes in ${countdown} seconds (click to close)` : 'Click to close'}
             </p>
           </div>

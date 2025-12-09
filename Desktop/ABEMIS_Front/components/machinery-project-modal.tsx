@@ -30,6 +30,8 @@ import {
 } from 'lucide-react'
 import { SuccessToast } from './success-toast'
 import { useLocationData } from '@/lib/hooks/use-location-data'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { findPSGCRegionCode } from '@/lib/utils'
 
 interface MachineryProjectModalProps {
   isOpen: boolean
@@ -443,6 +445,13 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
     handleBarangayChange
   } = useLocationData()
   
+  // Get current user for RAED region locking
+  const { user } = useAuth()
+  const isRAEDUser = user?.role === 'RAED' && !!user?.regionAssigned
+  const lockedRegionCode = isRAEDUser && locationData.regions.length > 0 && user?.regionAssigned
+    ? findPSGCRegionCode(user.regionAssigned, locationData.regions)
+    : null
+  
   // Step 4: Document Upload
   const [documents, setDocuments] = useState<Array<{file: File, label: string, id: string}>>([])
   
@@ -452,6 +461,18 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
   // Track if there are unsaved changes
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false)
+  
+  // Auto-select and lock region for RAED users when modal opens
+  // This also automatically loads provinces for the locked region
+  React.useEffect(() => {
+    if (isOpen && isRAEDUser && lockedRegionCode && !editingDraft && !selection.region && locationData.regions.length > 0 && !locationData.loading.regions) {
+      const matchedRegion = locationData.regions.find(r => r.code === lockedRegionCode)
+      if (matchedRegion) {
+        // handleRegionChange will automatically load provinces for this region
+        handleRegionChange(matchedRegion.code, matchedRegion.name)
+      }
+    }
+  }, [isOpen, isRAEDUser, lockedRegionCode, locationData.regions, locationData.loading.regions, editingDraft, selection.region, handleRegionChange])
 
   // Pre-populate form when editing a draft
   React.useEffect(() => {
@@ -967,15 +988,15 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
                 </Label>
                 <select
                   id="region"
-                  value={selection.region}
+                  value={selection.region || lockedRegionCode || ''}
                   onChange={(e) => {
                     const selectedRegion = locationData.regions.find(r => r.code === e.target.value)
                     if (selectedRegion) {
                       handleRegionChange(selectedRegion.code, selectedRegion.name)
                     }
                   }}
-                  disabled={locationData.loading.regions}
-                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:opacity-50"
+                  disabled={locationData.loading.regions || isRAEDUser}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:opacity-50 disabled:bg-gray-50"
                 >
                   <option value="">{locationData.loading.regions ? 'Loading regions...' : 'Select Region'}</option>
                   {locationData.regions.map((region) => (
@@ -998,11 +1019,11 @@ export function MachineryProjectModal({ isOpen, onClose, onProjectCreate, editin
                       handleProvinceChange(selectedProvince.code, selectedProvince.name)
                     }
                   }}
-                  disabled={!selection.region || locationData.loading.provinces}
+                  disabled={(!selection.region && !lockedRegionCode) || locationData.loading.provinces}
                   className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:opacity-50"
                 >
                   <option value="">
-                    {!selection.region 
+                    {(!selection.region && !lockedRegionCode)
                       ? 'Select a region first' 
                       : locationData.loading.provinces 
                         ? 'Loading provinces...' 
