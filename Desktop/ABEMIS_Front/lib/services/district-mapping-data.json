@@ -1,0 +1,3324 @@
+{
+  "ILN": [
+    {
+      "provinceCode": "ILN",
+      "provinceName": "ILOCOS NORTE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ADAMS",
+        "BACARRA",
+        "BANGUI",
+        "BURGOS",
+        "CARASI",
+        "DUMALNEG",
+        "LAOAG CITY (Capital)",
+        "PAGUDPUD",
+        "PASUQUIN",
+        "PIDDIG",
+        "SARRAT",
+        "VINTAR"
+      ]
+    },
+    {
+      "provinceCode": "ILN",
+      "provinceName": "ILOCOS NORTE",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BADOC",
+        "CITY OF BATAC",
+        "CURRIMAO",
+        "DINGRAS",
+        "BANNA (ESPIRITU)",
+        "MARCOS",
+        "NUEVA ERA",
+        "PAOAY",
+        "PINILI",
+        "SAN NICOLAS",
+        "SOLSONA"
+      ]
+    }
+  ],
+  "ILS": [
+    {
+      "provinceCode": "ILS",
+      "provinceName": "ILOCOS SUR",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BANTAY",
+        "CABUGAO",
+        "CAOAYAN",
+        "MAGSINGAL",
+        "SAN ILDEFONSO",
+        "SAN JUAN (LAPOG)",
+        "SAN VICENTE",
+        "SANTA CATALINA",
+        "SANTO DOMINGO",
+        "SINAIT",
+        "CITY OF VIGAN (Capital)"
+      ]
+    },
+    {
+      "provinceCode": "ILS",
+      "provinceName": "ILOCOS SUR",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "ALILEM",
+        "BANAYOYO",
+        "BURGOS",
+        "CITY OF CANDON",
+        "CERVANTES",
+        "GALIMUYOD",
+        "GREGORIO DEL PILAR (CONCEPCION)",
+        "LIDLIDDA",
+        "NAGBUKEL",
+        "NARVACAN",
+        "QUIRINO (ANGKAKI)",
+        "SALCEDO (BAUGEN)",
+        "SAN EMILIO",
+        "SAN ESTEBAN",
+        "SANTA",
+        "SANTA CRUZ",
+        "SANTA LUCIA",
+        "SANTA MARIA",
+        "SANTIAGO",
+        "SIGAY",
+        "SUGPON",
+        "SUYO",
+        "TAGUDIN"
+      ]
+    }
+  ],
+  "LUN": [
+    {
+      "provinceCode": "LUN",
+      "provinceName": "LA UNION",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BACNOTAN",
+        "BALAOAN",
+        "BANGAR",
+        "LUNA",
+        "CITY OF SAN FERNANDO (Capital)",
+        "SAN GABRIEL",
+        "SAN JUAN",
+        "SANTOL",
+        "SUDIPEN"
+      ]
+    },
+    {
+      "provinceCode": "LUN",
+      "provinceName": "LA UNION",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "AGOO",
+        "ARINGAY",
+        "BAGULIN",
+        "BAUANG",
+        "BURGOS",
+        "CABA",
+        "NAGUILIAN",
+        "PUGO",
+        "ROSARIO",
+        "SANTO TOMAS",
+        "TUBAO"
+      ]
+    }
+  ],
+  "PAN": [
+    {
+      "provinceCode": "PAN",
+      "provinceName": "PANGASINAN",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "AGNO",
+        "CITY OF ALAMINOS",
+        "ANDA",
+        "BANI",
+        "BOLINAO",
+        "BURGOS",
+        "DASOL",
+        "INFANTA",
+        "MABINI",
+        "SUAL"
+      ]
+    },
+    {
+      "provinceCode": "PAN",
+      "provinceName": "PANGASINAN",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "AGUILAR",
+        "BASISTA",
+        "BINMALEY",
+        "BUGALLON",
+        "LABRADOR",
+        "LINGAYEN (Capital)",
+        "MANGATAREM",
+        "URBIZTONDO"
+      ]
+    },
+    {
+      "provinceCode": "PAN",
+      "provinceName": "PANGASINAN",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "BAYAMBANG",
+        "CALASIAO",
+        "MALASIQUI",
+        "MAPANDAN",
+        "SAN CARLOS CITY",
+        "SANTA BARBARA"
+      ]
+    },
+    {
+      "provinceCode": "PAN",
+      "provinceName": "PANGASINAN",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "DAGUPAN CITY",
+        "MANAOAG",
+        "MANGALDAN",
+        "SAN FABIAN",
+        "SAN JACINTO"
+      ]
+    },
+    {
+      "provinceCode": "PAN",
+      "provinceName": "PANGASINAN",
+      "districtNumber": 5,
+      "districtName": "5th District",
+      "lguNames": [
+        "ALCALA",
+        "BAUTISTA",
+        "BINALONAN",
+        "POZORRUBIO",
+        "SANTO TOMAS",
+        "SISON",
+        "CITY OF URDANETA",
+        "VILLASIS",
+        "LAOAC"
+      ]
+    },
+    {
+      "provinceCode": "PAN",
+      "provinceName": "PANGASINAN",
+      "districtNumber": 6,
+      "districtName": "6th District",
+      "lguNames": [
+        "ASINGAN",
+        "BALUNGAO",
+        "NATIVIDAD",
+        "ROSALES",
+        "SAN MANUEL",
+        "SAN NICOLAS",
+        "SAN QUINTIN",
+        "SANTA MARIA",
+        "TAYUG",
+        "UMINGAN"
+      ]
+    }
+  ],
+  "BTN": [
+    {
+      "provinceCode": "BTN",
+      "provinceName": "BATANES",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BASCO (Capital)",
+        "ITBAYAT",
+        "IVANA",
+        "MAHATAO",
+        "SABTANG",
+        "UYUGAN"
+      ]
+    }
+  ],
+  "CAG": [
+    {
+      "provinceCode": "CAG",
+      "provinceName": "CAGAYAN",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALCALA",
+        "APARRI",
+        "BAGGAO",
+        "BUGUEY",
+        "CAMALANIUGAN",
+        "GATTARAN",
+        "GONZAGA",
+        "LAL-LO",
+        "SANTA ANA",
+        "SANTA TERESITA"
+      ]
+    },
+    {
+      "provinceCode": "CAG",
+      "provinceName": "CAGAYAN",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "ABULUG",
+        "ALLACAPAN",
+        "BALLESTEROS",
+        "CALAYAN",
+        "CLAVERIA",
+        "LASAM",
+        "PAMPLONA",
+        "PIAT",
+        "RIZAL",
+        "SANCHEZ-MIRA",
+        "SANTA PRAXEDES",
+        "SANTO NIÑO (FAIRE)"
+      ]
+    },
+    {
+      "provinceCode": "CAG",
+      "provinceName": "CAGAYAN",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "AMULUNG",
+        "ENRILE",
+        "IGUIG",
+        "PEÑABLANCA",
+        "SOLANA",
+        "TUAO",
+        "TUGUEGARAO CITY (Capital)"
+      ]
+    }
+  ],
+  "ISA": [
+    {
+      "provinceCode": "ISA",
+      "provinceName": "ISABELA",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CABAGAN",
+        "DIVILACAN",
+        "ILAGAN CITY(Capital)",
+        "MACONACON",
+        "DELFIN ALBANO (MAGSAYSAY)",
+        "PALANAN",
+        "SAN PABLO",
+        "SANTA MARIA",
+        "SANTO TOMAS",
+        "TUMAUINI"
+      ]
+    },
+    {
+      "provinceCode": "ISA",
+      "provinceName": "ISABELA",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "AURORA",
+        "BENITO SOLIVEN",
+        "BURGOS",
+        "GAMU",
+        "MALLIG",
+        "NAGUILIAN",
+        "QUEZON",
+        "QUIRINO",
+        "ROXAS",
+        "SAN MANUEL",
+        "SAN MARIANO"
+      ]
+    },
+    {
+      "provinceCode": "ISA",
+      "provinceName": "ISABELA",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "ALICIA",
+        "ANGADANAN",
+        "CABATUAN",
+        "CITY OF CAUAYAN",
+        "LUNA",
+        "REINA MERCEDES",
+        "SAN GUILLERMO",
+        "SAN MATEO"
+      ]
+    },
+    {
+      "provinceCode": "ISA",
+      "provinceName": "ISABELA",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "CORDON",
+        "DINAPIGUE",
+        "ECHAGUE",
+        "JONES",
+        "RAMON",
+        "SAN AGUSTIN",
+        "SAN ISIDRO",
+        "CITY OF SANTIAGO"
+      ]
+    }
+  ],
+  "NUV": [
+    {
+      "provinceCode": "NUV",
+      "provinceName": "NUEVA VIZCAYA",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "AMBAGUIO",
+        "ARITAO",
+        "BAGABAG",
+        "BAMBANG",
+        "BAYOMBONG (Capital)",
+        "DIADI",
+        "DUPAX DEL NORTE",
+        "DUPAX DEL SUR",
+        "KASIBU",
+        "KAYAPA",
+        "QUEZON",
+        "SANTA FE",
+        "SOLANO",
+        "VILLAVERDE",
+        "ALFONSO CASTANEDA"
+      ]
+    }
+  ],
+  "QUI": [
+    {
+      "provinceCode": "QUI",
+      "provinceName": "QUIRINO",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "AGLIPAY",
+        "CABARROGUIS (Capital)",
+        "DIFFUN",
+        "MADDELA",
+        "SAGUDAY",
+        "NAGTIPUNAN"
+      ]
+    }
+  ],
+  "BAN": [
+    {
+      "provinceCode": "BAN",
+      "provinceName": "BATAAN",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ABUCAY",
+        "DINALUPIHAN",
+        "HERMOSA",
+        "MORONG",
+        "ORANI",
+        "SAMAL"
+      ]
+    },
+    {
+      "provinceCode": "BAN",
+      "provinceName": "BATAAN",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BAGAC",
+        "CITY OF BALANGA (Capital)",
+        "LIMAY",
+        "MARIVELES",
+        "ORION",
+        "PILAR"
+      ]
+    }
+  ],
+  "BUL": [
+    {
+      "provinceCode": "BUL",
+      "provinceName": "BULACAN",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BULACAN",
+        "CALUMPIT",
+        "HAGONOY",
+        "CITY OF MALOLOS (Capital)",
+        "PAOMBONG",
+        "PULILAN",
+        "CITY OF SAN JOSE DEL MONTE"
+      ]
+    },
+    {
+      "provinceCode": "BUL",
+      "provinceName": "BULACAN",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BALAGTAS (BIGAA)",
+        "BALIUAG",
+        "BOCAUE",
+        "BUSTOS",
+        "GUIGUINTO",
+        "PANDI",
+        "PLARIDEL"
+      ]
+    },
+    {
+      "provinceCode": "BUL",
+      "provinceName": "BULACAN",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "ANGAT",
+        "NORZAGARAY",
+        "SAN ILDEFONSO",
+        "SAN MIGUEL",
+        "SAN RAFAEL",
+        "DOÑA REMEDIOS TRINIDAD"
+      ]
+    },
+    {
+      "provinceCode": "BUL",
+      "provinceName": "BULACAN",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "MARILAO",
+        "CITY OF MEYCAUAYAN",
+        "OBANDO",
+        "SANTA MARIA"
+      ]
+    }
+  ],
+  "NUE": [
+    {
+      "provinceCode": "NUE",
+      "provinceName": "NUEVA ECIJA",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALIAGA",
+        "CUYAPO",
+        "GUIMBA",
+        "LICAB",
+        "NAMPICUAN",
+        "QUEZON",
+        "SANTO DOMINGO",
+        "TALAVERA",
+        "ZARAGOZA"
+      ]
+    },
+    {
+      "provinceCode": "NUE",
+      "provinceName": "NUEVA ECIJA",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "CARRANGLAN",
+        "LLANERA",
+        "LUPAO",
+        "SCIENCE CITY OF MUÑOZ",
+        "PANTABANGAN",
+        "RIZAL",
+        "SAN JOSE CITY",
+        "TALUGTUG"
+      ]
+    },
+    {
+      "provinceCode": "NUE",
+      "provinceName": "NUEVA ECIJA",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "BONGABON",
+        "CABANATUAN CITY",
+        "GABALDON (BITULOK & SABANI)",
+        "GENERAL MAMERTO NATIVIDAD",
+        "LAUR",
+        "PALAYAN CITY (Capital)",
+        "SANTA ROSA"
+      ]
+    },
+    {
+      "provinceCode": "NUE",
+      "provinceName": "NUEVA ECIJA",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "CABIAO",
+        "CITY OF GAPAN",
+        "GENERAL TINIO (PAPAYA)",
+        "JAEN",
+        "PEÑARANDA",
+        "SAN ANTONIO",
+        "SAN ISIDRO",
+        "SAN LEONARDO"
+      ]
+    }
+  ],
+  "PAM": [
+    {
+      "provinceCode": "PAM",
+      "provinceName": "PAMPANGA",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ANGELES CITY",
+        "MABALACAT CITY",
+        "MAGALANG"
+      ]
+    },
+    {
+      "provinceCode": "PAM",
+      "provinceName": "PAMPANGA",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "FLORIDABLANCA",
+        "GUAGUA",
+        "LUBAO",
+        "PORAC",
+        "SANTA RITA",
+        "SASMUAN (Sexmoan)"
+      ]
+    },
+    {
+      "provinceCode": "PAM",
+      "provinceName": "PAMPANGA",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "ARAYAT",
+        "BACOLOR",
+        "MEXICO",
+        "CITY OF SAN FERNANDO (Capital)",
+        "SANTA ANA"
+      ]
+    },
+    {
+      "provinceCode": "PAM",
+      "provinceName": "PAMPANGA",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "APALIT",
+        "CANDABA",
+        "MACABEBE",
+        "MASANTOL",
+        "MINALIN",
+        "SAN LUIS",
+        "SAN SIMON",
+        "SANTO TOMAS"
+      ]
+    }
+  ],
+  "TAR": [
+    {
+      "provinceCode": "TAR",
+      "provinceName": "TARLAC",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ANAO",
+        "CAMILING",
+        "MAYANTOC",
+        "MONCADA",
+        "PANIQUI",
+        "PURA",
+        "RAMOS",
+        "SAN CLEMENTE",
+        "SAN MANUEL",
+        "SANTA IGNACIA"
+      ]
+    },
+    {
+      "provinceCode": "TAR",
+      "provinceName": "TARLAC",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "GERONA",
+        "CITY OF TARLAC (Capital)",
+        "VICTORIA",
+        "SAN JOSE"
+      ]
+    },
+    {
+      "provinceCode": "TAR",
+      "provinceName": "TARLAC",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "BAMBAN",
+        "CAPAS",
+        "CONCEPCION",
+        "LA PAZ"
+      ]
+    }
+  ],
+  "ZMB": [
+    {
+      "provinceCode": "ZMB",
+      "provinceName": "ZAMBALES",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CASTILLEJOS",
+        "OLONGAPO CITY",
+        "SAN MARCELINO",
+        "SUBIC"
+      ]
+    },
+    {
+      "provinceCode": "ZMB",
+      "provinceName": "ZAMBALES",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BOTOLAN",
+        "CABANGAN",
+        "CANDELARIA",
+        "IBA (Capital)",
+        "MASINLOC",
+        "PALAUIG",
+        "SAN ANTONIO",
+        "SAN FELIPE",
+        "SAN NARCISO",
+        "SANTA CRUZ"
+      ]
+    }
+  ],
+  "AUR": [
+    {
+      "provinceCode": "AUR",
+      "provinceName": "AURORA",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BALER (Capital)",
+        "CASIGURAN",
+        "DILASAG",
+        "DINALUNGAN",
+        "DINGALAN",
+        "DIPACULAO",
+        "MARIA AURORA",
+        "SAN LUIS"
+      ]
+    }
+  ],
+  "BTG": [
+    {
+      "provinceCode": "BTG",
+      "provinceName": "BATANGAS",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BALAYAN",
+        "CALACA",
+        "CALATAGAN",
+        "LEMERY",
+        "LIAN",
+        "NASUGBU",
+        "TAAL",
+        "TUY"
+      ]
+    },
+    {
+      "provinceCode": "BTG",
+      "provinceName": "BATANGAS",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BATANGAS CITY (Capital)",
+        "BAUAN",
+        "LOBO",
+        "MABINI",
+        "SAN LUIS",
+        "SAN PASCUAL",
+        "TINGLOY"
+      ]
+    },
+    {
+      "provinceCode": "BTG",
+      "provinceName": "BATANGAS",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "AGONCILLO",
+        "ALITAGTAG",
+        "BALETE",
+        "CUENCA",
+        "LAUREL",
+        "MALVAR",
+        "MATAASNAKAHOY",
+        "SAN NICOLAS",
+        "SANTA TERESITA",
+        "SANTO TOMAS",
+        "TALISAY",
+        "CITY OF TANAUAN"
+      ]
+    },
+    {
+      "provinceCode": "BTG",
+      "provinceName": "BATANGAS",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "IBAAN",
+        "LIPA CITY",
+        "PADRE GARCIA",
+        "ROSARIO",
+        "SAN JOSE",
+        "SAN JUAN",
+        "TAYSAN"
+      ]
+    }
+  ],
+  "CAV": [
+    {
+      "provinceCode": "CAV",
+      "provinceName": "CAVITE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CAVITE CITY",
+        "KAWIT",
+        "NOVELETA",
+        "ROSARIO"
+      ]
+    },
+    {
+      "provinceCode": "CAV",
+      "provinceName": "CAVITE",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BACOOR CITY"
+      ]
+    },
+    {
+      "provinceCode": "CAV",
+      "provinceName": "CAVITE",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "IMUS CITY"
+      ]
+    },
+    {
+      "provinceCode": "CAV",
+      "provinceName": "CAVITE",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "CITY OF DASMARIÑAS"
+      ]
+    },
+    {
+      "provinceCode": "CAV",
+      "provinceName": "CAVITE",
+      "districtNumber": 5,
+      "districtName": "5th District",
+      "lguNames": [
+        "CARMONA",
+        "SILANG",
+        "GEN. MARIANO ALVAREZ"
+      ]
+    },
+    {
+      "provinceCode": "CAV",
+      "provinceName": "CAVITE",
+      "districtNumber": 6,
+      "districtName": "6th District",
+      "lguNames": [
+        "AMADEO",
+        "GENERAL TRIAS",
+        "TANZA",
+        "TRECE MARTIRES CITY (Capital)"
+      ]
+    },
+    {
+      "provinceCode": "CAV",
+      "provinceName": "CAVITE",
+      "districtNumber": 7,
+      "districtName": "7th District",
+      "lguNames": [
+        "ALFONSO",
+        "GENERAL EMILIO AGUINALDO",
+        "INDANG",
+        "MAGALLANES",
+        "MARAGONDON",
+        "MENDEZ (MENDEZ-NUÑEZ)",
+        "NAIC",
+        "TAGAYTAY CITY",
+        "TERNATE"
+      ]
+    }
+  ],
+  "LAG": [
+    {
+      "provinceCode": "LAG",
+      "provinceName": "LAGUNA",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CITY OF BIÑAN",
+        "CITY OF SAN PEDRO",
+        "CITY OF SANTA ROSA"
+      ]
+    },
+    {
+      "provinceCode": "LAG",
+      "provinceName": "LAGUNA",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BAY",
+        "CABUYAO CITY",
+        "CITY OF CALAMBA",
+        "LOS BAÑOS"
+      ]
+    },
+    {
+      "provinceCode": "LAG",
+      "provinceName": "LAGUNA",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "ALAMINOS",
+        "CALAUAN",
+        "LILIW",
+        "NAGCARLAN",
+        "RIZAL",
+        "SAN PABLO CITY",
+        "VICTORIA"
+      ]
+    },
+    {
+      "provinceCode": "LAG",
+      "provinceName": "LAGUNA",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "CAVINTI",
+        "FAMY",
+        "KALAYAAN",
+        "LUISIANA",
+        "LUMBAN",
+        "MABITAC",
+        "MAGDALENA",
+        "MAJAYJAY",
+        "PAETE",
+        "PAGSANJAN",
+        "PAKIL",
+        "PANGIL",
+        "PILA",
+        "SANTA CRUZ (Capital)",
+        "SANTA MARIA",
+        "SINILOAN"
+      ]
+    }
+  ],
+  "QUE": [
+    {
+      "provinceCode": "QUE",
+      "provinceName": "QUEZON",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BURDEOS",
+        "GENERAL NAKAR",
+        "INFANTA",
+        "JOMALIG",
+        "LUCBAN",
+        "MAUBAN",
+        "PAGBILAO",
+        "PANUKULAN",
+        "PATNANUNGAN",
+        "POLILLO",
+        "REAL",
+        "SAMPALOC",
+        "CITY OF TAYABAS"
+      ]
+    },
+    {
+      "provinceCode": "QUE",
+      "provinceName": "QUEZON",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "CANDELARIA",
+        "DOLORES",
+        "LUCENA CITY (Capital)",
+        "SAN ANTONIO",
+        "SARIAYA",
+        "TIAONG"
+      ]
+    },
+    {
+      "provinceCode": "QUE",
+      "provinceName": "QUEZON",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "AGDANGAN",
+        "BUENAVISTA",
+        "CATANAUAN",
+        "GENERAL LUNA",
+        "MACALELON",
+        "MULANAY",
+        "PADRE BURGOS",
+        "PITOGO",
+        "SAN ANDRES",
+        "SAN FRANCISCO (AURORA)",
+        "SAN NARCISO",
+        "UNISAN"
+      ]
+    },
+    {
+      "provinceCode": "QUE",
+      "provinceName": "QUEZON",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "ALABAT",
+        "ATIMONAN",
+        "CALAUAG",
+        "GUINAYANGAN",
+        "GUMACA",
+        "LOPEZ",
+        "PEREZ",
+        "PLARIDEL",
+        "QUEZON",
+        "TAGKAWAYAN"
+      ]
+    }
+  ],
+  "RIZ": [
+    {
+      "provinceCode": "RIZ",
+      "provinceName": "RIZAL",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ANGONO",
+        "BINANGONAN",
+        "CAINTA",
+        "TAYTAY"
+      ]
+    },
+    {
+      "provinceCode": "RIZ",
+      "provinceName": "RIZAL",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "CITY OF ANTIPOLO",
+        "BARAS",
+        "CARDONA",
+        "JALA-JALA",
+        "RODRIGUEZ (MONTALBAN)",
+        "MORONG",
+        "PILILLA",
+        "SAN MATEO",
+        "TANAY",
+        "TERESA"
+      ]
+    }
+  ],
+  "ALB": [
+    {
+      "provinceCode": "ALB",
+      "provinceName": "ALBAY",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BACACAY",
+        "MALILIPOT",
+        "MALINAO",
+        "SANTO DOMINGO (LIBOG)",
+        "CITY OF TABACO",
+        "TIWI"
+      ]
+    },
+    {
+      "provinceCode": "ALB",
+      "provinceName": "ALBAY",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "CAMALIG",
+        "DARAGA (LOCSIN)",
+        "LEGAZPI CITY (Capital)",
+        "MANITO",
+        "RAPU-RAPU"
+      ]
+    },
+    {
+      "provinceCode": "ALB",
+      "provinceName": "ALBAY",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "GUINOBATAN",
+        "JOVELLAR",
+        "LIBON",
+        "CITY OF LIGAO",
+        "OAS",
+        "PIO DURAN",
+        "POLANGUI"
+      ]
+    }
+  ],
+  "CAN": [
+    {
+      "provinceCode": "CAN",
+      "provinceName": "CAMARINES NORTE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CAPALONGA",
+        "JOSE PANGANIBAN",
+        "LABO",
+        "PARACALE",
+        "SANTA ELENA",
+        "VINZONS"
+      ]
+    },
+    {
+      "provinceCode": "CAN",
+      "provinceName": "CAMARINES NORTE",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BASUD",
+        "DAET (Capital)",
+        "SAN LORENZO RUIZ (IMELDA)",
+        "MERCEDES",
+        "SAN VICENTE",
+        "TALISAY"
+      ]
+    }
+  ],
+  "CAS": [
+    {
+      "provinceCode": "CAS",
+      "provinceName": "CAMARINES SUR",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CABUSAO",
+        "DEL GALLEGO",
+        "LUPI",
+        "RAGAY",
+        "SIPOCOT"
+      ]
+    },
+    {
+      "provinceCode": "CAS",
+      "provinceName": "CAMARINES SUR",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "GAINZA",
+        "LIBMANAN",
+        "MILAOR",
+        "MINALABAC",
+        "PAMPLONA",
+        "PASACAO",
+        "SAN FERNANDO"
+      ]
+    },
+    {
+      "provinceCode": "CAS",
+      "provinceName": "CAMARINES SUR",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "BOMBON",
+        "CALABANGA",
+        "CAMALIGAN",
+        "CANAMAN",
+        "MAGARAO",
+        "NAGA CITY",
+        "OCAMPO",
+        "PILI (Capital)"
+      ]
+    },
+    {
+      "provinceCode": "CAS",
+      "provinceName": "CAMARINES SUR",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "CARAMOAN",
+        "GARCHITORENA",
+        "GOA",
+        "LAGONOY",
+        "PRESENTACION (PARUBCAN)",
+        "SAGÑAY",
+        "SAN JOSE",
+        "SIRUMA",
+        "TIGAON",
+        "TINAMBAC"
+      ]
+    },
+    {
+      "provinceCode": "CAS",
+      "provinceName": "CAMARINES SUR",
+      "districtNumber": 5,
+      "districtName": "5th District",
+      "lguNames": [
+        "BAAO",
+        "BALATAN",
+        "BATO",
+        "BUHI",
+        "BULA",
+        "IRIGA CITY",
+        "NABUA"
+      ]
+    }
+  ],
+  "CAT": [
+    {
+      "provinceCode": "CAT",
+      "provinceName": "CATANDUANES",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BAGAMANOC",
+        "BARAS",
+        "BATO",
+        "CARAMORAN",
+        "GIGMOTO",
+        "PANDAN",
+        "PANGANIBAN (PAYO)",
+        "SAN ANDRES (CALOLBON)",
+        "SAN MIGUEL",
+        "VIGA",
+        "VIRAC (Capital)"
+      ]
+    }
+  ],
+  "MAS": [
+    {
+      "provinceCode": "MAS",
+      "provinceName": "MASBATE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BATUAN",
+        "CLAVERIA",
+        "MONREAL",
+        "SAN FERNANDO",
+        "SAN JACINTO",
+        "SAN PASCUAL"
+      ]
+    },
+    {
+      "provinceCode": "MAS",
+      "provinceName": "MASBATE",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "AROROY",
+        "BALENO",
+        "BALUD",
+        "MANDAON",
+        "CITY OF MASBATE (Capital)",
+        "MILAGROS",
+        "MOBO"
+      ]
+    },
+    {
+      "provinceCode": "MAS",
+      "provinceName": "MASBATE",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "CATAINGAN",
+        "CAWAYAN",
+        "DIMASALANG",
+        "ESPERANZA",
+        "PALANAS",
+        "PIO V. CORPUZ (LIMBUHAN)",
+        "PLACER",
+        "USON"
+      ]
+    }
+  ],
+  "SOR": [
+    {
+      "provinceCode": "SOR",
+      "provinceName": "SORSOGON",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CASIGURAN",
+        "CASTILLA",
+        "DONSOL",
+        "MAGALLANES",
+        "PILAR",
+        "CITY OF SORSOGON (Capital)"
+      ]
+    },
+    {
+      "provinceCode": "SOR",
+      "provinceName": "SORSOGON",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BARCELONA",
+        "BULAN",
+        "BULUSAN",
+        "GUBAT",
+        "IROSIN",
+        "JUBAN",
+        "MATNOG",
+        "PRIETO DIAZ",
+        "SANTA MAGDALENA"
+      ]
+    }
+  ],
+  "AKL": [
+    {
+      "provinceCode": "AKL",
+      "provinceName": "AKLAN",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALTAVAS",
+        "BALETE",
+        "BANGA",
+        "BATAN",
+        "BURUANGA",
+        "IBAJAY",
+        "KALIBO (Capital)",
+        "LEZO",
+        "LIBACAO",
+        "MADALAG",
+        "MAKATO",
+        "MALAY",
+        "MALINAO",
+        "NABAS",
+        "NEW WASHINGTON",
+        "NUMANCIA",
+        "TANGALAN"
+      ]
+    }
+  ],
+  "ANT": [
+    {
+      "provinceCode": "ANT",
+      "provinceName": "ANTIQUE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ANINI-Y",
+        "BARBAZA",
+        "BELISON",
+        "BUGASONG",
+        "CALUYA",
+        "CULASI",
+        "TOBIAS FORNIER (DAO)",
+        "HAMTIC",
+        "LAUA-AN",
+        "LIBERTAD",
+        "PANDAN",
+        "PATNONGON",
+        "SAN JOSE (Capital)",
+        "SAN REMIGIO",
+        "SEBASTE",
+        "SIBALOM",
+        "TIBIAO",
+        "VALDERRAMA"
+      ]
+    }
+  ],
+  "CAP": [
+    {
+      "provinceCode": "CAP",
+      "provinceName": "CAPIZ",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "MA-AYON",
+        "PANAY",
+        "PANITAN",
+        "PILAR",
+        "PONTEVEDRA",
+        "PRESIDENT ROXAS",
+        "ROXAS CITY (Capital)"
+      ]
+    },
+    {
+      "provinceCode": "CAP",
+      "provinceName": "CAPIZ",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "CUARTERO",
+        "DAO",
+        "DUMALAG",
+        "DUMARAO",
+        "IVISAN",
+        "JAMINDAN",
+        "MAMBUSAO",
+        "SAPI-AN",
+        "SIGMA",
+        "TAPAZ"
+      ]
+    }
+  ],
+  "ILI": [
+    {
+      "provinceCode": "ILI",
+      "provinceName": "ILOILO",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "GUIMBAL",
+        "IGBARAS",
+        "ILOILO CITY (Capital)",
+        "MIAGAO",
+        "OTON",
+        "SAN JOAQUIN",
+        "TIGBAUAN",
+        "TUBUNGAN"
+      ]
+    },
+    {
+      "provinceCode": "ILI",
+      "provinceName": "ILOILO",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "ALIMODIAN",
+        "LEGANES",
+        "LEON",
+        "NEW LUCENA",
+        "PAVIA",
+        "SAN MIGUEL",
+        "SANTA BARBARA",
+        "ZARRAGA"
+      ]
+    },
+    {
+      "provinceCode": "ILI",
+      "provinceName": "ILOILO",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "BADIANGAN",
+        "BINGAWAN",
+        "CABATUAN",
+        "CALINOG",
+        "JANIUAY",
+        "LAMBUNAO",
+        "MAASIN",
+        "MINA",
+        "POTOTAN"
+      ]
+    },
+    {
+      "provinceCode": "ILI",
+      "provinceName": "ILOILO",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "ANILAO",
+        "BANATE",
+        "BAROTAC NUEVO",
+        "DINGLE",
+        "DUEÑAS",
+        "DUMANGAS",
+        "CITY OF PASSI",
+        "SAN ENRIQUE"
+      ]
+    },
+    {
+      "provinceCode": "ILI",
+      "provinceName": "ILOILO",
+      "districtNumber": 5,
+      "districtName": "5th District",
+      "lguNames": [
+        "AJUY",
+        "BALASAN",
+        "BAROTAC VIEJO",
+        "BATAD",
+        "CARLES",
+        "CONCEPCION",
+        "ESTANCIA",
+        "LEMERY",
+        "SAN DIONISIO",
+        "SAN RAFAEL",
+        "SARA"
+      ]
+    }
+  ],
+  "NEC": [
+    {
+      "provinceCode": "NEC",
+      "provinceName": "NEGROS OCCIDENTAL",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BACOLOD CITY (Capital)",
+        "CALATRAVA",
+        "CITY OF ESCALANTE",
+        "SAN CARLOS CITY",
+        "TOBOSO",
+        "SALVADOR BENEDICTO"
+      ]
+    },
+    {
+      "provinceCode": "NEC",
+      "provinceName": "NEGROS OCCIDENTAL",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "CADIZ CITY",
+        "MANAPLA",
+        "SAGAY CITY"
+      ]
+    },
+    {
+      "provinceCode": "NEC",
+      "provinceName": "NEGROS OCCIDENTAL",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "ENRIQUE B. MAGALONA (SARAVIA)",
+        "MURCIA",
+        "SILAY CITY",
+        "CITY OF TALISAY",
+        "CITY OF VICTORIAS"
+      ]
+    },
+    {
+      "provinceCode": "NEC",
+      "provinceName": "NEGROS OCCIDENTAL",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "BAGO CITY",
+        "LA CARLOTA CITY",
+        "PONTEVEDRA",
+        "PULUPANDAN",
+        "SAN ENRIQUE",
+        "VALLADOLID"
+      ]
+    },
+    {
+      "provinceCode": "NEC",
+      "provinceName": "NEGROS OCCIDENTAL",
+      "districtNumber": 5,
+      "districtName": "5th District",
+      "lguNames": [
+        "BINALBAGAN",
+        "CITY OF HIMAMAYLAN",
+        "HINIGARAN",
+        "ISABELA",
+        "LA CASTELLANA",
+        "MOISES PADILLA (MAGALLON)"
+      ]
+    },
+    {
+      "provinceCode": "NEC",
+      "provinceName": "NEGROS OCCIDENTAL",
+      "districtNumber": 6,
+      "districtName": "6th District",
+      "lguNames": [
+        "CANDONI",
+        "CAUAYAN",
+        "HINOBA-AN (ASIA)",
+        "ILOG",
+        "CITY OF KABANKALAN",
+        "CITY OF SIPALAY"
+      ]
+    }
+  ],
+  "GUI": [
+    {
+      "provinceCode": "GUI",
+      "provinceName": "GUIMARAS",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BUENAVISTA",
+        "JORDAN (Capital)",
+        "NUEVA VALENCIA",
+        "SAN LORENZO",
+        "SIBUNAG"
+      ]
+    }
+  ],
+  "BOH": [
+    {
+      "provinceCode": "BOH",
+      "provinceName": "BOHOL",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALBURQUERQUE",
+        "ANTEQUERA",
+        "BACLAYON",
+        "BALILIHAN",
+        "CALAPE",
+        "CATIGBIAN",
+        "CORELLA",
+        "CORTES",
+        "DAUIS",
+        "LOON",
+        "MARIBOJOC",
+        "PANGLAO",
+        "SIKATUNA",
+        "TAGBILARAN CITY (Capital)",
+        "TUBIGON"
+      ]
+    },
+    {
+      "provinceCode": "BOH",
+      "provinceName": "BOHOL",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BUENAVISTA",
+        "CLARIN",
+        "DAGOHOY",
+        "DANAO",
+        "INABANGA",
+        "GETAFE",
+        "PRES. CARLOS P. GARCIA (PITOGO)",
+        "SAGBAYAN (BORJA)",
+        "SAN ISIDRO",
+        "SAN MIGUEL",
+        "TALIBON",
+        "TRINIDAD",
+        "UBAY",
+        "BIEN UNIDO"
+      ]
+    },
+    {
+      "provinceCode": "BOH",
+      "provinceName": "BOHOL",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "ALICIA",
+        "ANDA",
+        "BATUAN",
+        "BILAR",
+        "CANDIJAY",
+        "CARMEN",
+        "DIMIAO",
+        "DUERO",
+        "GARCIA HERNANDEZ",
+        "GUINDULMAN",
+        "JAGNA",
+        "LILA",
+        "LOAY",
+        "LOBOC",
+        "MABINI",
+        "PILAR",
+        "SEVILLA",
+        "SIERRA BULLONES",
+        "VALENCIA"
+      ]
+    }
+  ],
+  "CEB": [
+    {
+      "provinceCode": "CEB",
+      "provinceName": "CEBU",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CITY OF CARCAR",
+        "LAPU-LAPU CITY (OPON)",
+        "MINGLANILLA",
+        "CITY OF NAGA",
+        "SAN FERNANDO",
+        "SIBONGA",
+        "CITY OF TALISAY"
+      ]
+    },
+    {
+      "provinceCode": "CEB",
+      "provinceName": "CEBU",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "ALCANTARA",
+        "ALCOY",
+        "ALEGRIA",
+        "ARGAO",
+        "BADIAN",
+        "BOLJOON",
+        "CEBU CITY (Capital)",
+        "DALAGUETE",
+        "DUMANJUG",
+        "GINATILAN",
+        "MALABUYOC",
+        "MOALBOAL",
+        "OSLOB",
+        "RONDA",
+        "SAMBOAN",
+        "SANTANDER"
+      ]
+    },
+    {
+      "provinceCode": "CEB",
+      "provinceName": "CEBU",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "ALOGUINSAN",
+        "ASTURIAS",
+        "BALAMBAN",
+        "BARILI",
+        "PINAMUNGAHAN",
+        "TOLEDO CITY",
+        "TUBURAN"
+      ]
+    },
+    {
+      "provinceCode": "CEB",
+      "provinceName": "CEBU",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "BANTAYAN",
+        "CITY OF BOGO",
+        "DAANBANTAYAN",
+        "MADRIDEJOS",
+        "MEDELLIN",
+        "SAN REMIGIO",
+        "SANTA FE",
+        "TABOGON",
+        "TABUELAN"
+      ]
+    },
+    {
+      "provinceCode": "CEB",
+      "provinceName": "CEBU",
+      "districtNumber": 5,
+      "districtName": "5th District",
+      "lguNames": [
+        "BORBON",
+        "CARMEN",
+        "CATMON",
+        "COMPOSTELA",
+        "DANAO CITY",
+        "LILOAN",
+        "PILAR",
+        "PORO",
+        "SAN FRANCISCO",
+        "SOGOD",
+        "TUDELA"
+      ]
+    },
+    {
+      "provinceCode": "CEB",
+      "provinceName": "CEBU",
+      "districtNumber": 6,
+      "districtName": "6th District",
+      "lguNames": [
+        "CONSOLACION",
+        "CORDOBA",
+        "MANDAUE CITY"
+      ]
+    }
+  ],
+  "NER": [
+    {
+      "provinceCode": "NER",
+      "provinceName": "NEGROS ORIENTAL",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "AYUNGON",
+        "BINDOY (PAYABON)",
+        "CANLAON CITY",
+        "CITY OF GUIHULNGAN",
+        "JIMALALUD",
+        "LA LIBERTAD",
+        "MANJUYOD",
+        "TAYASAN",
+        "VALLEHERMOSO"
+      ]
+    },
+    {
+      "provinceCode": "NER",
+      "provinceName": "NEGROS ORIENTAL",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "AMLAN (AYUQUITAN)",
+        "BAIS CITY",
+        "DUMAGUETE CITY (Capital)",
+        "MABINAY",
+        "PAMPLONA",
+        "SAN JOSE",
+        "SIBULAN",
+        "CITY OF TANJAY"
+      ]
+    },
+    {
+      "provinceCode": "NER",
+      "provinceName": "NEGROS ORIENTAL",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "BACONG",
+        "BASAY",
+        "CITY OF BAYAWAN (TULONG)",
+        "DAUIN",
+        "SANTA CATALINA",
+        "SIATON",
+        "VALENCIA (LUZURRIAGA)",
+        "ZAMBOANGUITA"
+      ]
+    }
+  ],
+  "SIG": [
+    {
+      "provinceCode": "SIG",
+      "provinceName": "SIQUIJOR",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ENRIQUE VILLANUEVA",
+        "LARENA",
+        "LAZI",
+        "MARIA",
+        "SAN JUAN",
+        "SIQUIJOR (Capital)"
+      ]
+    }
+  ],
+  "EAS": [
+    {
+      "provinceCode": "EAS",
+      "provinceName": "EASTERN SAMAR",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ARTECHE",
+        "BALANGIGA",
+        "BALANGKAYAN",
+        "CITY OF BORONGAN (Capital)",
+        "CAN-AVID",
+        "DOLORES",
+        "GENERAL MACARTHUR",
+        "GIPORLOS",
+        "GUIUAN",
+        "HERNANI",
+        "JIPAPAD",
+        "LAWAAN",
+        "LLORENTE",
+        "MASLOG",
+        "MAYDOLONG",
+        "MERCEDES",
+        "ORAS",
+        "QUINAPONDAN",
+        "SALCEDO",
+        "SAN JULIAN",
+        "SAN POLICARPO",
+        "SULAT",
+        "TAFT"
+      ]
+    }
+  ],
+  "LEY": [
+    {
+      "provinceCode": "LEY",
+      "provinceName": "LEYTE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALANGALANG",
+        "BABATNGON",
+        "PALO",
+        "SAN MIGUEL",
+        "SANTA FE",
+        "TACLOBAN CITY (Capital)",
+        "TANAUAN",
+        "TOLOSA"
+      ]
+    },
+    {
+      "provinceCode": "LEY",
+      "provinceName": "LEYTE",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BARUGO",
+        "BURAUEN",
+        "CAPOOCAN",
+        "CARIGARA",
+        "DAGAMI",
+        "DULAG",
+        "JARO",
+        "JULITA",
+        "LA PAZ",
+        "MACARTHUR",
+        "MAYORGA",
+        "PASTRANA",
+        "TABONTABON",
+        "TUNGA"
+      ]
+    },
+    {
+      "provinceCode": "LEY",
+      "provinceName": "LEYTE",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "CALUBIAN",
+        "LEYTE",
+        "SAN ISIDRO",
+        "TABANGO",
+        "VILLABA"
+      ]
+    },
+    {
+      "provinceCode": "LEY",
+      "provinceName": "LEYTE",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "ALBUERA",
+        "ISABEL",
+        "KANANGA",
+        "MATAG-OB",
+        "MERIDA",
+        "ORMOC CITY",
+        "PALOMPON"
+      ]
+    },
+    {
+      "provinceCode": "LEY",
+      "provinceName": "LEYTE",
+      "districtNumber": 5,
+      "districtName": "5th District",
+      "lguNames": [
+        "ABUYOG",
+        "BATO",
+        "CITY OF BAYBAY",
+        "HILONGOS",
+        "HINDANG",
+        "INOPACAN",
+        "JAVIER (BUGHO)",
+        "MAHAPLAG",
+        "MATALOM"
+      ]
+    }
+  ],
+  "NSA": [
+    {
+      "provinceCode": "NSA",
+      "provinceName": "NORTHERN SAMAR",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALLEN",
+        "BIRI",
+        "BOBON",
+        "CAPUL",
+        "CATARMAN (Capital)",
+        "LAVEZARES",
+        "MONDRAGON",
+        "ROSARIO",
+        "SAN ANTONIO",
+        "SAN ISIDRO",
+        "SAN JOSE",
+        "SAN VICENTE",
+        "VICTORIA",
+        "LOPE DE VEGA"
+      ]
+    },
+    {
+      "provinceCode": "NSA",
+      "provinceName": "NORTHERN SAMAR",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "CATUBIG",
+        "GAMAY",
+        "LAOANG",
+        "LAPINIG",
+        "LAS NAVAS",
+        "MAPANAS",
+        "PALAPAG",
+        "PAMBUJAN",
+        "SAN ROQUE",
+        "SILVINO LOBOS"
+      ]
+    }
+  ],
+  "WSA": [
+    {
+      "provinceCode": "WSA",
+      "provinceName": "SAMAR (WESTERN SAMAR)",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALMAGRO",
+        "CALBAYOG CITY",
+        "GANDARA",
+        "MATUGUINAO",
+        "SANTA MARGARITA",
+        "SANTO NIÑO",
+        "TARANGNAN",
+        "TAGAPUL-AN",
+        "SAN JORGE",
+        "PAGSANGHAN"
+      ]
+    },
+    {
+      "provinceCode": "WSA",
+      "provinceName": "SAMAR (WESTERN SAMAR)",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BASEY",
+        "CALBIGA",
+        "CITY OF CATBALOGAN (Capital)",
+        "DARAM",
+        "HINABANGAN",
+        "JIABONG",
+        "MARABUT",
+        "MOTIONG",
+        "PINABACDAO",
+        "SAN JOSE DE BUAN",
+        "SAN SEBASTIAN",
+        "SANTA RITA",
+        "TALALORA",
+        "VILLAREAL",
+        "PARANAS (WRIGHT)",
+        "ZUMARRAGA"
+      ]
+    }
+  ],
+  "SLE": [
+    {
+      "provinceCode": "SLE",
+      "provinceName": "SOUTHERN LEYTE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ANAHAWAN",
+        "BONTOC",
+        "HINUNANGAN",
+        "HINUNDAYAN",
+        "LIBAGON",
+        "LILOAN",
+        "CITY OF MAASIN (Capital)",
+        "MACROHON",
+        "MALITBOG",
+        "PADRE BURGOS",
+        "PINTUYAN",
+        "SAINT BERNARD",
+        "SAN FRANCISCO",
+        "SAN JUAN (CABALIAN)",
+        "SAN RICARDO",
+        "SILAGO",
+        "SOGOD",
+        "TOMAS OPPUS",
+        "LIMASAWA"
+      ]
+    }
+  ],
+  "BIL": [
+    {
+      "provinceCode": "BIL",
+      "provinceName": "BILIRAN",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALMERIA",
+        "BILIRAN",
+        "CABUCGAYAN",
+        "CAIBIRAN",
+        "CULABA",
+        "KAWAYAN",
+        "MARIPIPI",
+        "NAVAL (Capital)"
+      ]
+    }
+  ],
+  "ZAN": [
+    {
+      "provinceCode": "ZAN",
+      "provinceName": "ZAMBOANGA DEL NORTE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "DAPITAN CITY",
+        "LA LIBERTAD",
+        "MUTIA",
+        "PIÑAN (NEW PIÑAN)",
+        "POLANCO",
+        "RIZAL",
+        "SERGIO OSMEÑA SR.",
+        "SIBUTAD"
+      ]
+    },
+    {
+      "provinceCode": "ZAN",
+      "provinceName": "ZAMBOANGA DEL NORTE",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "DIPOLOG CITY (Capital)",
+        "KATIPUNAN",
+        "MANUKAN",
+        "PRES. MANUEL A. ROXAS",
+        "SIAYAN",
+        "SINDANGAN",
+        "JOSE DALMAN (PONOT)"
+      ]
+    },
+    {
+      "provinceCode": "ZAN",
+      "provinceName": "ZAMBOANGA DEL NORTE",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "LABASON",
+        "LILOY",
+        "SALUG",
+        "SIBUCO",
+        "SIOCON",
+        "SIRAWAI",
+        "TAMPILISAN",
+        "GUTALAC",
+        "BALIGUIAN",
+        "GODOD",
+        "BACUNGAN (Leon T. Postigo)",
+        "KALAWIT"
+      ]
+    }
+  ],
+  "ZAS": [
+    {
+      "provinceCode": "ZAS",
+      "provinceName": "ZAMBOANGA DEL SUR",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "AURORA",
+        "DUMINGAG",
+        "LABANGAN",
+        "MAHAYAG",
+        "MIDSALIP",
+        "MOLAVE",
+        "PAGADIAN CITY (Capital)",
+        "RAMON MAGSAYSAY (LIARGO)",
+        "TAMBULIG",
+        "TUKURAN",
+        "JOSEFINA",
+        "SOMINOT (DON MARIANO MARCOS)"
+      ]
+    },
+    {
+      "provinceCode": "ZAS",
+      "provinceName": "ZAMBOANGA DEL SUR",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BAYOG",
+        "DIMATALING",
+        "DINAS",
+        "DUMALINAO",
+        "KUMALARANG",
+        "LAPUYAN",
+        "MARGOSATUBIG",
+        "SAN MIGUEL",
+        "SAN PABLO",
+        "TABINA",
+        "ZAMBOANGA CITY",
+        "LAKEWOOD",
+        "PITOGO",
+        "VINCENZO A. SAGUN",
+        "GUIPOS",
+        "TIGBAO"
+      ]
+    }
+  ],
+  "ZSI": [
+    {
+      "provinceCode": "ZSI",
+      "provinceName": "ZAMBOANGA SIBUGAY",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALICIA",
+        "BUUG",
+        "DIPLAHAN",
+        "IMELDA",
+        "MABUHAY",
+        "MALANGAS",
+        "OLUTANGA",
+        "PAYAO",
+        "TALUSAN"
+      ]
+    },
+    {
+      "provinceCode": "ZSI",
+      "provinceName": "ZAMBOANGA SIBUGAY",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "IPIL (Capital)",
+        "KABASALAN",
+        "NAGA",
+        "ROSELLER LIM",
+        "SIAY",
+        "TITAY",
+        "TUNGAWAN"
+      ]
+    }
+  ],
+  "CIT": [
+    {
+      "provinceCode": "CIT",
+      "provinceName": "CITY OF ISABELA (Not a Province)",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CITY OF ISABELA (Capital)"
+      ]
+    }
+  ],
+  "BUK": [
+    {
+      "provinceCode": "BUK",
+      "provinceName": "BUKIDNON",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BAUNGON",
+        "LIBONA",
+        "MALITBOG",
+        "MANOLO FORTICH",
+        "SUMILAO",
+        "TALAKAG"
+      ]
+    },
+    {
+      "provinceCode": "BUK",
+      "provinceName": "BUKIDNON",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "IMPASUG-ONG",
+        "LANTAPAN",
+        "CITY OF MALAYBALAY (Capital)",
+        "SAN FERNANDO",
+        "CABANGLASAN"
+      ]
+    },
+    {
+      "provinceCode": "BUK",
+      "provinceName": "BUKIDNON",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "DAMULOG",
+        "DANGCAGAN",
+        "DON CARLOS",
+        "KADINGILAN",
+        "KIBAWE",
+        "KITAOTAO",
+        "MARAMAG",
+        "QUEZON"
+      ]
+    },
+    {
+      "provinceCode": "BUK",
+      "provinceName": "BUKIDNON",
+      "districtNumber": 4,
+      "districtName": "4th District",
+      "lguNames": [
+        "KALILANGAN",
+        "PANGANTUCAN",
+        "CITY OF VALENCIA"
+      ]
+    }
+  ],
+  "CAM": [
+    {
+      "provinceCode": "CAM",
+      "provinceName": "CAMIGUIN",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CATARMAN",
+        "GUINSILIBAN",
+        "MAHINOG",
+        "MAMBAJAO (Capital)",
+        "SAGAY"
+      ]
+    }
+  ],
+  "LAN": [
+    {
+      "provinceCode": "LAN",
+      "provinceName": "LANAO DEL NORTE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BACOLOD",
+        "BALOI",
+        "BAROY",
+        "ILIGAN CITY",
+        "KAUSWAGAN",
+        "KOLAMBUGAN",
+        "LINAMON",
+        "MAIGO",
+        "MATUNGAO",
+        "TAGOLOAN",
+        "TUBOD (Capital)",
+        "PANTAR"
+      ]
+    },
+    {
+      "provinceCode": "LAN",
+      "provinceName": "LANAO DEL NORTE",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "KAPATAGAN",
+        "SULTAN NAGA DIMAPORO (KAROMATAN)",
+        "LALA",
+        "MAGSAYSAY",
+        "MUNAI",
+        "NUNUNGAN",
+        "PANTAO RAGAT",
+        "POONA PIAGAPO",
+        "SALVADOR",
+        "SAPAD",
+        "TANGCAL"
+      ]
+    }
+  ],
+  "MSC": [
+    {
+      "provinceCode": "MSC",
+      "provinceName": "MISAMIS OCCIDENTAL",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALORAN",
+        "BALIANGAO",
+        "CALAMBA",
+        "CONCEPCION",
+        "JIMENEZ",
+        "LOPEZ JAENA",
+        "OROQUIETA CITY (Capital)",
+        "PANAON",
+        "PLARIDEL",
+        "SAPANG DALAGA"
+      ]
+    },
+    {
+      "provinceCode": "MSC",
+      "provinceName": "MISAMIS OCCIDENTAL",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BONIFACIO",
+        "CLARIN",
+        "OZAMIS CITY",
+        "SINACABAN",
+        "TANGUB CITY",
+        "TUDELA",
+        "DON VICTORIANO CHIONGBIAN  (DON MARIANO MARCOS)"
+      ]
+    }
+  ],
+  "MSR": [
+    {
+      "provinceCode": "MSR",
+      "provinceName": "MISAMIS ORIENTAL",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BALINGASAG",
+        "BALINGOAN",
+        "BINUANGAN",
+        "GINGOOG CITY",
+        "KINOGUITAN",
+        "LAGONGLONG",
+        "MAGSAYSAY (LINUGOS)",
+        "MEDINA",
+        "SALAY",
+        "SUGBONGCOGON",
+        "TALISAYAN"
+      ]
+    },
+    {
+      "provinceCode": "MSR",
+      "provinceName": "MISAMIS ORIENTAL",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "ALUBIJID",
+        "CAGAYAN DE ORO CITY (Capital)",
+        "CLAVERIA",
+        "CITY OF EL SALVADOR",
+        "GITAGUM",
+        "INITAO",
+        "JASAAN",
+        "LAGUINDINGAN",
+        "LIBERTAD",
+        "LUGAIT",
+        "MANTICAO",
+        "NAAWAN",
+        "OPOL",
+        "TAGOLOAN",
+        "VILLANUEVA"
+      ]
+    }
+  ],
+  "DAV": [
+    {
+      "provinceCode": "DAV",
+      "provinceName": "DAVAO DEL NORTE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ASUNCION (SAUG)",
+        "KAPALONG",
+        "NEW CORELLA",
+        "CITY OF TAGUM (Capital)",
+        "TALAINGOD",
+        "SAN ISIDRO"
+      ]
+    },
+    {
+      "provinceCode": "DAV",
+      "provinceName": "DAVAO DEL NORTE",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "CARMEN",
+        "CITY OF PANABO",
+        "ISLAND GARDEN CITY OF SAMAL",
+        "SANTO TOMAS",
+        "BRAULIO E. DUJALI"
+      ]
+    }
+  ],
+  "DAS": [
+    {
+      "provinceCode": "DAS",
+      "provinceName": "DAVAO DEL SUR",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BANSALAN",
+        "CITY OF DIGOS (Capital)",
+        "HAGONOY",
+        "MAGSAYSAY",
+        "MATANAO",
+        "PADADA",
+        "SANTA CRUZ"
+      ]
+    },
+    {
+      "provinceCode": "DAS",
+      "provinceName": "DAVAO DEL SUR",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "KIBLAWAN",
+        "MALALAG",
+        "SULOP"
+      ]
+    },
+    {
+      "provinceCode": "DAS",
+      "provinceName": "DAVAO DEL SUR",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "DAVAO CITY"
+      ]
+    }
+  ],
+  "DAO": [
+    {
+      "provinceCode": "DAO",
+      "provinceName": "DAVAO ORIENTAL",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BAGANGA",
+        "BOSTON",
+        "CARAGA",
+        "CATEEL",
+        "MANAY",
+        "TARRAGONA"
+      ]
+    },
+    {
+      "provinceCode": "DAO",
+      "provinceName": "DAVAO ORIENTAL",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BANAYBANAY",
+        "GOVERNOR GENEROSO",
+        "LUPON",
+        "CITY OF MATI (Capital)",
+        "SAN ISIDRO"
+      ]
+    }
+  ],
+  "COM": [
+    {
+      "provinceCode": "COM",
+      "provinceName": "COMPOSTELA VALLEY",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "COMPOSTELA",
+        "MARAGUSAN (SAN MARIANO)",
+        "MONKAYO",
+        "MONTEVISTA",
+        "NEW BATAAN"
+      ]
+    },
+    {
+      "provinceCode": "COM",
+      "provinceName": "COMPOSTELA VALLEY",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "LAAK (SAN VICENTE)",
+        "MABINI (DOÑA ALICIA)",
+        "MACO",
+        "MAWAB",
+        "NABUNTURAN (Capital)",
+        "PANTUKAN"
+      ]
+    }
+  ],
+  "NCO": [
+    {
+      "provinceCode": "NCO",
+      "provinceName": "COTABATO (NORTH COTABATO)",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALAMADA",
+        "LIBUNGAN",
+        "MIDSAYAP",
+        "PIGKAWAYAN",
+        "PIKIT",
+        "ALEOSAN"
+      ]
+    },
+    {
+      "provinceCode": "NCO",
+      "provinceName": "COTABATO (NORTH COTABATO)",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "CITY OF KIDAPAWAN (Capital)",
+        "MAGPET",
+        "MAKILALA",
+        "PRESIDENT ROXAS",
+        "ANTIPAS",
+        "ARAKAN"
+      ]
+    },
+    {
+      "provinceCode": "NCO",
+      "provinceName": "COTABATO (NORTH COTABATO)",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "CARMEN",
+        "KABACAN",
+        "MATALAM",
+        "M'LANG",
+        "TULUNAN",
+        "BANISILAN"
+      ]
+    }
+  ],
+  "SCO": [
+    {
+      "provinceCode": "SCO",
+      "provinceName": "SOUTH COTABATO",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "GENERAL SANTOS CITY (DADIANGAS)",
+        "POLOMOLOK",
+        "TAMPAKAN",
+        "TUPI"
+      ]
+    },
+    {
+      "provinceCode": "SCO",
+      "provinceName": "SOUTH COTABATO",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BANGA",
+        "CITY OF KORONADAL (Capital)",
+        "NORALA",
+        "SURALLAH",
+        "TANTANGAN",
+        "T'BOLI",
+        "SANTO NIÑO",
+        "LAKE SEBU"
+      ]
+    }
+  ],
+  "SUK": [
+    {
+      "provinceCode": "SUK",
+      "provinceName": "SULTAN KUDARAT",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "COLUMBIO",
+        "ISULAN (Capital)",
+        "LUTAYAN",
+        "LAMBAYONG (MARIANO MARCOS)",
+        "PRESIDENT QUIRINO",
+        "CITY OF TACURONG"
+      ]
+    },
+    {
+      "provinceCode": "SUK",
+      "provinceName": "SULTAN KUDARAT",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BAGUMBAYAN",
+        "ESPERANZA",
+        "KALAMANSIG",
+        "LEBAK",
+        "PALIMBANG",
+        "SEN. NINOY AQUINO"
+      ]
+    }
+  ],
+  "SAR": [
+    {
+      "provinceCode": "SAR",
+      "provinceName": "SARANGANI",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALABEL (Capital)",
+        "GLAN",
+        "KIAMBA",
+        "MAASIM",
+        "MAITUM",
+        "MALAPATAN",
+        "MALUNGON"
+      ]
+    }
+  ],
+  "COT": [
+    {
+      "provinceCode": "COT",
+      "provinceName": "COTABATO CITY (Not a Province)",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "COTABATO CITY"
+      ]
+    }
+  ],
+  "NCR": [
+    {
+      "provinceCode": "NCR",
+      "provinceName": "NCR, SECOND DISTRICT (Not a Province)",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CITY OF MANDALUYONG",
+        "CITY OF PASIG",
+        "CITY OF SAN JUAN",
+        "CITY OF MALABON",
+        "CITY OF NAVOTAS",
+        "CITY OF LAS PIÑAS",
+        "CITY OF MUNTINLUPA",
+        "PASAY CITY",
+        "PATEROS"
+      ]
+    },
+    {
+      "provinceCode": "NCR",
+      "provinceName": "NCR, SECOND DISTRICT (Not a Province)",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "CITY OF MARIKINA",
+        "CALOOCAN CITY",
+        "CITY OF VALENZUELA",
+        "CITY OF MAKATI",
+        "CITY OF PARAÑAQUE",
+        "TAGUIG CITY"
+      ]
+    },
+    {
+      "provinceCode": "NCR",
+      "provinceName": "NCR - National Capital Region",
+      "districtNumber": 6,
+      "districtName": "6th District",
+      "lguNames": [
+        "CITY OF MANILA",
+        "QUEZON CITY"
+      ]
+    }
+  ],
+  "ABR": [
+    {
+      "provinceCode": "ABR",
+      "provinceName": "ABRA",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BANGUED (Capital)",
+        "BOLINEY",
+        "BUCAY",
+        "BUCLOC",
+        "DAGUIOMAN",
+        "DANGLAS",
+        "DOLORES",
+        "LA PAZ",
+        "LACUB",
+        "LAGANGILANG",
+        "LAGAYAN",
+        "LANGIDEN",
+        "LICUAN-BAAY (LICUAN)",
+        "LUBA",
+        "MALIBCONG",
+        "MANABO",
+        "PEÑARRUBIA",
+        "PIDIGAN",
+        "PILAR",
+        "SALLAPADAN",
+        "SAN ISIDRO",
+        "SAN JUAN",
+        "SAN QUINTIN",
+        "TAYUM",
+        "TINEG",
+        "TUBO",
+        "VILLAVICIOSA"
+      ]
+    }
+  ],
+  "BEN": [
+    {
+      "provinceCode": "BEN",
+      "provinceName": "BENGUET",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ATOK",
+        "BAGUIO CITY",
+        "BAKUN",
+        "BOKOD",
+        "BUGUIAS",
+        "ITOGON",
+        "KABAYAN",
+        "KAPANGAN",
+        "KIBUNGAN",
+        "LA TRINIDAD (Capital)",
+        "MANKAYAN",
+        "SABLAN",
+        "TUBA",
+        "TUBLAY"
+      ]
+    }
+  ],
+  "IFU": [
+    {
+      "provinceCode": "IFU",
+      "provinceName": "IFUGAO",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BANAUE",
+        "HUNGDUAN",
+        "KIANGAN",
+        "LAGAWE (Capital)",
+        "LAMUT",
+        "MAYOYAO",
+        "ALFONSO LISTA (POTIA)",
+        "AGUINALDO",
+        "HINGYON",
+        "TINOC",
+        "ASIPULO"
+      ]
+    }
+  ],
+  "KAL": [
+    {
+      "provinceCode": "KAL",
+      "provinceName": "KALINGA",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BALBALAN",
+        "LUBUAGAN",
+        "PASIL",
+        "PINUKPUK",
+        "RIZAL (LIWAN)",
+        "CITY OF TABUK (Capital)",
+        "TANUDAN",
+        "TINGLAYAN"
+      ]
+    }
+  ],
+  "MOU": [
+    {
+      "provinceCode": "MOU",
+      "provinceName": "MOUNTAIN PROVINCE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BARLIG",
+        "BAUKO",
+        "BESAO",
+        "BONTOC (Capital)",
+        "NATONIN",
+        "PARACELIS",
+        "SABANGAN",
+        "SADANGA",
+        "SAGADA",
+        "TADIAN"
+      ]
+    }
+  ],
+  "APA": [
+    {
+      "provinceCode": "APA",
+      "provinceName": "APAYAO",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CALANASAN (BAYAG)",
+        "CONNER",
+        "FLORA",
+        "KABUGAO (Capital)",
+        "LUNA",
+        "PUDTOL",
+        "SANTA MARCELA"
+      ]
+    }
+  ],
+  "BAS": [
+    {
+      "provinceCode": "BAS",
+      "provinceName": "BASILAN",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CITY OF LAMITAN",
+        "LANTAWAN",
+        "MALUSO",
+        "SUMISIP",
+        "TIPO-TIPO",
+        "TUBURAN",
+        "AKBAR",
+        "AL-BARKA",
+        "HADJI MOHAMMAD AJUL",
+        "UNGKAYA PUKAN",
+        "HADJI MUHTAMAD"
+      ]
+    }
+  ],
+  "LAS": [
+    {
+      "provinceCode": "LAS",
+      "provinceName": "LANAO DEL SUR",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BUBONG",
+        "KAPAI",
+        "LUMBA-BAYABAO (MAGUING)",
+        "MARANTAO",
+        "MARAWI CITY (Capital)",
+        "MASIU",
+        "MULONDO",
+        "PIAGAPO",
+        "POONA BAYABAO (GATA)",
+        "DITSAAN-RAMAIN",
+        "SAGUIARAN",
+        "TAMPARAN",
+        "TARAKA",
+        "WAO",
+        "BUADIPOSO-BUNTONG",
+        "MAGUING",
+        "BUMBARAN",
+        "TAGOLOAN II"
+      ]
+    },
+    {
+      "provinceCode": "LAS",
+      "provinceName": "LANAO DEL SUR",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BACOLOD-KALAWI (BACOLOD GRANDE)",
+        "BALABAGAN",
+        "BALINDONG (WATU)",
+        "BAYANG",
+        "BINIDAYAN",
+        "BUTIG",
+        "GANASSI",
+        "LUMBATAN",
+        "MADALUM",
+        "MADAMBA",
+        "MALABANG",
+        "PAGAYAWAN (TATARIKAN)",
+        "PUALAS",
+        "TUBARAN",
+        "TUGAYA",
+        "MAROGONG",
+        "CALANOGAS",
+        "PICONG (SULTAN GUMANDER)",
+        "LUMBAYANAGUE",
+        "KAPATAGAN",
+        "SULTAN DUMALONDONG",
+        "LUMBACA-UNAYAN"
+      ]
+    }
+  ],
+  "MAG": [
+    {
+      "provinceCode": "MAG",
+      "provinceName": "MAGUINDANAO",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BULDON",
+        "DATU ODIN SINSUAT (DINAIG) (Capital)",
+        "MATANOG",
+        "PARANG",
+        "SULTAN KUDARAT (NULING)",
+        "KABUNTALAN (TUMBAO)",
+        "UPI",
+        "BARIRA",
+        "SULTAN MASTURA",
+        "DATU BLAH T. SINSUAT",
+        "NORTHERN KABUNTALAN"
+      ]
+    },
+    {
+      "provinceCode": "MAG",
+      "provinceName": "MAGUINDANAO",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "AMPATUAN",
+        "BULUAN",
+        "DATU PAGLAS",
+        "DATU PIANG",
+        "SHARIFF AGUAK (MAGANOY) (Capital)",
+        "PAGALUNGAN",
+        "SULTAN SA BARONGIS (LAMBAYONG)",
+        "TALAYAN",
+        "SOUTH UPI",
+        "GEN. S. K. PENDATUN",
+        "MAMASAPANO",
+        "TALITAY",
+        "PAGAGAWAN",
+        "PAGLAT",
+        "GUINDULUNGAN",
+        "DATU SAUDI-AMPATUAN",
+        "DATU UNSAY",
+        "DATU ABDULLAH SANGKI",
+        "RAJAH BUAYAN",
+        "DATU ANGGAL MIDTIMBANG",
+        "MANGUDADATU",
+        "PANDAG",
+        "DATU HOFFER AMPATUAN",
+        "DATU SALIBO",
+        "SHARIFF SAYDONA MUSTAPHA"
+      ]
+    }
+  ],
+  "SLU": [
+    {
+      "provinceCode": "SLU",
+      "provinceName": "SULU",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "INDANAN",
+        "JOLO (Capital)",
+        "MAIMBUNG",
+        "HADJI PANGLIMA TAHIL (MARUNGGAS)",
+        "PANGUTARAN",
+        "PARANG",
+        "PATIKUL",
+        "TALIPAO"
+      ]
+    },
+    {
+      "provinceCode": "SLU",
+      "provinceName": "SULU",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "KALINGALAN CALUANG",
+        "LUUK",
+        "OLD PANAMAO",
+        "PATA",
+        "SIASI",
+        "TAPUL",
+        "TONGKIL",
+        "PANGLIMA ESTINO (NEW PANAMAO)",
+        "LUGUS",
+        "PANDAMI",
+        "OMAR"
+      ]
+    }
+  ],
+  "TAW": [
+    {
+      "provinceCode": "TAW",
+      "provinceName": "TAWI-TAWI",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "PANGLIMA SUGALA (BALIMBING) (Capital)",
+        "BONGAO (Capital)",
+        "MAPUN (CAGAYAN DE TAWI-TAWI)",
+        "SIMUNUL",
+        "SITANGKAI",
+        "SOUTH UBIAN",
+        "TANDUBAS",
+        "TURTLE ISLANDS",
+        "LANGUYAN",
+        "SAPA-SAPA",
+        "SIBUTU"
+      ]
+    }
+  ],
+  "AGN": [
+    {
+      "provinceCode": "AGN",
+      "provinceName": "AGUSAN DEL NORTE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BUTUAN CITY (Capital)",
+        "LAS NIEVES"
+      ]
+    },
+    {
+      "provinceCode": "AGN",
+      "provinceName": "AGUSAN DEL NORTE",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BUENAVISTA",
+        "CITY OF CABADBARAN",
+        "CARMEN",
+        "JABONGA",
+        "KITCHARAO",
+        "MAGALLANES",
+        "NASIPIT",
+        "SANTIAGO",
+        "TUBAY",
+        "REMEDIOS T. ROMUALDEZ"
+      ]
+    }
+  ],
+  "AGS": [
+    {
+      "provinceCode": "AGS",
+      "provinceName": "AGUSAN DEL SUR",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "CITY OF BAYUGAN",
+        "ESPERANZA",
+        "PROSPERIDAD (Capital)",
+        "SAN LUIS",
+        "TALACOGON",
+        "SIBAGAT"
+      ]
+    },
+    {
+      "provinceCode": "AGS",
+      "provinceName": "AGUSAN DEL SUR",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BUNAWAN",
+        "LA PAZ",
+        "LORETO",
+        "ROSARIO",
+        "SAN FRANCISCO",
+        "SANTA JOSEFA",
+        "TRENTO",
+        "VERUELA"
+      ]
+    }
+  ],
+  "SUN": [
+    {
+      "provinceCode": "SUN",
+      "provinceName": "SURIGAO DEL NORTE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BURGOS",
+        "DAPA",
+        "DEL CARMEN",
+        "GENERAL LUNA",
+        "PILAR",
+        "SAN BENITO",
+        "SAN ISIDRO",
+        "SANTA MONICA (SAPAO)",
+        "SOCORRO"
+      ]
+    },
+    {
+      "provinceCode": "SUN",
+      "provinceName": "SURIGAO DEL NORTE",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "ALEGRIA",
+        "BACUAG",
+        "CLAVER",
+        "GIGAQUIT",
+        "MAINIT",
+        "MALIMONO",
+        "PLACER",
+        "SAN FRANCISCO (ANAO-AON)",
+        "SISON",
+        "SURIGAO CITY (Capital)",
+        "TAGANA-AN",
+        "TUBOD"
+      ]
+    }
+  ],
+  "SUR": [
+    {
+      "provinceCode": "SUR",
+      "provinceName": "SURIGAO DEL SUR",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BAYABAS",
+        "CAGWAIT",
+        "CANTILAN",
+        "CARMEN",
+        "CARRASCAL",
+        "CORTES",
+        "LANUZA",
+        "LIANGA",
+        "MADRID",
+        "MARIHATAG",
+        "SAN AGUSTIN",
+        "SAN MIGUEL",
+        "TAGO",
+        "CITY OF TANDAG (Capital)"
+      ]
+    },
+    {
+      "provinceCode": "SUR",
+      "provinceName": "SURIGAO DEL SUR",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BAROBO",
+        "CITY OF BISLIG",
+        "HINATUAN",
+        "LINGIG",
+        "TAGBINA"
+      ]
+    }
+  ],
+  "DIN": [
+    {
+      "provinceCode": "DIN",
+      "provinceName": "DINAGAT ISLANDS",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BASILISA (RIZAL)",
+        "CAGDIANAO",
+        "DINAGAT",
+        "LIBJO (ALBOR)",
+        "LORETO",
+        "SAN JOSE (Capital)",
+        "TUBAJON"
+      ]
+    }
+  ],
+  "MAD": [
+    {
+      "provinceCode": "MAD",
+      "provinceName": "MARINDUQUE",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BOAC (Capital)",
+        "BUENAVISTA",
+        "GASAN",
+        "MOGPOG",
+        "SANTA CRUZ",
+        "TORRIJOS"
+      ]
+    }
+  ],
+  "MDC": [
+    {
+      "provinceCode": "MDC",
+      "provinceName": "OCCIDENTAL MINDORO",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ABRA DE ILOG",
+        "CALINTAAN",
+        "LOOC",
+        "LUBANG",
+        "MAGSAYSAY",
+        "MAMBURAO (Capital)",
+        "PALUAN",
+        "RIZAL",
+        "SABLAYAN",
+        "SAN JOSE",
+        "SANTA CRUZ"
+      ]
+    }
+  ],
+  "MDR": [
+    {
+      "provinceCode": "MDR",
+      "provinceName": "ORIENTAL MINDORO",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "BACO",
+        "CITY OF CALAPAN (Capital)",
+        "NAUJAN",
+        "POLA",
+        "PUERTO GALERA",
+        "SAN TEODORO",
+        "SOCORRO",
+        "VICTORIA"
+      ]
+    },
+    {
+      "provinceCode": "MDR",
+      "provinceName": "ORIENTAL MINDORO",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BANSUD",
+        "BONGABONG",
+        "BULALACAO (SAN PEDRO)",
+        "GLORIA",
+        "MANSALAY",
+        "PINAMALAYAN",
+        "ROXAS"
+      ]
+    }
+  ],
+  "PLW": [
+    {
+      "provinceCode": "PLW",
+      "provinceName": "PALAWAN",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "AGUTAYA",
+        "ARACELI",
+        "BUSUANGA",
+        "CAGAYANCILLO",
+        "CORON",
+        "CUYO",
+        "DUMARAN",
+        "EL NIDO (BACUIT)",
+        "LINAPACAN",
+        "MAGSAYSAY",
+        "ROXAS",
+        "SAN VICENTE",
+        "TAYTAY",
+        "KALAYAAN",
+        "CULION"
+      ]
+    },
+    {
+      "provinceCode": "PLW",
+      "provinceName": "PALAWAN",
+      "districtNumber": 2,
+      "districtName": "2nd District",
+      "lguNames": [
+        "BALABAC",
+        "BATARAZA",
+        "BROOKE'S POINT",
+        "NARRA",
+        "QUEZON",
+        "RIZAL (MARCOS)",
+        "SOFRONIO ESPAÑOLA"
+      ]
+    },
+    {
+      "provinceCode": "PLW",
+      "provinceName": "PALAWAN",
+      "districtNumber": 3,
+      "districtName": "3rd District",
+      "lguNames": [
+        "ABORLAN",
+        "PUERTO PRINCESA CITY (Capital)"
+      ]
+    }
+  ],
+  "ROM": [
+    {
+      "provinceCode": "ROM",
+      "provinceName": "ROMBLON",
+      "districtNumber": 1,
+      "districtName": "1st District",
+      "lguNames": [
+        "ALCANTARA",
+        "BANTON",
+        "CAJIDIOCAN",
+        "CALATRAVA",
+        "CONCEPCION",
+        "CORCUERA",
+        "LOOC",
+        "MAGDIWANG",
+        "ODIONGAN",
+        "ROMBLON (Capital)",
+        "SAN AGUSTIN",
+        "SAN ANDRES",
+        "SAN FERNANDO",
+        "SAN JOSE",
+        "SANTA FE",
+        "FERROL",
+        "SANTA MARIA (IMELDA)"
+      ]
+    }
+  ]
+}

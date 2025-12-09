@@ -494,12 +494,10 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
     selection,
     handleRegionChange,
     handleProvinceChange,
+    handleDistrictChange,
     handleCityChange,
     handleBarangayChange
   } = useLocationData()
-  
-  // Legacy location state for backward compatibility
-  const [district, setDistrict] = useState('')
   
   // Step 4: Document Upload
   const [documents, setDocuments] = useState<Array<{file: File, label: string, id: string}>>([])
@@ -539,8 +537,8 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
       // For new projects, any change indicates unsaved changes
       const hasChanges = !!(projectTitle || projectDescription || projectClassification || 
                         projectType || implementationDays || prexcProgram || 
-                        prexcSubProgram || selection.region || selection.province || selection.city || 
-                        district || selection.barangay || allocatedAmount || documents.length > 0)
+                        prexcSubProgram || selection.region || selection.province || selection.district || selection.city || 
+                        selection.barangay || allocatedAmount || documents.length > 0)
       setHasUnsavedChanges(hasChanges)
     } else if (isOpen && editingDraft) {
       // For editing drafts, compare with original values
@@ -556,7 +554,7 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
     }
   }, [projectTitle, projectDescription, projectClassification, projectType, 
       implementationDays, prexcProgram, prexcSubProgram, selection.region, selection.province, 
-      selection.city, district, selection.barangay, allocatedAmount, documents, isOpen, editingDraft])
+      selection.district, selection.city, selection.barangay, allocatedAmount, documents, isOpen, editingDraft])
 
   const handleNext = () => {
     if (currentStep < 5) {
@@ -595,12 +593,13 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
       // Step 3 - Location data from PSGC API
       region: locationData.regions.find(r => r.code === selection.region)?.name || '',
       province: locationData.provinces.find(p => p.code === selection.province)?.name || '',
+      district: locationData.congressionalDistricts.find(d => d.code === selection.district)?.name || '',
       municipality: locationData.cities.find(c => c.code === selection.city)?.name || '',
-      district,
       barangay: locationData.barangays.find(b => b.code === selection.barangay)?.name || '',
       // PSGC codes for reference
       regionCode: selection.region,
       provinceCode: selection.province,
+      districtCode: selection.district,
       cityCode: selection.city,
       barangayCode: selection.barangay,
       // Step 4
@@ -635,12 +634,13 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
       // Step 3 - Location data from PSGC API
       region: locationData.regions.find(r => r.code === selection.region)?.name || '',
       province: locationData.provinces.find(p => p.code === selection.province)?.name || '',
+      district: locationData.congressionalDistricts.find(d => d.code === selection.district)?.name || '',
       municipality: locationData.cities.find(c => c.code === selection.city)?.name || '',
-      district,
       barangay: locationData.barangays.find(b => b.code === selection.barangay)?.name || '',
       // PSGC codes for reference
       regionCode: selection.region,
       provinceCode: selection.province,
+      districtCode: selection.district,
       cityCode: selection.city,
       barangayCode: selection.barangay,
       // Step 4
@@ -679,7 +679,6 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
     setBannerProgram('')
     setFundingYear('')
     setAllocatedAmount('')
-    setDistrict('')
     setDocuments([])
     setProjectStatus('Draft')
     setHasUnsavedChanges(false)
@@ -702,7 +701,7 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
   const isStep1Valid = projectClassification && projectType && projectTitle && projectDescription
   const isStep2Valid = implementationDays && prexcProgram && prexcSubProgram && budgetProcess && 
                       proposedFundSource && sourceAgency && bannerProgram && fundingYear && allocatedAmount
-  const isStep3Valid = selection.region && selection.province && selection.city && selection.barangay
+  const isStep3Valid = selection.region && selection.province && selection.district && selection.city && selection.barangay
   const isStep4Valid = true // Documents are optional during registration
 
 
@@ -1087,6 +1086,37 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="district" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-600" />
+                  District *
+                </Label>
+                <select
+                  id="district"
+                  value={selection.district}
+                  onChange={(e) => {
+                    const selectedDistrict = locationData.congressionalDistricts.find(d => d.code === e.target.value)
+                    if (selectedDistrict) {
+                      handleDistrictChange(selectedDistrict.code, selectedDistrict.name)
+                    }
+                  }}
+                  disabled={!selection.province || locationData.loading.congressionalDistricts}
+                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                >
+                  <option value="">
+                    {!selection.province 
+                      ? 'Select a province first' 
+                      : locationData.loading.congressionalDistricts 
+                        ? 'Loading districts...' 
+                        : 'Select District'
+                    }
+                  </option>
+                  {locationData.congressionalDistricts.map((district) => (
+                    <option key={district.code} value={district.code}>{district.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="municipality" className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-gray-600" />
                   Municipality/City *
@@ -1100,12 +1130,12 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
                       handleCityChange(selectedCity.code, selectedCity.name, selectedCity.type)
                     }
                   }}
-                  disabled={!selection.province || locationData.loading.cities}
+                  disabled={!selection.district || locationData.loading.cities}
                   className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
                 >
                   <option value="">
-                    {!selection.province 
-                      ? 'Select a province first' 
+                    {!selection.district 
+                      ? 'Select a district first' 
                       : locationData.loading.cities 
                         ? 'Loading cities...' 
                         : 'Select Municipality/City'
@@ -1115,21 +1145,6 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
                     <option key={city.code} value={city.code}>
                       {city.name} {city.type ? `(${city.type})` : ''}
                     </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="district">District (Optional)</Label>
-                <select
-                  id="district"
-                  value={district}
-                  onChange={(e) => setDistrict(e.target.value)}
-                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
-                >
-                  <option value="">Select District (Optional)</option>
-                  {districts.map((item) => (
-                    <option key={item} value={item}>{item}</option>
                   ))}
                 </select>
               </div>
@@ -1439,6 +1454,14 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">District:</span>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg px-3 py-2">
+                      <p className="text-sm text-foreground font-medium">{locationData.congressionalDistricts.find(d => d.code === selection.district)?.name || 'Not specified'}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-foreground">Municipality/City:</span>
                     </div>
                     <div className="bg-muted/50 rounded-lg px-3 py-2">
@@ -1449,14 +1472,6 @@ export function InfraProjectModal({ isOpen, onClose, onProjectCreate, editingDra
                           return `${selectedCity.name} ${selectedCity.type ? `(${selectedCity.type})` : ''}`
                         })()}
                       </p>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-foreground">District:</span>
-                    </div>
-                    <div className="bg-muted/50 rounded-lg px-3 py-2">
-                      <p className="text-sm text-foreground font-medium">{district || 'Not specified'}</p>
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-1">
