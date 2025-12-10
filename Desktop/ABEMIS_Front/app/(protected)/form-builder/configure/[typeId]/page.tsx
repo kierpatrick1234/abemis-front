@@ -155,6 +155,20 @@ export default function ConfigureProjectTypePage() {
     }
   }, [typeId, loading, router])
 
+  // Redirect if not admin (only after loading is complete and we're certain user is not admin)
+  // This hook MUST be called before any conditional returns to follow Rules of Hooks
+  useEffect(() => {
+    // Wait until we're on client and loading is done
+    if (!isClient || loading) return
+    
+    // If user is null/undefined after loading, don't redirect (auth might be handled elsewhere)
+    // Only redirect if user exists and is definitely not an admin
+    if (user && user.role && user.role !== 'admin') {
+      const redirectPath = user.role === 'VIEWER' ? '/summary' : '/dashboard'
+      router.push(redirectPath)
+    }
+  }, [isClient, loading, user, router])
+
   // Save project types to localStorage
   const saveProjectTypes = (updatedType: ProjectType) => {
     const storedTypes = localStorage.getItem('projectTypes')
@@ -185,16 +199,9 @@ export default function ConfigureProjectTypePage() {
     )
   }
 
-  // Redirect if not admin (only after loading is complete and we're certain user is not admin)
-  useEffect(() => {
-    if (isClient && !loading && user && user.role !== 'admin') {
-      const redirectPath = user.role === 'VIEWER' ? '/summary' : '/dashboard'
-      router.push(redirectPath)
-    }
-  }, [isClient, loading, user, router])
-
-  // Only show redirecting screen if we're certain the user is not an admin
-  if (isClient && !loading && user && user.role !== 'admin') {
+  // Only show redirecting screen if we're certain the user is loaded and is not an admin
+  // Don't show redirecting screen if user is null (might still be loading or auth handled elsewhere)
+  if (isClient && !loading && user && user.role && user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

@@ -384,9 +384,14 @@ export default function ProjectsPage() {
                         </div>
                         <div className="flex gap-2">
                           <Button
+                            type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => router.push(`/form-builder/configure/${type.id}`)}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              router.push(`/form-builder/configure/${type.id}`)
+                            }}
                             className="gap-1.5"
                           >
                             <Settings2 className="h-3.5 w-3.5" />
