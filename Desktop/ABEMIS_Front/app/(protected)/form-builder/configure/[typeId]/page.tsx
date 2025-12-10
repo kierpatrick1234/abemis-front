@@ -161,13 +161,37 @@ export default function ConfigureProjectTypePage() {
     // Wait until we're on client and loading is done
     if (!isClient || loading) return
     
-    // If user is null/undefined after loading, don't redirect (auth might be handled elsewhere)
-    // Only redirect if user exists and is definitely not an admin
-    if (user && user.role && user.role !== 'admin') {
-      const redirectPath = user.role === 'VIEWER' ? '/summary' : '/dashboard'
-      router.push(redirectPath)
+    // CRITICAL SAFEGUARD: If user is admin, NEVER redirect - allow page to render
+    if (user && user.role === 'admin') {
+      console.log('Admin user detected - allowing access to configure page')
+      return // Exit early, do not redirect
     }
-  }, [isClient, loading, user, router])
+    
+    // Only proceed with redirect check if user exists and is NOT admin
+    // If user is null/undefined, DO NOT redirect (might still be loading or auth handled elsewhere)
+    if (user && user.role && typeof user.role === 'string' && user.role !== 'admin') {
+      // Log for debugging (can be removed in production)
+      console.log('Configure page - Non-admin user detected:', { 
+        hasUser: !!user, 
+        role: user.role, 
+        roleType: typeof user.role,
+        typeId: typeId
+      })
+      
+      // Only redirect non-admin users
+      const redirectPath = user.role === 'VIEWER' ? '/summary' : '/dashboard'
+      console.log('Redirecting non-admin user to:', redirectPath, 'Role was:', user.role)
+      router.push(redirectPath)
+    } else if (!user || !user.role) {
+      // User or role not available - don't redirect, allow page to render
+      // This handles cases where user is still loading or auth is handled elsewhere
+      console.log('Configure page - User or role not available yet:', { 
+        hasUser: !!user, 
+        hasRole: !!(user && user.role),
+        roleType: user && user.role ? typeof user.role : 'undefined'
+      })
+    }
+  }, [isClient, loading, user, router, typeId])
 
   // Save project types to localStorage
   const saveProjectTypes = (updatedType: ProjectType) => {
@@ -188,6 +212,7 @@ export default function ConfigureProjectTypePage() {
   }
 
   // Show loading while auth is being checked or before client-side hydration
+  // Also wait a bit for user to load to avoid premature redirects
   if (!isClient || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -200,7 +225,8 @@ export default function ConfigureProjectTypePage() {
   }
 
   // Only show redirecting screen if we're certain the user is loaded and is not an admin
-  // Don't show redirecting screen if user is null (might still be loading or auth handled elsewhere)
+  // IMPORTANT: Only redirect if user exists, has a role, and role is explicitly NOT 'admin'
+  // If user is null or role is undefined, don't redirect (might still be loading)
   if (isClient && !loading && user && user.role && user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -211,6 +237,10 @@ export default function ConfigureProjectTypePage() {
       </div>
     )
   }
+  
+  // If user is null after loading completes, allow page to render
+  // This handles cases where auth might be handled elsewhere or user is temporarily null
+  // Admin users will have user.role === 'admin' and will pass through to render the page
 
   // If user is null after loading on client, allow page to render (auth might be handled elsewhere)
   // Don't block rendering if user is temporarily null

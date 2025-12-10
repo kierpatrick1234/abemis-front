@@ -390,7 +390,10 @@ export default function ProjectsPage() {
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
-                              router.push(`/form-builder/configure/${type.id}`)
+                              const targetPath = `/form-builder/configure/${type.id}`
+                              console.log('Configure button clicked - navigating to:', targetPath, 'User role:', user?.role)
+                              // Use router.push for client-side navigation
+                              router.push(targetPath)
                             }}
                             className="gap-1.5"
                           >
