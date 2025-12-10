@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run changelog && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "changelog": "node scripts/generate-changelog.js",
-    "prebuild": "npm run changelog"
+    "prebuild": "npm run changelog || true"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
