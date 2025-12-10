@@ -80,6 +80,7 @@ export default function ConfigureProjectTypePage() {
   const router = useRouter()
   const params = useParams()
   const typeId = params.typeId as string
+  const [isClient, setIsClient] = useState(false)
 
   const [projectType, setProjectType] = useState<ProjectType | null>(null)
   const [isStageDialogOpen, setIsStageDialogOpen] = useState(false)
@@ -92,6 +93,11 @@ export default function ConfigureProjectTypePage() {
   const [dragOverFieldIndex, setDragOverFieldIndex] = useState<number | null>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [previewData, setPreviewData] = useState<{ [key: string]: any }>({})
+
+  // Check if we're on the client side
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const fieldTypes = [
     { id: 'text', label: 'Text Input', icon: Type, description: 'Single line text input' },
@@ -167,8 +173,8 @@ export default function ConfigureProjectTypePage() {
     setProjectType(updatedType)
   }
 
-  // Show loading while auth is being checked
-  if (loading) {
+  // Show loading while auth is being checked or before client-side hydration
+  if (!isClient || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -179,16 +185,16 @@ export default function ConfigureProjectTypePage() {
     )
   }
 
-  // Redirect if not admin (only after loading is complete)
+  // Redirect if not admin (only after loading is complete and we're certain user is not admin)
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'admin')) {
-      const redirectPath = user?.role === 'VIEWER' ? '/summary' : '/dashboard'
+    if (isClient && !loading && user && user.role !== 'admin') {
+      const redirectPath = user.role === 'VIEWER' ? '/summary' : '/dashboard'
       router.push(redirectPath)
     }
-  }, [loading, user, router])
+  }, [isClient, loading, user, router])
 
-  // Show loading or nothing while redirecting
-  if (!user || user.role !== 'admin') {
+  // Only show redirecting screen if we're certain the user is not an admin
+  if (isClient && !loading && user && user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -198,6 +204,9 @@ export default function ConfigureProjectTypePage() {
       </div>
     )
   }
+
+  // If user is null after loading on client, allow page to render (auth might be handled elsewhere)
+  // Don't block rendering if user is temporarily null
 
   if (!projectType) {
     return (
