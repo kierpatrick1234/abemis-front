@@ -273,6 +273,12 @@ export const navigationItems: NavItem[] = [
     roles: ['RAED'],
   },
   {
+    title: 'Document Test',
+    href: '/document-test',
+    icon: 'FileText',
+    roles: ['RAED'],
+  },
+  {
     title: 'Analytics',
     href: '/analytics',
     icon: 'BarChart3',
