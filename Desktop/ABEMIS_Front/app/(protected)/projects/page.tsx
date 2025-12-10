@@ -1,6 +1,7 @@
   'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { DataTable, StatusBadge, ActionMenu } from '@/components/data-table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -64,6 +65,16 @@ export default function ProjectsPage() {
   const [showInfraCreationModal, setShowInfraCreationModal] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const { user } = useAuth()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const [notificationHighlight, setNotificationHighlight] = useState<{
+    projectId: string
+    highlightType: string
+    evaluator?: string
+    remarks?: string
+    monitoringIssues?: string
+    projectName?: string
+  } | null>(null)
 
   const handleEditProject = useCallback((projectId: string) => {
     console.log('Edit project', projectId)
@@ -270,6 +281,38 @@ export default function ProjectsPage() {
 
   // Combine mock projects with new projects
   const allProjects = [...newProjects, ...mockProjects]
+
+  // Handle notification redirection
+  useEffect(() => {
+    const projectId = searchParams.get('projectId')
+    const highlight = searchParams.get('highlight')
+    
+    if (projectId && highlight) {
+      // Get notification data from sessionStorage
+      const notificationData = sessionStorage.getItem('notificationHighlight')
+      if (notificationData) {
+        try {
+          const data = JSON.parse(notificationData)
+          setNotificationHighlight(data)
+          
+          // Find the project
+          const project = allProjects.find(p => p.id === projectId)
+          if (project) {
+            setSelectedProject(project)
+            setShowProjectModal(true)
+          }
+          
+          // Clean up URL and sessionStorage after a delay
+          setTimeout(() => {
+            router.replace('/projects')
+            sessionStorage.removeItem('notificationHighlight')
+          }, 100)
+        } catch (e) {
+          console.error('Error parsing notification data:', e)
+        }
+      }
+    }
+  }, [searchParams, router, allProjects])
   
   const filteredProjects = allProjects.filter(project => {
     const searchLower = searchQuery.toLowerCase()
@@ -877,6 +920,8 @@ export default function ProjectsPage() {
         onClose={() => {
           setShowProjectModal(false)
           setSelectedProject(null)
+          setNotificationHighlight(null)
+          sessionStorage.removeItem('notificationHighlight')
         }}
       />
 

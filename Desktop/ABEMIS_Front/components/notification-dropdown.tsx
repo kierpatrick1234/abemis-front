@@ -9,7 +9,10 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ProjectDetailsModal } from './project-details-modal'
 import { Bell, CheckCircle2 } from 'lucide-react'
+import { mockProjects } from '@/lib/mock/data'
+import { Project } from '@/lib/types'
 
 interface Notification {
   id: string
@@ -17,6 +20,12 @@ interface Notification {
   type: 'approval' | 'remark' | 'monitoring' | 'update' | 'user_registration' | 'system' | 'maintenance' | 'compliance' | 'upload' | 'submission' | 'report' | 'milestone' | 'summary' | 'budget'
   timestamp: string
   isRead?: boolean
+  projectId?: string
+  projectName?: string
+  highlightType?: 'approval' | 'remark' | 'monitoring' | 'update'
+  evaluator?: string
+  remarks?: string
+  monitoringIssues?: string
 }
 
 interface NotificationDropdownProps {
@@ -24,262 +33,122 @@ interface NotificationDropdownProps {
   userRole?: string
 }
 
-// Notification templates for different RAED regions
-const notificationTemplates = {
-  'Region I': [
-    {
-      id: '1',
-      message: 'EPDSD has approved your Proposal "Ilocos Norte Road Development"',
-      type: 'approval' as const,
-      timestamp: '2 hours ago'
-    },
-    {
-      id: '2', 
-      message: 'SEPD has put some remarks to your proposal "Vigan Heritage Bridge"',
-      type: 'remark' as const,
-      timestamp: '4 hours ago'
-    },
-    {
-      id: '3',
-      message: 'PPMD monitors your "La Union Irrigation System" with current issues',
-      type: 'monitoring' as const,
-      timestamp: '1 day ago'
-    },
-    {
-      id: '4',
-      message: 'EPDSD has updated the status of "Pangasinan Market Road"',
-      type: 'update' as const,
-      timestamp: '2 days ago'
-    },
-    {
-      id: '5',
-      message: 'SEPD has approved your Proposal "Ilocos Sur Coastal Road"',
-      type: 'approval' as const,
-      timestamp: '3 hours ago'
-    },
-    {
-      id: '6',
-      message: 'PPMD has put some remarks to your proposal "Pangasinan Bridge Project"',
-      type: 'remark' as const,
-      timestamp: '5 hours ago'
-    },
-    {
-      id: '7',
-      message: 'EPDSD monitors your "La Union Port Development" with current issues',
-      type: 'monitoring' as const,
-      timestamp: '2 days ago'
-    },
-    {
-      id: '8',
-      message: 'SEPD has updated the status of "Ilocos Norte Airport Road"',
-      type: 'update' as const,
-      timestamp: '3 days ago'
-    }
-  ],
-  'Region II': [
-    {
-      id: '1',
-      message: 'SEPD has approved your Proposal "Cagayan Valley Highway"',
-      type: 'approval' as const,
-      timestamp: '1 hour ago'
-    },
-    {
-      id: '2',
-      message: 'PPMD has put some remarks to your proposal "Isabela Farm Road"',
-      type: 'remark' as const,
-      timestamp: '3 hours ago'
-    },
-    {
-      id: '3',
-      message: 'EPDSD monitors your "Nueva Vizcaya Bridge" with current issues',
-      type: 'monitoring' as const,
-      timestamp: '6 hours ago'
-    },
-    {
-      id: '4',
-      message: 'SEPD has updated the status of "Quirino Access Road"',
-      type: 'update' as const,
-      timestamp: '1 day ago'
-    },
-    {
-      id: '5',
-      message: 'EPDSD has approved your Proposal "Cagayan River Bridge"',
-      type: 'approval' as const,
-      timestamp: '2 hours ago'
-    },
-    {
-      id: '6',
-      message: 'PPMD has put some remarks to your proposal "Isabela Irrigation System"',
-      type: 'remark' as const,
-      timestamp: '4 hours ago'
-    },
-    {
-      id: '7',
-      message: 'SEPD monitors your "Nueva Vizcaya Mountain Road" with current issues',
-      type: 'monitoring' as const,
-      timestamp: '1 day ago'
-    },
-    {
-      id: '8',
-      message: 'EPDSD has updated the status of "Quirino Forest Road"',
-      type: 'update' as const,
-      timestamp: '2 days ago'
-    }
-  ],
-  'Region III': [
-    {
-      id: '1',
-      message: 'PPMD has approved your Proposal "Central Luzon Expressway"',
-      type: 'approval' as const,
-      timestamp: '30 minutes ago'
-    },
-    {
-      id: '2',
-      message: 'EPDSD has put some remarks to your proposal "Bulacan Industrial Road"',
-      type: 'remark' as const,
-      timestamp: '2 hours ago'
-    },
-    {
-      id: '3',
-      message: 'SEPD monitors your "Nueva Ecija Irrigation" with current issues',
-      type: 'monitoring' as const,
-      timestamp: '5 hours ago'
-    },
-    {
-      id: '4',
-      message: 'PPMD has updated the status of "Pampanga Flood Control"',
-      type: 'update' as const,
-      timestamp: '1 day ago'
-    },
-    {
-      id: '5',
-      message: 'SEPD has approved your Proposal "Tarlac Bypass Road"',
-      type: 'approval' as const,
-      timestamp: '1 hour ago'
-    },
-    {
-      id: '6',
-      message: 'EPDSD has put some remarks to your proposal "Zambales Coastal Road"',
-      type: 'remark' as const,
-      timestamp: '3 hours ago'
-    },
-    {
-      id: '7',
-      message: 'PPMD monitors your "Aurora Mountain Road" with current issues',
-      type: 'monitoring' as const,
-      timestamp: '6 hours ago'
-    },
-    {
-      id: '8',
-      message: 'SEPD has updated the status of "Bataan Port Access"',
-      type: 'update' as const,
-      timestamp: '2 days ago'
-    }
-  ],
-  'Region IV-A': [
-    {
-      id: '1',
-      message: 'EPDSD has approved your Proposal "CALABARZON Coastal Road"',
-      type: 'approval' as const,
-      timestamp: '45 minutes ago'
-    },
-    {
-      id: '2',
-      message: 'SEPD has put some remarks to your proposal "Batangas Port Access"',
-      type: 'remark' as const,
-      timestamp: '2 hours ago'
-    },
-    {
-      id: '3',
-      message: 'PPMD monitors your "Cavite Industrial Zone" with current issues',
-      type: 'monitoring' as const,
-      timestamp: '4 hours ago'
-    },
-    {
-      id: '4',
-      message: 'EPDSD has updated the status of "Laguna Lake Road"',
-      type: 'update' as const,
-      timestamp: '1 day ago'
-    },
-    {
-      id: '5',
-      message: 'SEPD has approved your Proposal "Rizal Mountain Road"',
-      type: 'approval' as const,
-      timestamp: '1 hour ago'
-    },
-    {
-      id: '6',
-      message: 'PPMD has put some remarks to your proposal "Quezon Provincial Road"',
-      type: 'remark' as const,
-      timestamp: '3 hours ago'
-    },
-    {
-      id: '7',
-      message: 'EPDSD monitors your "Laguna Industrial Complex" with current issues',
-      type: 'monitoring' as const,
-      timestamp: '5 hours ago'
-    },
-    {
-      id: '8',
-      message: 'SEPD has updated the status of "Cavite Airport Road"',
-      type: 'update' as const,
-      timestamp: '2 days ago'
-    }
-  ],
-  'Region V': [
-    {
-      id: '1',
-      message: 'SEPD has approved your Proposal "Bicol Regional Highway"',
-      type: 'approval' as const,
-      timestamp: '1 hour ago'
-    },
-    {
-      id: '2',
-      message: 'PPMD has put some remarks to your proposal "Legazpi Airport Road"',
-      type: 'remark' as const,
-      timestamp: '3 hours ago'
-    },
-    {
-      id: '3',
-      message: 'EPDSD monitors your "Naga City Bypass" with current issues',
-      type: 'monitoring' as const,
-      timestamp: '6 hours ago'
-    },
-    {
-      id: '4',
-      message: 'SEPD has updated the status of "Sorsogon Coastal Road"',
-      type: 'update' as const,
-      timestamp: '1 day ago'
-    },
-    {
-      id: '5',
-      message: 'EPDSD has approved your Proposal "Camarines Sur Bridge"',
-      type: 'approval' as const,
-      timestamp: '2 hours ago'
-    },
-    {
-      id: '6',
-      message: 'PPMD has put some remarks to your proposal "Albay Mountain Road"',
-      type: 'remark' as const,
-      timestamp: '4 hours ago'
-    },
-    {
-      id: '7',
-      message: 'SEPD monitors your "Catanduanes Island Road" with current issues',
-      type: 'monitoring' as const,
-      timestamp: '1 day ago'
-    },
-    {
-      id: '8',
-      message: 'EPDSD has updated the status of "Masbate Port Access"',
-      type: 'update' as const,
-      timestamp: '2 days ago'
-    }
-  ]
+// Helper function to map region names (Region I -> Region 1, etc.)
+function mapRegionName(region: string): string {
+  const regionMap: Record<string, string> = {
+    'Region I': 'Region 1',
+    'Region II': 'Region 2',
+    'Region III': 'Region 3',
+    'Region IV-A': 'Region 4',
+    'Region V': 'Region 5',
+    'Region VI': 'Region 6',
+    'Region VII': 'Region 7',
+    'Region VIII': 'Region 8',
+    'Region IX': 'Region 9',
+    'Region X': 'Region 10',
+    'Region XI': 'Region 11',
+    'Region XII': 'Region 12',
+    'Region XIII': 'Region 13',
+  }
+  return regionMap[region] || region
 }
 
+// Generate notifications from actual projects in the project pool
+function generateNotificationsFromProjects(region: string, userRole?: string): Notification[] {
+  const mappedRegion = mapRegionName(region)
+  
+  // Filter projects for this specific region
+  const regionProjects = mockProjects.filter(p => 
+    p.region === mappedRegion || p.region === region
+  )
+  
+  if (regionProjects.length === 0) {
+    return []
+  }
+  
+  // Select 5-8 random projects for notifications
+  const shuffledProjects = [...regionProjects].sort(() => Math.random() - 0.5)
+  const selectedProjects = shuffledProjects.slice(0, Math.min(8, shuffledProjects.length))
+  
+  const notifications: Notification[] = []
+  const evaluators = [
+    'EPDSD - Mark Gomez',
+    'EPDSD - Sarah Rodriguez',
+    'SEPD - Maria Santos',
+    'SEPD - Carlos Martinez',
+    'PPMD - Juan Dela Cruz',
+    'PPMD - Ana Garcia',
+    'EPDSD - Roberto Lopez',
+    'SEPD - Lisa Fernandez'
+  ]
+  
+  const notificationTypes: Array<'approval' | 'remark' | 'monitoring' | 'update'> = [
+    'approval', 'remark', 'monitoring', 'update'
+  ]
+  
+  const timestamps = [
+    '30 minutes ago',
+    '1 hour ago',
+    '2 hours ago',
+    '3 hours ago',
+    '4 hours ago',
+    '5 hours ago',
+    '6 hours ago',
+    '1 day ago',
+    '2 days ago',
+    '3 days ago'
+  ]
+  
+  selectedProjects.forEach((project, index) => {
+    const notificationType = notificationTypes[index % notificationTypes.length]
+    const evaluator = evaluators[index % evaluators.length]
+    const timestamp = timestamps[index % timestamps.length]
+    
+    let message = ''
+    let remarks = ''
+    let monitoringIssues = ''
+    
+    switch (notificationType) {
+      case 'approval':
+        message = `${evaluator.split(' - ')[0]} has approved your Proposal`
+        remarks = 'Project approved. All requirements met. Proceed to procurement stage.'
+        break
+      case 'remark':
+        message = `${evaluator.split(' - ')[0]} has put some remarks to your proposal`
+        remarks = 'Please provide additional documentation for review. Budget allocation needs clarification.'
+        break
+      case 'monitoring':
+        message = `${evaluator.split(' - ')[0]} monitors your project with current issues`
+        monitoringIssues = 'Construction progress is behind schedule. Site inspection revealed material quality concerns. Please address immediately.'
+        break
+      case 'update':
+        message = `${evaluator.split(' - ')[0]} has updated the status of your project`
+        remarks = 'Status updated. Project moving to next phase.'
+        break
+    }
+    
+    notifications.push({
+      id: `notif-${region}-${project.id}-${index}`,
+      message,
+      type: notificationType,
+      timestamp,
+      projectId: project.id,
+      projectName: project.title,
+      highlightType: notificationType,
+      evaluator,
+      remarks: notificationType !== 'monitoring' ? remarks : undefined,
+      monitoringIssues: notificationType === 'monitoring' ? monitoringIssues : undefined
+    })
+  })
+  
+  return notifications
+}
+
+// Notification templates for different RAED regions - will be generated dynamically
+const notificationTemplates: Record<string, Notification[]> = {}
+
 // EPDSD-specific notifications
-const epdsdNotifications = [
+const epdsdNotifications: Notification[] = [
   {
     id: 'epdsd-1',
     message: 'RAED 7 - complied the Letter of Intent',
@@ -416,37 +285,22 @@ const viewerNotifications = [
   }
 ]
 
-// Default notifications for regions not specified
-const defaultNotifications = [
-  {
-    id: '1',
-    message: 'EPDSD has approved your Proposal "Regional Development Project"',
-    type: 'approval' as const,
-    timestamp: '1 hour ago'
-  },
-  {
-    id: '2',
-    message: 'SEPD has put some remarks to your proposal "Infrastructure Development"',
-    type: 'remark' as const,
-    timestamp: '3 hours ago'
-  },
-  {
-    id: '3',
-    message: 'PPMD monitors your "Regional Road Project" with current issues',
-    type: 'monitoring' as const,
-    timestamp: '5 hours ago'
-  },
-  {
-    id: '4',
-    message: 'EPDSD has updated the status of "Regional Bridge Project"',
-    type: 'update' as const,
-    timestamp: '1 day ago'
-  }
-]
+// Default notifications for regions not specified (fallback only)
+const defaultNotifications: Notification[] = []
 
 export function NotificationDropdown({ raedRegion, userRole }: NotificationDropdownProps) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [showProjectModal, setShowProjectModal] = useState(false)
+  const [notificationHighlight, setNotificationHighlight] = useState<{
+    projectId: string
+    highlightType: string
+    evaluator?: string
+    remarks?: string
+    monitoringIssues?: string
+    projectName?: string
+  } | null>(null)
 
   useEffect(() => {
     let selectedNotifications = []
@@ -461,14 +315,19 @@ export function NotificationDropdown({ raedRegion, userRole }: NotificationDropd
       // Show EPDSD-specific RAED format notifications
       selectedNotifications = epdsdNotifications
     } else {
-      // Get notifications for the specific region or use default
-      const regionNotifications = notificationTemplates[raedRegion as keyof typeof notificationTemplates] || defaultNotifications
+      // Generate notifications from actual projects in the region's project pool
+      const regionNotifications = generateNotificationsFromProjects(raedRegion, userRole)
       
-      // Shuffle notifications to make them random for each RAED account
-      const shuffledNotifications = [...regionNotifications].sort(() => Math.random() - 0.5)
-      
-      // Take only 5 random notifications
-      selectedNotifications = shuffledNotifications.slice(0, 5)
+      if (regionNotifications.length > 0) {
+        // Shuffle notifications to make them random for each RAED account
+        const shuffledNotifications = [...regionNotifications].sort(() => Math.random() - 0.5)
+        
+        // Take only 5-7 random notifications
+        selectedNotifications = shuffledNotifications.slice(0, Math.min(7, shuffledNotifications.length))
+      } else {
+        // Fallback to default notifications if no projects found
+        selectedNotifications = defaultNotifications
+      }
     }
     
     // Randomly assign read/unread status (2-4 unread notifications)
@@ -482,17 +341,76 @@ export function NotificationDropdown({ raedRegion, userRole }: NotificationDropd
     setUnreadCount(unreadCount)
   }, [raedRegion, userRole])
 
-  const handleNotificationClick = (notificationId: string) => {
+  const handleNotificationClick = (notification: Notification) => {
+    // Mark as read
     setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, isRead: true }
-          : notification
+      prev.map(n => 
+        n.id === notification.id 
+          ? { ...n, isRead: true }
+          : n
       )
     )
     
     // Update unread count
     setUnreadCount(prev => Math.max(0, prev - 1))
+
+    // For RAED accounts, open modal with project details if projectId exists
+    if ((userRole === 'RAED' || !userRole || userRole === 'engineer') && notification.projectId && notification.projectName) {
+      // Try to find the project by ID first
+      let project = mockProjects.find(p => p.id === notification.projectId)
+      
+      // If not found by ID, try to find by project name
+      if (!project) {
+        project = mockProjects.find(p => 
+          p.title.toLowerCase().includes(notification.projectName!.toLowerCase()) ||
+          notification.projectName!.toLowerCase().includes(p.title.toLowerCase())
+        )
+      }
+      
+      // If still not found, create a mock project for display
+      if (!project && notification.projectName) {
+        project = {
+          id: notification.projectId,
+          title: notification.projectName,
+          type: 'Infrastructure' as const,
+          province: raedRegion.includes('Region') ? raedRegion.split(' ')[1] || 'Unknown' : raedRegion,
+          region: raedRegion,
+          status: 'Proposal' as const,
+          description: `${notification.projectName} project in ${raedRegion}`,
+          budget: 5000000,
+          startDate: new Date().toISOString().split('T')[0],
+          updatedAt: new Date().toISOString(),
+          assignedTo: `RAED ${raedRegion}`
+        }
+      }
+      
+      if (project) {
+        // Store notification highlight data
+        if (notification.highlightType) {
+          setNotificationHighlight({
+            projectId: notification.projectId,
+            highlightType: notification.highlightType,
+            evaluator: notification.evaluator,
+            remarks: notification.remarks,
+            monitoringIssues: notification.monitoringIssues,
+            projectName: notification.projectName
+          })
+          
+          // Store in sessionStorage for the modal to access
+          sessionStorage.setItem('notificationHighlight', JSON.stringify({
+            projectId: notification.projectId,
+            highlightType: notification.highlightType,
+            evaluator: notification.evaluator,
+            remarks: notification.remarks,
+            monitoringIssues: notification.monitoringIssues,
+            projectName: notification.projectName
+          }))
+        }
+        
+        setSelectedProject(project)
+        setShowProjectModal(true)
+      }
+    }
   }
 
   const markAllAsRead = () => {
@@ -503,18 +421,19 @@ export function NotificationDropdown({ raedRegion, userRole }: NotificationDropd
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-4 w-4" />
-          {unreadCount > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">
-              {unreadCount}
-            </Badge>
-          )}
-          <span className="sr-only">Notifications</span>
-        </Button>
-      </DropdownMenuTrigger>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-6 w-6" />
+            {unreadCount > 0 && (
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">
+                {unreadCount}
+              </Badge>
+            )}
+            <span className="sr-only">Notifications</span>
+          </Button>
+        </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80 p-0" align="end">
         <div className="border-b border-border p-4">
           <div className="flex items-center justify-between">
@@ -545,11 +464,11 @@ export function NotificationDropdown({ raedRegion, userRole }: NotificationDropd
               <div key={notification.id} className="border-b border-border last:border-b-0">
                 <NotificationItem
                   id={notification.id}
-                  message={notification.message}
+                  message={notification.projectName ? `${notification.message} "${notification.projectName}"` : notification.message}
                   timestamp={notification.timestamp}
                   type={notification.type}
                   isRead={notification.isRead || false}
-                  onClick={() => handleNotificationClick(notification.id)}
+                  onClick={() => handleNotificationClick(notification)}
                 />
               </div>
             ))
@@ -557,5 +476,20 @@ export function NotificationDropdown({ raedRegion, userRole }: NotificationDropd
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+
+    {/* Project Details Modal */}
+    {selectedProject && (
+      <ProjectDetailsModal
+        project={selectedProject}
+        isOpen={showProjectModal}
+        onClose={() => {
+          setShowProjectModal(false)
+          setSelectedProject(null)
+          setNotificationHighlight(null)
+          sessionStorage.removeItem('notificationHighlight')
+        }}
+      />
+    )}
+    </>
   )
 }

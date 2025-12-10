@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,7 +9,7 @@ import { ProjectStepper } from '@/components/project-stepper'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { Project } from '@/lib/types'
 import { useAuth } from '@/lib/contexts/auth-context'
-import { MapPin, User } from 'lucide-react'
+import { MapPin, User, CheckCircle2, AlertCircle, Eye, MessageSquare } from 'lucide-react'
 
 interface ProjectDetailsModalProps {
   project: Project | null
@@ -18,8 +19,105 @@ interface ProjectDetailsModalProps {
 
 export function ProjectDetailsModal({ project, isOpen, onClose }: ProjectDetailsModalProps) {
   const { user } = useAuth()
+  const [notificationHighlight, setNotificationHighlight] = useState<{
+    projectId: string
+    highlightType: string
+    evaluator?: string
+    remarks?: string
+    monitoringIssues?: string
+    projectName?: string
+  } | null>(null)
+
+  useEffect(() => {
+    if (isOpen && project) {
+      // Check for notification highlight data
+      const notificationData = sessionStorage.getItem('notificationHighlight')
+      if (notificationData) {
+        try {
+          const data = JSON.parse(notificationData)
+          if (data.projectId === project.id) {
+            setNotificationHighlight(data)
+          }
+        } catch (e) {
+          console.error('Error parsing notification data:', e)
+        }
+      }
+    } else {
+      setNotificationHighlight(null)
+    }
+  }, [isOpen, project])
 
   if (!project) return null
+
+  const getHighlightCard = () => {
+    if (!notificationHighlight) return null
+
+    const { highlightType, evaluator, remarks, monitoringIssues } = notificationHighlight
+
+    let icon, title, content, bgColor, borderColor, textColor
+
+    switch (highlightType) {
+      case 'approval':
+        icon = CheckCircle2
+        title = 'Project Approved'
+        content = remarks || 'Project has been approved by the evaluator.'
+        bgColor = 'bg-green-50'
+        borderColor = 'border-green-200'
+        textColor = 'text-green-800'
+        break
+      case 'remark':
+        icon = MessageSquare
+        title = 'Remarks from Evaluator'
+        content = remarks || 'The evaluator has provided remarks on this project.'
+        bgColor = 'bg-orange-50'
+        borderColor = 'border-orange-200'
+        textColor = 'text-orange-800'
+        break
+      case 'monitoring':
+        icon = Eye
+        title = 'Monitoring Issues'
+        content = monitoringIssues || 'There are monitoring issues that need attention.'
+        bgColor = 'bg-blue-50'
+        borderColor = 'border-blue-200'
+        textColor = 'text-blue-800'
+        break
+      case 'update':
+        icon = AlertCircle
+        title = 'Status Update'
+        content = remarks || 'Project status has been updated.'
+        bgColor = 'bg-purple-50'
+        borderColor = 'border-purple-200'
+        textColor = 'text-purple-800'
+        break
+      default:
+        return null
+    }
+
+    const IconComponent = icon
+
+    return (
+      <Card className={`${bgColor} ${borderColor} border-2`}>
+        <CardHeader>
+          <CardTitle className={`${textColor} flex items-center gap-2`}>
+            <IconComponent className="h-5 w-5" />
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {evaluator && (
+            <div className="mb-3">
+              <p className="text-sm font-medium text-muted-foreground">Evaluator:</p>
+              <p className="text-sm font-semibold">{evaluator}</p>
+            </div>
+          )}
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">Details:</p>
+            <p className={`text-sm ${textColor}`}>{content}</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -33,6 +131,8 @@ export function ProjectDetailsModal({ project, isOpen, onClose }: ProjectDetails
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Notification Highlight Card */}
+          {getHighlightCard()}
           {/* Project Information - Merged Overview & Details */}
           <Card>
             <CardHeader>
