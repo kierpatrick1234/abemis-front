@@ -384,24 +384,23 @@ export default function ProjectsPage() {
                           Updated: {new Date(type.updatedAt).toLocaleDateString()}
                         </div>
                         <div className="flex gap-2">
-                          <Link 
-                            href={`/form-builder/configure/${type.id}`}
-                            onClick={(e) => {
-                              console.log('Configure link clicked - navigating to:', `/form-builder/configure/${type.id}`, 'User role:', user?.role, 'Type ID:', type.id)
-                              // Ensure navigation happens even in Vercel deployment
-                            }}
-                            prefetch={false}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="gap-1.5"
                           >
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="gap-1.5"
+                            <Link 
+                              href={`/form-builder/configure/${type.id}`}
+                              onClick={(e) => {
+                                console.log('Configure link clicked - navigating to:', `/form-builder/configure/${type.id}`, 'User role:', user?.role, 'Type ID:', type.id)
+                              }}
+                              prefetch={false}
                             >
                               <Settings2 className="h-3.5 w-3.5" />
                               Configure
-                            </Button>
-                          </Link>
+                            </Link>
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
