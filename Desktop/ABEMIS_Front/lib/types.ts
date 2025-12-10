@@ -136,6 +136,7 @@ export interface NavItem {
   href: string
   icon: string
   roles: Role[]
+  subItems?: NavItem[]
 }
 
 export interface InviteUserData {

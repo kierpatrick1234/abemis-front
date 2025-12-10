@@ -285,10 +285,30 @@ export const navigationItems: NavItem[] = [
     roles: ['admin', 'manager', 'supervisor', 'superadmin', 'EPDSD', 'PPMD', 'SEPD'],
   },
   {
-    title: 'Form Builder',
+    title: 'System Configuration',
     href: '/form-builder',
     icon: 'Wrench',
     roles: ['admin'],
+    subItems: [
+      {
+        title: 'Projects',
+        href: '/form-builder/projects',
+        icon: 'FolderOpen',
+        roles: ['admin'],
+      },
+      {
+        title: 'Users',
+        href: '/form-builder/users',
+        icon: 'Users',
+        roles: ['admin'],
+      },
+      {
+        title: 'System',
+        href: '/form-builder/system',
+        icon: 'Settings',
+        roles: ['admin'],
+      },
+    ],
   },
   {
     title: 'Users',

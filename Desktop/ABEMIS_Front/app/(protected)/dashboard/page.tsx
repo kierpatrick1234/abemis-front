@@ -159,7 +159,12 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          {user?.role === 'EPDSD' ? 'EPDSD Dashboard' : `RAED Dashboard - ${userRegion}`}
+          {user?.role === 'EPDSD' 
+            ? 'EPDSD Dashboard' 
+            : user?.role === 'admin'
+            ? `RAED Dashboard-${userRegion}`
+            : `RAED Dashboard - ${userRegion}`
+          }
         </h1>
         <p className="text-muted-foreground">
           {user?.role === 'EPDSD' 

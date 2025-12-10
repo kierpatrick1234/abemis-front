@@ -57,7 +57,7 @@ const getDefaultStages = (typeName: string): ProjectStage[] => {
   }
 }
 
-export default function SystemConfigurationPage() {
+export default function ProjectsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [projectTypes, setProjectTypes] = useState<ProjectType[]>([
@@ -228,9 +228,9 @@ export default function SystemConfigurationPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">System Configuration</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
         <p className="text-muted-foreground">
-          Manage system settings, project types, users, and system configurations.
+          Manage project types that can be used throughout the system
         </p>
       </div>
       
@@ -415,3 +415,4 @@ export default function SystemConfigurationPage() {
     </div>
   )
 }
+
