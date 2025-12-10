@@ -144,8 +144,8 @@ export default function ConfigureProjectTypePage() {
     if (foundType) {
       setProjectType(foundType)
     } else {
-      // Type not found, redirect back
-      router.push('/form-builder')
+      // Type not found, redirect back to projects page
+      router.push('/form-builder/projects')
     }
   }, [typeId, loading, router])
 
@@ -179,11 +179,24 @@ export default function ConfigureProjectTypePage() {
     )
   }
 
-  // Redirect if not admin
+  // Redirect if not admin (only after loading is complete)
+  useEffect(() => {
+    if (!loading && (!user || user.role !== 'admin')) {
+      const redirectPath = user?.role === 'VIEWER' ? '/summary' : '/dashboard'
+      router.push(redirectPath)
+    }
+  }, [loading, user, router])
+
+  // Show loading or nothing while redirecting
   if (!user || user.role !== 'admin') {
-    const redirectPath = user?.role === 'VIEWER' ? '/summary' : '/dashboard'
-    router.push(redirectPath)
-    return null
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!projectType) {
@@ -459,15 +472,15 @@ export default function ConfigureProjectTypePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push('/form-builder')}
-          className="gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/form-builder/projects')}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Configure Project Stages</h1>
           <p className="text-muted-foreground">
