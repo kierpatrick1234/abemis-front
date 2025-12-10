@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/contexts/auth-context'
 import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users } from 'lucide-react'
 
@@ -20,10 +21,24 @@ export default function UsersPage() {
     )
   }
 
+  // Redirect if not admin (only after loading is complete)
+  useEffect(() => {
+    if (!loading && (!user || user.role !== 'admin')) {
+      const redirectPath = user?.role === 'VIEWER' ? '/summary' : '/dashboard'
+      router.push(redirectPath)
+    }
+  }, [loading, user, router])
+
+  // Show loading or nothing while redirecting
   if (!user || user.role !== 'admin') {
-    const redirectPath = user?.role === 'VIEWER' ? '/summary' : '/dashboard'
-    router.push(redirectPath)
-    return null
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
