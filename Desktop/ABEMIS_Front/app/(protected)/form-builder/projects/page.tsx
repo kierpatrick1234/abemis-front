@@ -387,8 +387,10 @@ export default function ProjectsPage() {
                           <Link 
                             href={`/form-builder/configure/${type.id}`}
                             onClick={(e) => {
-                              console.log('Configure link clicked - navigating to:', `/form-builder/configure/${type.id}`, 'User role:', user?.role)
+                              console.log('Configure link clicked - navigating to:', `/form-builder/configure/${type.id}`, 'User role:', user?.role, 'Type ID:', type.id)
+                              // Ensure navigation happens even in Vercel deployment
                             }}
+                            prefetch={false}
                           >
                             <Button
                               type="button"
