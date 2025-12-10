@@ -159,38 +159,60 @@ export default function ConfigureProjectTypePage() {
   // This hook MUST be called before any conditional returns to follow Rules of Hooks
   useEffect(() => {
     // Wait until we're on client and loading is done
-    if (!isClient || loading) return
-    
-    // CRITICAL SAFEGUARD: If user is admin, NEVER redirect - allow page to render
-    if (user && user.role === 'admin') {
-      console.log('Admin user detected - allowing access to configure page')
-      return // Exit early, do not redirect
+    if (!isClient || loading) {
+      console.log('Configure page - Waiting for client/loading:', { isClient, loading })
+      return
     }
     
-    // Only proceed with redirect check if user exists and is NOT admin
-    // If user is null/undefined, DO NOT redirect (might still be loading or auth handled elsewhere)
-    if (user && user.role && typeof user.role === 'string' && user.role !== 'admin') {
-      // Log for debugging (can be removed in production)
-      console.log('Configure page - Non-admin user detected:', { 
-        hasUser: !!user, 
-        role: user.role, 
-        roleType: typeof user.role,
+    // CRITICAL: Check if user is admin FIRST - if so, NEVER redirect, exit immediately
+    if (user && user.role === 'admin') {
+      console.log('Admin user confirmed - allowing access to configure page', { 
+        userId: user.id, 
+        role: user.role,
+        email: user.email,
         typeId: typeId
       })
-      
-      // Only redirect non-admin users
-      const redirectPath = user.role === 'VIEWER' ? '/summary' : '/dashboard'
-      console.log('Redirecting non-admin user to:', redirectPath, 'Role was:', user.role)
-      router.push(redirectPath)
-    } else if (!user || !user.role) {
-      // User or role not available - don't redirect, allow page to render
-      // This handles cases where user is still loading or auth is handled elsewhere
-      console.log('Configure page - User or role not available yet:', { 
-        hasUser: !!user, 
-        hasRole: !!(user && user.role),
-        roleType: user && user.role ? typeof user.role : 'undefined'
-      })
+      return // Exit early - admin users should NEVER be redirected
     }
+    
+    // Add a small delay to ensure user object is fully loaded from session/localStorage
+    // This prevents race conditions where user might be null temporarily during navigation
+    const checkUserAndRedirect = setTimeout(() => {
+      // Double-check: If user became admin during the delay, don't redirect
+      if (user && user.role === 'admin') {
+        console.log('Admin user detected after delay - allowing access')
+        return
+      }
+      
+      // Only proceed with redirect check if user exists and is NOT admin
+      // If user is null/undefined, DO NOT redirect (might still be loading or auth handled elsewhere)
+      if (user && user.role && typeof user.role === 'string' && user.role !== 'admin') {
+        // Log for debugging (can be removed in production)
+        console.log('Configure page - Non-admin user detected, redirecting:', { 
+          hasUser: !!user, 
+          role: user.role, 
+          roleType: typeof user.role,
+          email: user.email,
+          typeId: typeId
+        })
+        
+        // Only redirect non-admin users
+        const redirectPath = user.role === 'VIEWER' ? '/summary' : '/dashboard'
+        console.log('Redirecting non-admin user to:', redirectPath, 'Role was:', user.role)
+        router.push(redirectPath)
+      } else if (!user || !user.role) {
+        // User or role not available - don't redirect, allow page to render
+        // This handles cases where user is still loading or auth is handled elsewhere
+        console.log('Configure page - User or role not available yet, allowing page to render:', { 
+          hasUser: !!user, 
+          hasRole: !!(user && user.role),
+          roleType: user && user.role ? typeof user.role : 'undefined',
+          typeId: typeId
+        })
+      }
+    }, 300) // Small delay to ensure user is loaded from session
+    
+    return () => clearTimeout(checkUserAndRedirect)
   }, [isClient, loading, user, router, typeId])
 
   // Save project types to localStorage
@@ -227,6 +249,7 @@ export default function ConfigureProjectTypePage() {
   // Only show redirecting screen if we're certain the user is loaded and is not an admin
   // IMPORTANT: Only redirect if user exists, has a role, and role is explicitly NOT 'admin'
   // If user is null or role is undefined, don't redirect (might still be loading)
+  // CRITICAL: Admin users should NEVER see this redirect screen
   if (isClient && !loading && user && user.role && user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -241,6 +264,7 @@ export default function ConfigureProjectTypePage() {
   // If user is null after loading completes, allow page to render
   // This handles cases where auth might be handled elsewhere or user is temporarily null
   // Admin users will have user.role === 'admin' and will pass through to render the page
+  // This is intentional - we want to allow the page to render for admin users and handle auth gracefully
 
   // If user is null after loading on client, allow page to render (auth might be handled elsewhere)
   // Don't block rendering if user is temporarily null

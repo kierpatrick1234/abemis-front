@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/contexts/auth-context'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FolderOpen, Plus, Edit2, Trash2, Save, X, Settings2, Building2, Wrench, Package, Navigation } from 'lucide-react'
@@ -383,23 +384,22 @@ export default function ProjectsPage() {
                           Updated: {new Date(type.updatedAt).toLocaleDateString()}
                         </div>
                         <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
+                          <Link 
+                            href={`/form-builder/configure/${type.id}`}
                             onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              const targetPath = `/form-builder/configure/${type.id}`
-                              console.log('Configure button clicked - navigating to:', targetPath, 'User role:', user?.role)
-                              // Use router.push for client-side navigation
-                              router.push(targetPath)
+                              console.log('Configure link clicked - navigating to:', `/form-builder/configure/${type.id}`, 'User role:', user?.role)
                             }}
-                            className="gap-1.5"
                           >
-                            <Settings2 className="h-3.5 w-3.5" />
-                            Configure
-                          </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="gap-1.5"
+                            >
+                              <Settings2 className="h-3.5 w-3.5" />
+                              Configure
+                            </Button>
+                          </Link>
                           <Button
                             variant="ghost"
                             size="sm"
