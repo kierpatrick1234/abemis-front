@@ -500,7 +500,7 @@ export default function SystemConfigurationPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <Button
               variant="outline"
-              className="h-auto p-6 flex flex-col items-start gap-3 hover:bg-primary/5 hover:border-primary transition-colors"
+              className="h-auto p-6 hover:bg-primary/5 hover:border-primary transition-colors justify-start"
               onClick={() => {
                 if (selectedTypeForConfigure) {
                   router.push(`/form-builder/projects/configure/${selectedTypeForConfigure}`)
@@ -508,13 +508,13 @@ export default function SystemConfigurationPage() {
                 setShowConfigureDialog(false)
               }}
             >
-              <div className="flex items-center gap-3 w-full">
-                <div className="p-2 rounded-lg bg-primary/10">
+              <div className="flex items-start gap-4 w-full">
+                <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
                   <ListOrdered className="h-6 w-6 text-primary" />
                 </div>
-                <div className="flex-1 text-left">
-                  <div className="font-semibold text-base">Project Stages Configuration</div>
-                  <div className="text-sm text-muted-foreground mt-1">
+                <div className="flex-1 text-left min-w-0">
+                  <div className="font-semibold text-base leading-tight mb-1.5">Project Stages Configuration</div>
+                  <div className="text-sm text-muted-foreground leading-relaxed">
                     Configure project stages and their form fields
                   </div>
                 </div>
@@ -522,7 +522,7 @@ export default function SystemConfigurationPage() {
             </Button>
             <Button
               variant="outline"
-              className="h-auto p-6 flex flex-col items-start gap-3 hover:bg-primary/5 hover:border-primary transition-colors"
+              className="h-auto p-6 hover:bg-primary/5 hover:border-primary transition-colors justify-start"
               onClick={() => {
                 if (selectedTypeForConfigure) {
                   router.push(`/form-builder/projects/registration/${selectedTypeForConfigure}`)
@@ -530,13 +530,13 @@ export default function SystemConfigurationPage() {
                 setShowConfigureDialog(false)
               }}
             >
-              <div className="flex items-center gap-3 w-full">
-                <div className="p-2 rounded-lg bg-primary/10">
+              <div className="flex items-start gap-4 w-full">
+                <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
                   <FileText className="h-6 w-6 text-primary" />
                 </div>
-                <div className="flex-1 text-left">
-                  <div className="font-semibold text-base">Project Registration Form Configuration</div>
-                  <div className="text-sm text-muted-foreground mt-1">
+                <div className="flex-1 text-left min-w-0">
+                  <div className="font-semibold text-base leading-tight mb-1.5">Project Registration Form Configuration</div>
+                  <div className="text-sm text-muted-foreground leading-relaxed">
                     Configure the initial project registration form
                   </div>
                 </div>
