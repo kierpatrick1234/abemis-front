@@ -66,7 +66,6 @@ export default function SystemConfigurationPage() {
     { id: '1', name: 'FMR', description: 'Farm-to-Market Road', stages: getDefaultStages('FMR'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
     { id: '2', name: 'Infrastructure', description: 'Infrastructure Projects', stages: getDefaultStages('Infrastructure'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
     { id: '3', name: 'Machinery', description: 'Machinery and Equipment', stages: getDefaultStages('Machinery'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-    { id: '4', name: 'Project Package', description: 'Project Package', stages: getDefaultStages('Project Package'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
   ])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingType, setEditingType] = useState<ProjectType | null>(null)
