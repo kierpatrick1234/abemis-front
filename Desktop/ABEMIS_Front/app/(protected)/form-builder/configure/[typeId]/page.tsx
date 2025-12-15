@@ -1,6 +1,5 @@
 'use client'
 
-import { useAuth } from '@/lib/contexts/auth-context'
 import { useRouter, useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, Plus, Edit2, Trash2, Save, X, ArrowUp, ArrowDown, GripVertical, Check, FileText, ShoppingCart, Wrench, CheckCircle, Package, Upload, Settings2, Type, Mail, Hash, Calendar, List, CheckSquare, Radio, Eye, EyeOff } from 'lucide-react'
+import { ArrowLeft, Plus, Edit2, Trash2, Save, X, ArrowUp, ArrowDown, GripVertical, Check, FileText, ShoppingCart, Wrench, CheckCircle, Package, Upload, Settings2, Type, Mail, Hash, Calendar, List, CheckSquare, Radio, Eye, EyeOff, Lock, Heading, Move, Send, RotateCcw, History, MousePointerClick } from 'lucide-react'
 import { SuccessToast } from '@/components/success-toast'
 import { cn } from '@/lib/utils'
 
@@ -25,7 +24,7 @@ interface ProjectStage {
 
 interface FormField {
   id: string
-  type: 'text' | 'email' | 'number' | 'date' | 'file' | 'select' | 'textarea' | 'checkbox' | 'radio'
+  type: 'text' | 'email' | 'number' | 'date' | 'file' | 'select' | 'textarea' | 'checkbox' | 'radio' | 'label' | 'button'
   label: string
   placeholder?: string
   required: boolean
@@ -44,6 +43,17 @@ interface ProjectType {
   stages: ProjectStage[]
   createdAt: string
   updatedAt: string
+}
+
+interface FormVersion {
+  id: string
+  version: number
+  stageId: string
+  stageName: string
+  formFields: FormField[]
+  publishedAt: string
+  publishedBy?: string
+  isActive: boolean
 }
 
 // Default stages for different project types
@@ -76,13 +86,12 @@ const getDefaultStages = (typeName: string): ProjectStage[] => {
 }
 
 export default function ConfigureProjectTypePage() {
-  const { user, loading } = useAuth()
   const router = useRouter()
   const params = useParams()
   const typeId = params.typeId as string
-  const [isClient, setIsClient] = useState(false)
 
   const [projectType, setProjectType] = useState<ProjectType | null>(null)
+  const [isEditMode, setIsEditMode] = useState(false)
   const [isStageDialogOpen, setIsStageDialogOpen] = useState(false)
   const [editingStage, setEditingStage] = useState<ProjectStage | null>(null)
   const [stageFormData, setStageFormData] = useState({ name: '' })
@@ -91,13 +100,11 @@ export default function ConfigureProjectTypePage() {
   const [selectedField, setSelectedField] = useState<FormField | null>(null)
   const [draggedFieldType, setDraggedFieldType] = useState<string | null>(null)
   const [dragOverFieldIndex, setDragOverFieldIndex] = useState<number | null>(null)
-  const [showPreview, setShowPreview] = useState(false)
+  const [draggedFormFieldId, setDraggedFormFieldId] = useState<string | null>(null)
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
+  const [fieldToDelete, setFieldToDelete] = useState<{ id: string; label: string } | null>(null)
   const [previewData, setPreviewData] = useState<{ [key: string]: any }>({})
-
-  // Check if we're on the client side
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
+  const [showVersionsModal, setShowVersionsModal] = useState(false)
 
   const fieldTypes = [
     { id: 'text', label: 'Text Input', icon: Type, description: 'Single line text input' },
@@ -108,7 +115,9 @@ export default function ConfigureProjectTypePage() {
     { id: 'select', label: 'Dropdown', icon: List, description: 'Select from options' },
     { id: 'textarea', label: 'Text Area', icon: FileText, description: 'Multi-line text input' },
     { id: 'checkbox', label: 'Checkbox', icon: CheckSquare, description: 'Checkbox input' },
-    { id: 'radio', label: 'Radio Button', icon: Radio, description: 'Radio button group' }
+    { id: 'radio', label: 'Radio Button', icon: Radio, description: 'Radio button group' },
+    { id: 'label', label: 'Label', icon: Heading, description: 'Text label without input' },
+    { id: 'button', label: 'Button', icon: MousePointerClick, description: 'Button for form submission' }
   ]
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [toastCountdown, setToastCountdown] = useState(10)
@@ -121,7 +130,7 @@ export default function ConfigureProjectTypePage() {
 
   // Load project types from localStorage or use default
   useEffect(() => {
-    if (loading) return
+    //if (loading) return
 
     // In a real app, this would come from an API
     // For now, we'll use localStorage or default data
@@ -153,67 +162,7 @@ export default function ConfigureProjectTypePage() {
       // Type not found, redirect back to projects page
       router.push('/form-builder/projects')
     }
-  }, [typeId, loading, router])
-
-  // Redirect if not admin (only after loading is complete and we're certain user is not admin)
-  // This hook MUST be called before any conditional returns to follow Rules of Hooks
-  useEffect(() => {
-    // Wait until we're on client and loading is done
-    if (!isClient || loading) {
-      console.log('Configure page - Waiting for client/loading:', { isClient, loading })
-      return
-    }
-    
-    // CRITICAL: Check if user is admin FIRST - if so, NEVER redirect, exit immediately
-    if (user && user.role === 'admin') {
-      console.log('Admin user confirmed - allowing access to configure page', { 
-        userId: user.id, 
-        role: user.role,
-        email: user.email,
-        typeId: typeId
-      })
-      return // Exit early - admin users should NEVER be redirected
-    }
-    
-    // Add a small delay to ensure user object is fully loaded from session/localStorage
-    // This prevents race conditions where user might be null temporarily during navigation
-    const checkUserAndRedirect = setTimeout(() => {
-      // Double-check: If user became admin during the delay, don't redirect
-      if (user && user.role === 'admin') {
-        console.log('Admin user detected after delay - allowing access')
-        return
-      }
-      
-      // Only proceed with redirect check if user exists and is NOT admin
-      // If user is null/undefined, DO NOT redirect (might still be loading or auth handled elsewhere)
-      if (user && user.role && typeof user.role === 'string' && user.role !== 'admin') {
-        // Log for debugging (can be removed in production)
-        console.log('Configure page - Non-admin user detected, redirecting:', { 
-          hasUser: !!user, 
-          role: user.role, 
-          roleType: typeof user.role,
-          email: user.email,
-          typeId: typeId
-        })
-        
-        // Only redirect non-admin users
-        const redirectPath = user.role === 'VIEWER' ? '/summary' : '/dashboard'
-        console.log('Redirecting non-admin user to:', redirectPath, 'Role was:', user.role)
-        router.push(redirectPath)
-      } else if (!user || !user.role) {
-        // User or role not available - don't redirect, allow page to render
-        // This handles cases where user is still loading or auth is handled elsewhere
-        console.log('Configure page - User or role not available yet, allowing page to render:', { 
-          hasUser: !!user, 
-          hasRole: !!(user && user.role),
-          roleType: user && user.role ? typeof user.role : 'undefined',
-          typeId: typeId
-        })
-      }
-    }, 300) // Small delay to ensure user is loaded from session
-    
-    return () => clearTimeout(checkUserAndRedirect)
-  }, [isClient, loading, user, router, typeId])
+  }, [typeId, router])
 
   // Save project types to localStorage
   const saveProjectTypes = (updatedType: ProjectType) => {
@@ -233,41 +182,103 @@ export default function ConfigureProjectTypePage() {
     setProjectType(updatedType)
   }
 
-  // Show loading while auth is being checked or before client-side hydration
-  // Also wait a bit for user to load to avoid premature redirects
-  if (!isClient || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
+  // Versioning functions
+  const publishForm = () => {
+    if (!configuringStage || !projectType) return
+
+    const versionsKey = `formVersions_${typeId}`
+    const storedVersions = localStorage.getItem(versionsKey)
+    let versions: FormVersion[] = []
+
+    if (storedVersions) {
+      try {
+        versions = JSON.parse(storedVersions)
+      } catch (e) {
+        console.error('Error parsing form versions:', e)
+      }
+    }
+
+    // Deactivate previous versions for this stage
+    versions = versions.map(v => 
+      v.stageId === configuringStage.id ? { ...v, isActive: false } : v
     )
+
+    // Get the next version number for this stage
+    const stageVersions = versions.filter(v => v.stageId === configuringStage.id)
+    const nextVersion = stageVersions.length > 0 
+      ? Math.max(...stageVersions.map(v => v.version)) + 1 
+      : 1
+
+    const newVersion: FormVersion = {
+      id: `version-${Date.now()}`,
+      version: nextVersion,
+      stageId: configuringStage.id,
+      stageName: configuringStage.name,
+      formFields: [...(configuringStage.formFields || [])],
+      publishedAt: new Date().toISOString(),
+      isActive: true
+    }
+
+    versions.push(newVersion)
+    localStorage.setItem(versionsKey, JSON.stringify(versions))
+
+    // Update project type with published form
+    const updatedStages = projectType.stages.map(s =>
+      s.id === configuringStage.id
+        ? { ...s, formFields: [...(configuringStage.formFields || [])] }
+        : s
+    )
+    const updatedType = { ...projectType, stages: updatedStages, updatedAt: new Date().toISOString() }
+    saveProjectTypes(updatedType)
+
+    setToastMessage(`Form published as version ${nextVersion}!`)
+    setShowSuccessToast(true)
+    setToastCountdown(10)
   }
 
-  // Only show redirecting screen if we're certain the user is loaded and is not an admin
-  // IMPORTANT: Only redirect if user exists, has a role, and role is explicitly NOT 'admin'
-  // If user is null or role is undefined, don't redirect (might still be loading)
-  // CRITICAL: Admin users should NEVER see this redirect screen
-  if (isClient && !loading && user && user.role && user.role !== 'admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting...</p>
-        </div>
-      </div>
-    )
-  }
-  
-  // If user is null after loading completes, allow page to render
-  // This handles cases where auth might be handled elsewhere or user is temporarily null
-  // Admin users will have user.role === 'admin' and will pass through to render the page
-  // This is intentional - we want to allow the page to render for admin users and handle auth gracefully
+  const getFormVersions = (stageId: string): FormVersion[] => {
+    const versionsKey = `formVersions_${typeId}`
+    const storedVersions = localStorage.getItem(versionsKey)
+    if (!storedVersions) return []
 
-  // If user is null after loading on client, allow page to render (auth might be handled elsewhere)
-  // Don't block rendering if user is temporarily null
+    try {
+      const versions: FormVersion[] = JSON.parse(storedVersions)
+      return versions.filter(v => v.stageId === stageId).sort((a, b) => b.version - a.version)
+    } catch (e) {
+      console.error('Error parsing form versions:', e)
+      return []
+    }
+  }
+
+  const rollbackToVersion = (version: FormVersion) => {
+    if (!projectType || !configuringStage) return
+
+    // Update the configuring stage with the version's form fields
+    const updatedStage = { ...configuringStage, formFields: [...version.formFields] }
+    setConfiguringStage(updatedStage)
+
+    // Deactivate all versions for this stage
+    const versionsKey = `formVersions_${typeId}`
+    const storedVersions = localStorage.getItem(versionsKey)
+    if (storedVersions) {
+      try {
+        let versions: FormVersion[] = JSON.parse(storedVersions)
+        versions = versions.map(v => 
+          v.stageId === version.stageId 
+            ? { ...v, isActive: v.id === version.id }
+            : v
+        )
+        localStorage.setItem(versionsKey, JSON.stringify(versions))
+      } catch (e) {
+        console.error('Error updating versions:', e)
+      }
+    }
+
+    setShowVersionsModal(false)
+    setToastMessage(`Rolled back to version ${version.version}`)
+    setShowSuccessToast(true)
+    setToastCountdown(10)
+  }
 
   if (!projectType) {
     return (
@@ -281,18 +292,21 @@ export default function ConfigureProjectTypePage() {
   }
 
   const handleAddStage = () => {
+    if (!isEditMode) return
     setEditingStage(null)
     setStageFormData({ name: '' })
     setIsStageDialogOpen(true)
   }
 
   const handleEditStage = (stage: ProjectStage) => {
+    if (!isEditMode) return
     setEditingStage(stage)
     setStageFormData({ name: stage.name })
     setIsStageDialogOpen(true)
   }
 
   const handleConfigureStage = (stage: ProjectStage) => {
+    if (!isEditMode) return
     setConfiguringStage({ ...stage, formFields: stage.formFields || [] })
     setIsConfigureDialogOpen(true)
     setSelectedField(null)
@@ -304,9 +318,9 @@ export default function ConfigureProjectTypePage() {
     const newField: FormField = {
       id: `field-${Date.now()}`,
       type: fieldType as FormField['type'],
-      label: `New ${fieldType} Field`,
-      placeholder: `Enter ${fieldType}`,
-      required: false,
+      label: fieldType === 'label' ? 'New Label' : fieldType === 'button' ? 'Submit' : `New ${fieldType} Field`,
+      placeholder: fieldType === 'label' || fieldType === 'button' ? undefined : `Enter ${fieldType}`,
+      required: fieldType === 'label' || fieldType === 'button' ? false : false,
       options: fieldType === 'select' || fieldType === 'radio' ? ['Option 1', 'Option 2'] : undefined
     }
 
@@ -342,6 +356,11 @@ export default function ConfigureProjectTypePage() {
     if (selectedField?.id === fieldId) {
       setSelectedField(null)
     }
+    setFieldToDelete(null)
+  }
+
+  const handleDeleteFieldClick = (fieldId: string, fieldLabel: string) => {
+    setFieldToDelete({ id: fieldId, label: fieldLabel })
   }
 
   const handleFormFieldDragStart = (e: React.DragEvent, fieldType: string) => {
@@ -370,8 +389,110 @@ export default function ConfigureProjectTypePage() {
     setDragOverFieldIndex(null)
   }
 
+  // Drag and drop handlers for reordering form fields
+  const handleFormFieldItemDragStart = (e: React.DragEvent, fieldId: string) => {
+    if (!isEditMode) {
+      e.preventDefault()
+      return
+    }
+    setDraggedFormFieldId(fieldId)
+    e.dataTransfer.effectAllowed = 'move'
+    // Make the dragged element semi-transparent
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.5'
+    }
+  }
+
+  const handleFormFieldItemDragOver = (e: React.DragEvent, index: number) => {
+    if (!isEditMode || !configuringStage || !draggedFormFieldId) return
+    e.preventDefault()
+    e.stopPropagation()
+    e.dataTransfer.dropEffect = 'move'
+    
+    const fields = configuringStage.formFields || []
+    const dragIndex = fields.findIndex(f => f.id === draggedFormFieldId)
+    
+    // Don't highlight if dragging over itself
+    if (dragIndex === index) {
+      setDragOverFieldIndex(null)
+      return
+    }
+    
+    // Determine if we should insert above or below based on mouse position
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const mouseY = e.clientY
+    const elementMiddle = rect.top + rect.height / 2
+    const insertAbove = mouseY < elementMiddle
+    
+    // Set the drop index - we'll use this to show the indicator
+    setDragOverFieldIndex(index)
+  }
+
+  const handleFormFieldItemDragLeave = (e: React.DragEvent) => {
+    // Only clear if we're leaving the form builder area entirely
+    const relatedTarget = e.relatedTarget as HTMLElement
+    if (!relatedTarget || !(e.currentTarget as HTMLElement).contains(relatedTarget)) {
+      // Don't clear here, let it handle in the drop zone
+    }
+  }
+
+  const handleFormFieldItemDrop = (e: React.DragEvent, dropIndex: number) => {
+    if (!isEditMode || !configuringStage || !draggedFormFieldId) return
+    
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOverFieldIndex(null)
+
+    const fields = [...(configuringStage.formFields || [])]
+    const dragIndex = fields.findIndex(f => f.id === draggedFormFieldId)
+    
+    if (dragIndex === -1 || dragIndex === dropIndex) {
+      setDraggedFormFieldId(null)
+      return
+    }
+
+    // Determine insertion position based on mouse position
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const mouseY = e.clientY
+    const elementMiddle = rect.top + rect.height / 2
+    const insertAbove = mouseY < elementMiddle
+
+    // Reorder fields
+    const [draggedItem] = fields.splice(dragIndex, 1)
+    
+    // Calculate final drop position
+    let finalDropIndex = dropIndex
+    if (dragIndex < dropIndex && insertAbove) {
+      finalDropIndex = dropIndex - 1
+    } else if (dragIndex > dropIndex && !insertAbove) {
+      finalDropIndex = dropIndex + 1
+    } else if (dragIndex < dropIndex && !insertAbove) {
+      finalDropIndex = dropIndex
+    } else if (dragIndex > dropIndex && insertAbove) {
+      finalDropIndex = dropIndex
+    }
+    
+    // Ensure valid index
+    finalDropIndex = Math.max(0, Math.min(finalDropIndex, fields.length))
+    
+    fields.splice(finalDropIndex, 0, draggedItem)
+
+    const updatedStage = { ...configuringStage, formFields: fields }
+    setConfiguringStage(updatedStage)
+    setDraggedFormFieldId(null)
+  }
+
+  const handleFormFieldItemDragEnd = (e: React.DragEvent) => {
+    // Reset opacity
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1'
+    }
+    setDraggedFormFieldId(null)
+    setDragOverFieldIndex(null)
+  }
+
   const handleSaveStage = () => {
-    if (!stageFormData.name.trim() || !projectType) return
+    if (!stageFormData.name.trim() || !projectType || !isEditMode) return
 
     let updatedType: ProjectType
     let savedStageId: string
@@ -434,7 +555,7 @@ export default function ConfigureProjectTypePage() {
   }
 
   const handleDeleteStage = (stageId: string) => {
-    if (!projectType) return
+    if (!projectType || !isEditMode) return
     if (confirm('Are you sure you want to delete this project stage?')) {
       const updatedStages = projectType.stages
         .filter(s => s.id !== stageId)
@@ -445,7 +566,7 @@ export default function ConfigureProjectTypePage() {
   }
 
   const handleMoveStage = (stageId: string, direction: 'up' | 'down') => {
-    if (!projectType) return
+    if (!projectType || !isEditMode) return
 
     const stages = [...projectType.stages]
     const index = stages.findIndex(s => s.id === stageId)
@@ -542,15 +663,15 @@ export default function ConfigureProjectTypePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/form-builder/projects')}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push('/form-builder/projects')}
+          className="gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Configure Project Stages</h1>
           <p className="text-muted-foreground">
@@ -570,10 +691,32 @@ export default function ConfigureProjectTypePage() {
                 </CardDescription>
               )}
             </div>
-            <Button onClick={handleAddStage} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Stage
-            </Button>
+            <div className="flex items-center gap-2">
+              {!isEditMode ? (
+                <Button
+                  onClick={() => setIsEditMode(true)}
+                  className="gap-2"
+                >
+                  <Edit2 className="h-4 w-4" />
+                  Edit
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditMode(false)}
+                    className="gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                  <Button onClick={handleAddStage} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Stage
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -699,11 +842,11 @@ export default function ConfigureProjectTypePage() {
                       <div
                         key={stage.id}
                         id={`stage-${stage.id}`}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, stage.id)}
-                        onDragOver={(e) => handleDragOver(e, index)}
+                        draggable={isEditMode}
+                        onDragStart={(e) => isEditMode && handleDragStart(e, stage.id)}
+                        onDragOver={(e) => isEditMode && handleDragOver(e, index)}
                         onDragLeave={handleDragLeave}
-                        onDrop={(e) => handleDrop(e, index)}
+                        onDrop={(e) => isEditMode && handleDrop(e, index)}
                         onDragEnd={handleDragEnd}
                         className={cn(
                           'flex items-center gap-3 p-4 rounded-lg border transition-all duration-200 ease-in-out cursor-move',
@@ -712,10 +855,15 @@ export default function ConfigureProjectTypePage() {
                             'opacity-50 bg-muted': draggedStageId === stage.id,
                             'border-primary bg-primary/5 scale-[1.02]': dragOverIndex === index,
                             'bg-card hover:bg-muted/50 hover:shadow-md': !highlightedStageId && draggedStageId !== stage.id && dragOverIndex !== index,
+                            'cursor-default': !isEditMode,
+                            'cursor-move': isEditMode,
                           }
                         )}
                       >
-                        <GripVertical className="h-5 w-5 text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" />
+                        <GripVertical className={cn(
+                          "h-5 w-5 text-muted-foreground flex-shrink-0",
+                          isEditMode ? "cursor-grab active:cursor-grabbing" : "cursor-not-allowed opacity-50"
+                        )} />
                         <Badge variant="outline" className="text-sm font-semibold min-w-[3rem] justify-center">
                           {stage.order}
                         </Badge>
@@ -727,7 +875,7 @@ export default function ConfigureProjectTypePage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleMoveStage(stage.id, 'up')}
-                            disabled={index === 0}
+                            disabled={!isEditMode || index === 0}
                             className="h-8 w-8 p-0"
                             title="Move up"
                           >
@@ -737,7 +885,7 @@ export default function ConfigureProjectTypePage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleMoveStage(stage.id, 'down')}
-                            disabled={index === projectType.stages.length - 1}
+                            disabled={!isEditMode || index === projectType.stages.length - 1}
                             className="h-8 w-8 p-0"
                             title="Move down"
                           >
@@ -747,6 +895,7 @@ export default function ConfigureProjectTypePage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleConfigureStage(stage)}
+                            disabled={!isEditMode}
                             className="h-8 w-8 p-0"
                             title="Configure stage"
                           >
@@ -756,6 +905,7 @@ export default function ConfigureProjectTypePage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEditStage(stage)}
+                            disabled={!isEditMode}
                             className="h-8 w-8 p-0"
                             title="Edit stage"
                           >
@@ -765,6 +915,7 @@ export default function ConfigureProjectTypePage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteStage(stage.id)}
+                            disabled={!isEditMode}
                             className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                             title="Delete stage"
                           >
@@ -813,7 +964,7 @@ export default function ConfigureProjectTypePage() {
               <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
-            <Button onClick={handleSaveStage} disabled={!stageFormData.name.trim()}>
+            <Button onClick={handleSaveStage} disabled={!stageFormData.name.trim() || !isEditMode}>
               <Save className="h-4 w-4 mr-2" />
               {editingStage ? 'Update' : 'Create'}
             </Button>
@@ -834,200 +985,50 @@ export default function ConfigureProjectTypePage() {
                   Build the form for this stage by dragging form elements from the right panel.
                 </DialogDescription>
               </div>
-              <Button
-                variant={showPreview ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowPreview(!showPreview)}
-                className="gap-2"
-              >
-                {showPreview ? (
-                  <>
-                    <EyeOff className="h-4 w-4" />
-                    Hide Preview
-                  </>
-                ) : (
-                  <>
-                    <Eye className="h-4 w-4" />
-                    Show Preview
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const versions = getFormVersions(configuringStage?.id || '')
+                    if (versions.length > 0) {
+                      setShowVersionsModal(true)
+                    } else {
+                      alert('No versions available. Publish a form first.')
+                    }
+                  }}
+                  className="gap-2"
+                  title="View version history"
+                >
+                  <History className="h-4 w-4" />
+                  Versions
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreviewModal(true)}
+                  className="gap-2"
+                >
+                  <Eye className="h-4 w-4" />
+                  Show Preview
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={publishForm}
+                  disabled={!isEditMode || !configuringStage?.formFields || configuringStage.formFields.length === 0}
+                  className="gap-2"
+                >
+                  <Send className="h-4 w-4" />
+                  Publish
+                </Button>
+              </div>
             </div>
           </DialogHeader>
           
           <div className="flex-1 flex overflow-hidden">
-            {/* Left Panel - Form Builder Area or Preview */}
-            {showPreview ? (
-              <div className="flex-1 flex flex-col overflow-hidden border-r bg-background">
-                <div className="p-4 border-b bg-muted/30">
-                  <Label className="text-sm font-medium">Form Preview / Test View</Label>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Test the form fields by entering data below
-                  </p>
-                </div>
-                <div className="flex-1 overflow-y-auto p-6">
-                  <div className="max-w-2xl mx-auto space-y-6">
-                    {(!configuringStage?.formFields || configuringStage.formFields.length === 0) ? (
-                      <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-                        <FileText className="h-12 w-12 mb-4 opacity-50" />
-                        <p className="text-lg font-medium mb-2">No form fields to preview</p>
-                        <p className="text-sm">Add form fields to see the preview</p>
-                      </div>
-                    ) : (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>{configuringStage.name} Form</CardTitle>
-                          <CardDescription>
-                            Test the form fields below
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          {configuringStage.formFields.map((field) => {
-                            const FieldIcon = fieldTypes.find(ft => ft.id === field.type)?.icon || Type
-                            return (
-                              <div key={field.id} className="space-y-2">
-                                <Label htmlFor={`preview-${field.id}`} className="flex items-center gap-2">
-                                  <FieldIcon className="h-4 w-4 text-muted-foreground" />
-                                  {field.label}
-                                  {field.required && (
-                                    <span className="text-destructive">*</span>
-                                  )}
-                                </Label>
-                                {field.type === 'text' && (
-                                  <Input
-                                    id={`preview-${field.id}`}
-                                    placeholder={field.placeholder}
-                                    value={previewData[field.id] || ''}
-                                    onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
-                                  />
-                                )}
-                                {field.type === 'email' && (
-                                  <Input
-                                    id={`preview-${field.id}`}
-                                    type="email"
-                                    placeholder={field.placeholder}
-                                    value={previewData[field.id] || ''}
-                                    onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
-                                  />
-                                )}
-                                {field.type === 'number' && (
-                                  <Input
-                                    id={`preview-${field.id}`}
-                                    type="number"
-                                    placeholder={field.placeholder}
-                                    value={previewData[field.id] || ''}
-                                    onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
-                                    min={field.validation?.min}
-                                    max={field.validation?.max}
-                                  />
-                                )}
-                                {field.type === 'date' && (
-                                  <Input
-                                    id={`preview-${field.id}`}
-                                    type="date"
-                                    value={previewData[field.id] || ''}
-                                    onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
-                                  />
-                                )}
-                                {field.type === 'textarea' && (
-                                  <textarea
-                                    id={`preview-${field.id}`}
-                                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    placeholder={field.placeholder}
-                                    value={previewData[field.id] || ''}
-                                    onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
-                                  />
-                                )}
-                                {field.type === 'select' && (
-                                  <Select
-                                    value={previewData[field.id] || ''}
-                                    onValueChange={(value) => setPreviewData({ ...previewData, [field.id]: value })}
-                                  >
-                                    <SelectTrigger id={`preview-${field.id}`}>
-                                      <SelectValue placeholder={field.placeholder || 'Select an option'} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {field.options?.map((option, index) => (
-                                        <SelectItem key={index} value={option}>
-                                          {option}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                )}
-                                {field.type === 'radio' && (
-                                  <div className="space-y-2">
-                                    {field.options?.map((option, index) => (
-                                      <div key={index} className="flex items-center space-x-2">
-                                        <input
-                                          type="radio"
-                                          id={`preview-${field.id}-${index}`}
-                                          name={`preview-${field.id}`}
-                                          value={option}
-                                          checked={previewData[field.id] === option}
-                                          onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
-                                          className="h-4 w-4 text-primary"
-                                        />
-                                        <Label htmlFor={`preview-${field.id}-${index}`} className="font-normal cursor-pointer">
-                                          {option}
-                                        </Label>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                                {field.type === 'checkbox' && (
-                                  <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`preview-${field.id}`}
-                                      checked={previewData[field.id] || false}
-                                      onCheckedChange={(checked) => setPreviewData({ ...previewData, [field.id]: checked })}
-                                    />
-                                    <Label htmlFor={`preview-${field.id}`} className="font-normal cursor-pointer">
-                                      {field.placeholder || 'Check this option'}
-                                    </Label>
-                                  </div>
-                                )}
-                                {field.type === 'file' && (
-                                  <div className="space-y-2">
-                                    <Input
-                                      id={`preview-${field.id}`}
-                                      type="file"
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0]
-                                        if (file) {
-                                          setPreviewData({ ...previewData, [field.id]: file.name })
-                                        }
-                                      }}
-                                    />
-                                    {previewData[field.id] && (
-                                      <p className="text-xs text-muted-foreground">
-                                        Selected: {previewData[field.id]}
-                                      </p>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })}
-                          <div className="pt-4 border-t">
-                            <Button 
-                              onClick={() => {
-                                console.log('Form Data:', previewData)
-                                alert('Form submitted! Check console for data.')
-                              }}
-                              className="w-full"
-                            >
-                              Submit Test Form
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col overflow-hidden border-r">
+            {/* Left Panel - Form Builder Area */}
+            <div className="flex-1 flex flex-col overflow-hidden border-r">
               <div className="p-4 border-b bg-muted/30">
                 <Label className="text-sm font-medium">Stage Form Builder</Label>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -1052,45 +1053,94 @@ export default function ConfigureProjectTypePage() {
                   <div className="space-y-4 max-w-2xl mx-auto">
                     {configuringStage.formFields.map((field, index) => {
                       const FieldIcon = fieldTypes.find(ft => ft.id === field.type)?.icon || Type
+                      const isDragged = draggedFormFieldId === field.id
+                      const isDropTarget = dragOverFieldIndex === index && !isDragged && draggedFormFieldId
+                      const fields = configuringStage.formFields || []
+                      const dragIndex = draggedFormFieldId ? fields.findIndex(f => f.id === draggedFormFieldId) : -1
+                      // Show indicator above if dragging from below, or show below if dragging from above
+                      const showDropIndicatorAbove = isDropTarget && dragIndex > index
+                      const showDropIndicatorBelow = isDropTarget && dragIndex < index
+                      
                       return (
-                        <div
-                          key={field.id}
-                          className={cn(
-                            "p-4 border rounded-lg cursor-pointer transition-all",
-                            {
-                              "border-primary bg-primary/5 ring-2 ring-primary": selectedField?.id === field.id,
-                              "border-border hover:border-primary/50": selectedField?.id !== field.id,
-                              "border-primary/50 bg-primary/10": dragOverFieldIndex === index,
-                            }
+                        <div key={field.id} className="relative">
+                          {/* Drop indicator above */}
+                          {showDropIndicatorAbove && (
+                            <div className="absolute -top-2 left-0 right-0 h-1 bg-primary rounded-full z-10" />
                           )}
-                          onClick={() => setSelectedField(field)}
-                        >
+                          
+                          <div
+                            draggable={isEditMode}
+                            onDragStart={(e) => handleFormFieldItemDragStart(e, field.id)}
+                            onDragOver={(e) => handleFormFieldItemDragOver(e, index)}
+                            onDragLeave={handleFormFieldItemDragLeave}
+                            onDrop={(e) => handleFormFieldItemDrop(e, index)}
+                            onDragEnd={handleFormFieldItemDragEnd}
+                            className={cn(
+                              "p-4 border rounded-lg transition-all relative",
+                              {
+                                "border-primary bg-primary/5 ring-2 ring-primary": selectedField?.id === field.id && !isDragged,
+                                "border-border hover:border-primary/50": selectedField?.id !== field.id && !isDragged && !isDropTarget,
+                                "border-primary bg-primary/20 ring-2 ring-primary ring-offset-2": isDropTarget,
+                                "opacity-50 cursor-grabbing": isDragged,
+                                "cursor-grab": !isDragged && isEditMode,
+                                "cursor-pointer": !isDragged && !isDropTarget && isEditMode,
+                                "cursor-default": !isEditMode,
+                              }
+                            )}
+                            onClick={() => !isDragged && setSelectedField(field)}
+                          >
                           <div className="flex items-start gap-3">
-                            <GripVertical className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+                            <GripVertical className={cn(
+                              "h-5 w-5 text-muted-foreground mt-1 flex-shrink-0",
+                              isEditMode ? "cursor-grab active:cursor-grabbing" : "cursor-not-allowed opacity-50"
+                            )} />
                             <FieldIcon className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Label className="font-medium">{field.label}</Label>
-                                {field.required && (
-                                  <Badge variant="secondary" className="text-xs">Required</Badge>
-                                )}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {field.type} {field.placeholder && `• ${field.placeholder}`}
-                              </div>
+                              {field.type === 'label' ? (
+                                <div className="py-2">
+                                  <p className="text-base font-medium text-foreground">{field.label}</p>
+                                  <div className="text-xs text-muted-foreground mt-1">Label (no input)</div>
+                                </div>
+                              ) : field.type === 'button' ? (
+                                <div className="py-2">
+                                  <Button variant="default" disabled className="pointer-events-none">
+                                    {field.label || 'Submit'}
+                                  </Button>
+                                  <div className="text-xs text-muted-foreground mt-1">Button</div>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Label className="font-medium">{field.label}</Label>
+                                    {field.required && (
+                                      <Badge variant="secondary" className="text-xs">Required</Badge>
+                                    )}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {field.type} {field.placeholder && `• ${field.placeholder}`}
+                                  </div>
+                                </>
+                              )}
                             </div>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                deleteFormField(field.id)
+                                handleDeleteFieldClick(field.id, field.label)
                               }}
+                              disabled={!isEditMode}
                               className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
+                          </div>
+                          
+                          {/* Drop indicator below */}
+                          {showDropIndicatorBelow && (
+                            <div className="absolute -bottom-2 left-0 right-0 h-1 bg-primary rounded-full z-10" />
+                          )}
                         </div>
                       )
                     })}
@@ -1098,7 +1148,6 @@ export default function ConfigureProjectTypePage() {
                 )}
               </div>
             </div>
-            )}
 
             {/* Right Panel - Form Elements Palette */}
             <div className="w-80 flex flex-col border-l bg-muted/20">
@@ -1116,8 +1165,11 @@ export default function ConfigureProjectTypePage() {
                       key={fieldType.id}
                       draggable
                       onDragStart={(e) => handleFormFieldDragStart(e, fieldType.id)}
-                      className="flex items-center gap-3 p-3 border rounded-lg cursor-move hover:bg-accent transition-colors bg-card"
+                      className="flex items-center gap-2 p-2.5 border rounded-lg cursor-move hover:bg-accent transition-colors bg-card group"
                     >
+                      <div className="flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity">
+                        <Move className="h-4 w-4 text-muted-foreground" />
+                      </div>
                       <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-sm">{fieldType.label}</div>
@@ -1126,7 +1178,10 @@ export default function ConfigureProjectTypePage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => addFormField(fieldType.id)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          addFormField(fieldType.id)
+                        }}
                         className="h-7 w-7 p-0 flex-shrink-0"
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -1140,41 +1195,48 @@ export default function ConfigureProjectTypePage() {
 
           {/* Field Configuration Panel */}
           {selectedField && (
-            <div className="border-t p-4 bg-muted/30">
+            <div className="border-t p-2.5 bg-muted/30">
               <div className="max-w-4xl mx-auto">
-                <Label className="text-sm font-medium mb-4 block">Field Configuration</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="field-label">Field Label</Label>
+                <Label className="text-xs font-medium mb-2 block">Field Configuration</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="field-label" className="text-xs">Field Label</Label>
                     <Input
                       id="field-label"
                       value={selectedField.label}
                       onChange={(e) => updateFormField(selectedField.id, { label: e.target.value })}
                       placeholder="Enter field label"
+                      className="h-8 text-sm"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="field-placeholder">Placeholder</Label>
-                    <Input
-                      id="field-placeholder"
-                      value={selectedField.placeholder || ''}
-                      onChange={(e) => updateFormField(selectedField.id, { placeholder: e.target.value })}
-                      placeholder="Enter placeholder text"
+                  {selectedField.type !== 'label' && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="field-placeholder" className="text-xs">Placeholder</Label>
+                      <Input
+                        id="field-placeholder"
+                        value={selectedField.placeholder || ''}
+                        onChange={(e) => updateFormField(selectedField.id, { placeholder: e.target.value })}
+                        placeholder="Enter placeholder text"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  )}
+                </div>
+                {selectedField.type !== 'label' && selectedField.type !== 'button' && (
+                  <div className="flex items-center space-x-2 mt-2.5">
+                    <Switch
+                      id="field-required"
+                      checked={selectedField.required}
+                      onCheckedChange={(checked) => updateFormField(selectedField.id, { required: checked })}
+                      className="h-4 w-7"
                     />
+                    <Label htmlFor="field-required" className="cursor-pointer text-xs">Required field</Label>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2 mt-4">
-                  <Switch
-                    id="field-required"
-                    checked={selectedField.required}
-                    onCheckedChange={(checked) => updateFormField(selectedField.id, { required: checked })}
-                  />
-                  <Label htmlFor="field-required" className="cursor-pointer">Required field</Label>
-                </div>
+                )}
                 {(selectedField.type === 'select' || selectedField.type === 'radio') && (
-                  <div className="space-y-2 mt-4">
-                    <Label>Options</Label>
-                    <div className="space-y-2">
+                  <div className="space-y-1.5 mt-2.5">
+                    <Label className="text-xs">Options</Label>
+                    <div className="space-y-1.5">
                       {selectedField.options?.map((option, index) => (
                         <div key={index} className="flex items-center gap-2">
                           <Input
@@ -1185,6 +1247,7 @@ export default function ConfigureProjectTypePage() {
                               updateFormField(selectedField.id, { options: newOptions })
                             }}
                             placeholder={`Option ${index + 1}`}
+                            className="h-8 text-sm"
                           />
                           <Button
                             variant="ghost"
@@ -1195,7 +1258,7 @@ export default function ConfigureProjectTypePage() {
                             }}
                             className="h-8 w-8 p-0 text-destructive"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       ))}
@@ -1206,9 +1269,9 @@ export default function ConfigureProjectTypePage() {
                           const newOptions = [...(selectedField.options || []), `Option ${(selectedField.options?.length || 0) + 1}`]
                           updateFormField(selectedField.id, { options: newOptions })
                         }}
-                        className="w-full"
+                        className="w-full h-8 text-xs"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus className="h-3.5 w-3.5 mr-1.5" />
                         Add Option
                       </Button>
                     </div>
@@ -1228,7 +1291,7 @@ export default function ConfigureProjectTypePage() {
               Cancel
             </Button>
             <Button onClick={() => {
-              if (configuringStage && projectType) {
+              if (configuringStage && projectType && isEditMode) {
                 const updatedStages = projectType.stages.map(s =>
                   s.id === configuringStage.id
                     ? { ...s, formFields: configuringStage.formFields }
@@ -1267,9 +1330,290 @@ export default function ConfigureProjectTypePage() {
                   })
                 }, 1000)
               }
-            }}>
+            }} disabled={!isEditMode}>
               <Save className="h-4 w-4 mr-2" />
               Save Configuration
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Preview Modal */}
+      <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Form Preview - {configuringStage?.name}</DialogTitle>
+            <DialogDescription>
+              Preview how the form will look to users
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-6">
+            {(!configuringStage?.formFields || configuringStage.formFields.length === 0) ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg">
+                <FileText className="h-12 w-12 mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">No form fields to preview</p>
+                <p className="text-sm">Add form fields to see the preview</p>
+              </div>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{configuringStage.name} Form</CardTitle>
+                  <CardDescription>
+                    Test the form fields below
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {configuringStage.formFields.map((field) => {
+                    const FieldIcon = fieldTypes.find(ft => ft.id === field.type)?.icon || Type
+                    return (
+                      <div key={field.id} className="space-y-2">
+                        {field.type !== 'label' && (
+                          <Label htmlFor={`preview-${field.id}`} className="flex items-center gap-2">
+                            <FieldIcon className="h-4 w-4 text-muted-foreground" />
+                            {field.label}
+                            {field.required && (
+                              <span className="text-destructive">*</span>
+                            )}
+                          </Label>
+                        )}
+                        {field.type === 'text' && (
+                          <Input
+                            id={`preview-${field.id}`}
+                            placeholder={field.placeholder}
+                            value={previewData[field.id] || ''}
+                            onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
+                          />
+                        )}
+                        {field.type === 'email' && (
+                          <Input
+                            id={`preview-${field.id}`}
+                            type="email"
+                            placeholder={field.placeholder}
+                            value={previewData[field.id] || ''}
+                            onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
+                          />
+                        )}
+                        {field.type === 'number' && (
+                          <Input
+                            id={`preview-${field.id}`}
+                            type="number"
+                            placeholder={field.placeholder}
+                            value={previewData[field.id] || ''}
+                            onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
+                            min={field.validation?.min}
+                            max={field.validation?.max}
+                          />
+                        )}
+                        {field.type === 'date' && (
+                          <Input
+                            id={`preview-${field.id}`}
+                            type="date"
+                            value={previewData[field.id] || ''}
+                            onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
+                          />
+                        )}
+                        {field.type === 'textarea' && (
+                          <textarea
+                            id={`preview-${field.id}`}
+                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            placeholder={field.placeholder}
+                            value={previewData[field.id] || ''}
+                            onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
+                          />
+                        )}
+                        {field.type === 'select' && (
+                          <Select
+                            value={previewData[field.id] || ''}
+                            onValueChange={(value) => setPreviewData({ ...previewData, [field.id]: value })}
+                          >
+                            <SelectTrigger id={`preview-${field.id}`}>
+                              <SelectValue placeholder={field.placeholder || 'Select an option'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {field.options?.map((option, index) => (
+                                <SelectItem key={index} value={option}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        {field.type === 'radio' && (
+                          <div className="space-y-2">
+                            {field.options?.map((option, index) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <input
+                                  type="radio"
+                                  id={`preview-${field.id}-${index}`}
+                                  name={`preview-${field.id}`}
+                                  value={option}
+                                  checked={previewData[field.id] === option}
+                                  onChange={(e) => setPreviewData({ ...previewData, [field.id]: e.target.value })}
+                                  className="h-4 w-4 text-primary"
+                                />
+                                <Label htmlFor={`preview-${field.id}-${index}`} className="font-normal cursor-pointer">
+                                  {option}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {field.type === 'checkbox' && (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`preview-${field.id}`}
+                              checked={previewData[field.id] || false}
+                              onCheckedChange={(checked) => setPreviewData({ ...previewData, [field.id]: checked })}
+                            />
+                            <Label htmlFor={`preview-${field.id}`} className="font-normal cursor-pointer">
+                              {field.placeholder || 'Check this option'}
+                            </Label>
+                          </div>
+                        )}
+                        {field.type === 'file' && (
+                          <div className="space-y-2">
+                            <Input
+                              id={`preview-${field.id}`}
+                              type="file"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) {
+                                  setPreviewData({ ...previewData, [field.id]: file.name })
+                                }
+                              }}
+                            />
+                            {previewData[field.id] && (
+                              <p className="text-xs text-muted-foreground">
+                                Selected: {previewData[field.id]}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {field.type === 'label' && (
+                          <div className="py-2">
+                            <p className="text-base font-medium text-foreground">{field.label}</p>
+                          </div>
+                        )}
+                        {field.type === 'button' && (
+                          <Button 
+                            onClick={() => {
+                              console.log('Form Data:', previewData)
+                              alert('Form submitted! Check console for data.')
+                            }}
+                            className="w-full"
+                          >
+                            {field.label || 'Submit'}
+                          </Button>
+                        )}
+                      </div>
+                    )
+                  })}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPreviewModal(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Versions Modal */}
+      <Dialog open={showVersionsModal} onOpenChange={setShowVersionsModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Form Version History</DialogTitle>
+            <DialogDescription>
+              View and rollback to previous versions of {configuringStage?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto">
+            {configuringStage ? (
+              (() => {
+                const versions = getFormVersions(configuringStage.id)
+                return versions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                    <History className="h-12 w-12 mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-2">No versions available</p>
+                    <p className="text-sm">Publish a form to create the first version</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {versions.map((version) => (
+                      <Card key={version.id} className={version.isActive ? 'border-primary bg-primary/5' : ''}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge variant={version.isActive ? 'default' : 'secondary'}>
+                                  Version {version.version} {version.isActive && '(Active)'}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(version.publishedAt).toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {version.formFields.length} field{version.formFields.length !== 1 ? 's' : ''}
+                              </p>
+                            </div>
+                            {!version.isActive && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (confirm(`Rollback to version ${version.version}? This will replace the current form.`)) {
+                                    rollbackToVersion(version)
+                                  }
+                                }}
+                                className="gap-2"
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                                Rollback
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )
+              })()
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <p>No stage selected</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowVersionsModal(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Field Confirmation Dialog */}
+      <Dialog open={!!fieldToDelete} onOpenChange={(open) => !open && setFieldToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Form Field</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{fieldToDelete?.label}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFieldToDelete(null)}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => fieldToDelete && deleteFormField(fieldToDelete.id)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
