@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/contexts/auth-context'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FolderOpen, Plus, Edit2, Trash2, Save, X, Settings2, Building2, Wrench, Package, Navigation } from 'lucide-react'
@@ -386,11 +387,13 @@ export default function SystemConfigurationPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => router.push(`/form-builder/configure/${type.id}`)}
+                            asChild
                             className="gap-1.5"
                           >
-                            <Settings2 className="h-3.5 w-3.5" />
-                            Configure
+                            <Link href={`/form-builder/configure/${type.id}`} prefetch={false}>
+                              <Settings2 className="h-3.5 w-3.5" />
+                              Configure
+                            </Link>
                           </Button>
                           <Button
                             variant="ghost"

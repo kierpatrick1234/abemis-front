@@ -90,6 +90,9 @@ export default function ConfigureProjectTypePage() {
   const params = useParams()
   const typeId = params.typeId as string
 
+  // Prevent any redirects - this page should always be accessible
+  // No authentication/role checks that would cause redirects to dashboard
+
   const [projectType, setProjectType] = useState<ProjectType | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
   const [isStageDialogOpen, setIsStageDialogOpen] = useState(false)
