@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FolderOpen, Plus, Edit2, Trash2, Save, X, Settings2, Building2, Wrench, Package, Navigation } from 'lucide-react'
+import { FolderOpen, Plus, Edit2, Trash2, Save, X, Settings2, Building2, Wrench, Package, Navigation, ListOrdered, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -74,6 +74,8 @@ export default function ProjectsPage() {
   const [toastCountdown, setToastCountdown] = useState(10)
   const [toastMessage, setToastMessage] = useState('Project Type Added Successfully!')
   const [highlightedTypeId, setHighlightedTypeId] = useState<string | null>(null)
+  const [showConfigureDialog, setShowConfigureDialog] = useState(false)
+  const [selectedTypeForConfigure, setSelectedTypeForConfigure] = useState<string | null>(null)
 
   // Show loading while auth is being checked
   if (loading) {
@@ -387,13 +389,14 @@ export default function ProjectsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            asChild
+                            onClick={() => {
+                              setSelectedTypeForConfigure(type.id)
+                              setShowConfigureDialog(true)
+                            }}
                             className="gap-1.5"
                           >
-                            <Link href={`/form-builder/projects/configure/${type.id}`} prefetch={false}>
-                              <Settings2 className="h-3.5 w-3.5" />
-                              Configure
-                            </Link>
+                            <Settings2 className="h-3.5 w-3.5" />
+                            Configure
                           </Button>
                           <Button
                             variant="ghost"
@@ -421,6 +424,78 @@ export default function ProjectsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Configure Options Dialog */}
+      <Dialog open={showConfigureDialog} onOpenChange={(open) => {
+        setShowConfigureDialog(open)
+        if (!open) {
+          setSelectedTypeForConfigure(null)
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings2 className="h-5 w-5" />
+              Configure Project Type
+            </DialogTitle>
+            <DialogDescription>
+              Choose what you want to configure for this project type
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+            <Button
+              variant="outline"
+              className="h-auto p-6 flex flex-col items-start gap-3 hover:bg-primary/5 hover:border-primary transition-colors"
+              onClick={() => {
+                if (selectedTypeForConfigure) {
+                  router.push(`/form-builder/projects/configure/${selectedTypeForConfigure}`)
+                }
+                setShowConfigureDialog(false)
+              }}
+            >
+              <div className="flex items-center gap-3 w-full">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <ListOrdered className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-semibold text-base">Project Stages Configuration</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Configure project stages and their form fields
+                  </div>
+                </div>
+              </div>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-auto p-6 flex flex-col items-start gap-3 hover:bg-primary/5 hover:border-primary transition-colors"
+              onClick={() => {
+                if (selectedTypeForConfigure) {
+                  router.push(`/form-builder/projects/registration/${selectedTypeForConfigure}`)
+                }
+                setShowConfigureDialog(false)
+              }}
+            >
+              <div className="flex items-center gap-3 w-full">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <FileText className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-semibold text-base">Project Registration Form Configuration</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Configure the initial project registration form
+                  </div>
+                </div>
+              </div>
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfigureDialog(false)}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <SuccessToast
         isVisible={showSuccessToast}
