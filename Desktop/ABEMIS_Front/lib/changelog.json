@@ -1,0 +1,182 @@
+[
+  {
+    "date": "2025-12-10",
+    "type": "New Feature",
+    "title": "Trigger Vercel redeploy - Add prefetch=false to Link comp... and 7 more",
+    "description": "Trigger Vercel redeploy - Add prefetch=false to Link feature for better Vercel compatibility - Improve logging for configure button navigation. resolved configure button navigation using Link feature and improve admin redirect prevention - Replace router.push with Next.js Link feature for more reliable navigation - Add immediate admin check before any redirect logic runs - Add double-check inside timeout to prevent admin redirects - Increase timeout to 300ms for better user loading - Add comprehensive logging for debugging user role checks. resolved configure button redirect issue for admin users in Vercel - Add early return safeguard for admin users to prevent redirects - Improve redirect logic with better type checking and defensive coding - Add comprehensive logging for debugging user role checks - Enhance button click handler with better event handling and logging. resolved configure button navigation and admin redirect logic - Add proper event handling to configure button to prevent unintended redirects - resolved React hooks error by moving useEffect before conditional returns - Ensure admin users can access configure page without being redirected. Added missing generate-changelog.js script and make prebuild resilient. System Configuration with sub-navigation and project type management. Added Document Test feature for RAED accounts with project documents popup window, filtering, and version history. Implemented notification redirection with popup window and region-specific project notifications - Add clickable notifications that open project details popup window for RAED accounts - Generate notifications dynamically from actual projects in each region's project pool - Each RAED account now sees unique notifications based on their regional projects - Project names in notifications match actual projects from the project pool - Add notification highlight cards showing evaluator approvals, remarks, monitoring issues - Increase bell icon size for better visibility - Remove hardcoded notification templates in favor of dynamic generation."
+  },
+  {
+    "date": "2025-12-10",
+    "type": "Improvement",
+    "title": "README.md with comprehensive project documentation",
+    "description": "README.md with comprehensive project documentation."
+  },
+  {
+    "date": "2025-12-10",
+    "type": "Bug Fix",
+    "title": "Fix build error - Use Button asChild prop with Link compo... and 3 more",
+    "description": "resolved build error - Use Button asChild prop with Link feature correctly - Proper Next.js 13+ Link/Button pattern for Vercel compatibility. Improved client-side hydration and auth check in configure page. Configure page redirect logic and routing. Prevent premature redirects in System Configuration pages."
+  },
+  {
+    "date": "2025-12-09",
+    "type": "New Feature",
+    "title": "Remove changelog button from login page and implement RAE... and 1 more",
+    "description": "Remove changelog button from login page and implement RAED region locking in project creation. Added congressional district filtering for project registration."
+  },
+  {
+    "date": "2025-12-09",
+    "type": "Improvement",
+    "title": "Project files",
+    "description": "Project files."
+  },
+  {
+    "date": "2025-12-02",
+    "type": "New Feature",
+    "title": "Add interactive project map with clustering and region fi... and 2 more",
+    "description": "Added interactive project map with clustering and region filtering. Enhanced summary page with line graph, improved filters, and static data. Added NIR (Negros Island Region) support with RAED account and user management."
+  },
+  {
+    "date": "2025-12-02",
+    "type": "Improvement",
+    "title": "Project files and 1 more",
+    "description": "Project files: dashboard, forms, notifications, and dependencies. Reorder test credentials: Move NIR below admin and above raed-1."
+  },
+  {
+    "date": "2025-10-27",
+    "type": "New Feature",
+    "title": "Add debugging for sign-in button issue and 2 more",
+    "description": "Added debugging for sign-in button issue. Added Terms and Conditions to signup form. Implemented Google reCAPTCHA for login and signup forms."
+  },
+  {
+    "date": "2025-10-27",
+    "type": "Improvement",
+    "title": "Improve user registration form with field-specific valida... and 2 more",
+    "description": "Improved user registration form with field-specific validation. Improved login and signup validation feedback. Login page."
+  },
+  {
+    "date": "2025-10-27",
+    "type": "Bug Fix",
+    "title": "Fix login functionality and 1 more",
+    "description": "resolved login functionality: Remove captcha temporarily and resolved form submission. resolved captcha validation synchronization issues."
+  },
+  {
+    "date": "2025-10-24",
+    "type": "New Feature",
+    "title": "Fix form builder redirect issue - add loading state to pr... and 1 more",
+    "description": "resolved form builder redirect issue - add loading state to prevent premature redirects. Project components and add chatbot functionality."
+  },
+  {
+    "date": "2025-10-24",
+    "type": "Improvement",
+    "title": "Redesign form builder with categories, breadcrumbs, and i...",
+    "description": "Redesign form builder with categories, breadcrumbs, and improved navigation structure."
+  },
+  {
+    "date": "2025-10-24",
+    "type": "Bug Fix",
+    "title": "Fix form builder access control - allow manager and engin...",
+    "description": "resolved form builder access control - allow manager and engineer roles to access form builder."
+  },
+  {
+    "date": "2025-10-22",
+    "type": "New Feature",
+    "title": "Implement comprehensive theme color system with 8 color s... and 2 more",
+    "description": "Implemented comprehensive theme color system with 8 color schemes. resolved document manager pagination and add machinery inventory details to stage 1. Added inventory project popup window and update projects page."
+  },
+  {
+    "date": "2025-10-21",
+    "type": "New Feature",
+    "title": "Add comprehensive Form Builder feature for admin dashboard",
+    "description": "Added comprehensive Form Builder feature for admin dashboard."
+  },
+  {
+    "date": "2025-10-20",
+    "type": "New Feature",
+    "title": "Enhance RAED document manager with advanced filtering and... and 4 more",
+    "description": "Enhanced RAED document manager with advanced filtering and view options. Implemented PSGC system integration integration for location selection. Added new landing page design options and clean backgrounds. Added background image and smooth animations to landing page. Enhanced inventory assessment system with project-type specific questionnaires."
+  },
+  {
+    "date": "2025-10-19",
+    "type": "Bug Fix",
+    "title": "Fix modal issues and enhance project forms",
+    "description": "resolved popup window issues and enhance project forms."
+  },
+  {
+    "date": "2025-10-15",
+    "type": "New Feature",
+    "title": "Enhance project package modal and type filter with icons ... and 3 more",
+    "description": "Enhanced project package popup window and type filter with icons and colors. Inherit multi-step form structure from infrastructure to machinery project popup window. Added project package functionality with 5 packages per region. Implemented RAED project creation with two-step selection and accordion forms."
+  },
+  {
+    "date": "2025-10-15",
+    "type": "Bug Fix",
+    "title": "Improve package project flow with proper modal behavior a...",
+    "description": "Improved package project flow with proper popup window behavior and budget tracking."
+  },
+  {
+    "date": "2025-10-14",
+    "type": "Improvement",
+    "title": "Project files and dependencies",
+    "description": "Project files and dependencies."
+  },
+  {
+    "date": "2025-10-13",
+    "type": "New Feature",
+    "title": "Project components and add machinery project functionality and 5 more",
+    "description": "Project components and add machinery project functionality. Document manager: implement specific document types, clickable documents with preview, and exclude ROW for Machinery projects. Enhanced RAED Dashboard and Document Manager. Implemented date formatting and user interface improvements for implementation stage. Added save and edit functionality for implementation stage contract information. Enhanced implementation stage with auto-login, progress tracking, and accomplishment management."
+  },
+  {
+    "date": "2025-10-13",
+    "type": "Bug Fix",
+    "title": "Fix RAED projects random generation and machinery status ...",
+    "description": "resolved RAED projects random generation and machinery status handling."
+  },
+  {
+    "date": "2025-10-11",
+    "type": "New Feature",
+    "title": "Add announcement popup for RAED users and fix landing pag...",
+    "description": "Added announcement popup for RAED users and resolved landing page login buttons."
+  },
+  {
+    "date": "2025-10-09",
+    "type": "New Feature",
+    "title": "Add missing document-preview-modal component and 1 more",
+    "description": "Added missing document-preview-popup window feature. Enhanced RAED project proposal details with interactive accordion."
+  },
+  {
+    "date": "2025-10-09",
+    "type": "Improvement",
+    "title": "Enhance infrastructure project modal",
+    "description": "Enhanced infrastructure project popup window: improve user interface, sticky header, and document upload."
+  },
+  {
+    "date": "2025-10-09",
+    "type": "Bug Fix",
+    "title": "Fix pagination and table rendering issues",
+    "description": "resolved pagination and table rendering issues."
+  },
+  {
+    "date": "2025-10-08",
+    "type": "New Feature",
+    "title": "Add procurement fields and stage progression for RAED users",
+    "description": "Added procurement fields and stage progression for RAED users."
+  },
+  {
+    "date": "2025-10-08",
+    "type": "Improvement",
+    "title": "Project components",
+    "description": "Project components: infra-project-popup window and project-stepper."
+  },
+  {
+    "date": "2025-10-07",
+    "type": "New Feature",
+    "title": "Enhanced project management UI with improved filters, ste... and 7 more",
+    "description": "Enhanced project management user interface with improved filters, stepper, and layout. Added document status visualization to EPDSD projects table. Enhanced EPDSD project details popup window with progress bar and improved user experience. Enhanced EPDSD project evaluation system. Implemented document sidebar for EPDSD view: Replace overlapping popup window with right sidebar for better user experience. Enhanced project details popup window functionality. Added project stepper feature. Added new project modules and update components."
+  },
+  {
+    "date": "2025-10-07",
+    "type": "Improvement",
+    "title": "Improve project pages layout and functionality and 1 more",
+    "description": "Improved project pages layout and functionality. Config: update ESLint configuration."
+  }
+]
