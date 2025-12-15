@@ -166,7 +166,6 @@ export default function ConfigureProjectTypePage() {
         { id: '1', name: 'FMR', description: 'Farm-to-Market Road', stages: getDefaultStages('FMR'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
         { id: '2', name: 'Infrastructure', description: 'Infrastructure Projects', stages: getDefaultStages('Infrastructure'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
         { id: '3', name: 'Machinery', description: 'Machinery and Equipment', stages: getDefaultStages('Machinery'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: '4', name: 'Project Package', description: 'Project Package', stages: getDefaultStages('Project Package'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       ]
       // Save defaults to localStorage for future use
       localStorage.setItem('projectTypes', JSON.stringify(types))
