@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
+import { X, Loader2 } from 'lucide-react'
 
 interface ConfigureStagesModalProps {
   isOpen: boolean
@@ -14,7 +13,20 @@ interface ConfigureStagesModalProps {
 }
 
 export function ConfigureStagesModal({ isOpen, onClose, typeId, projectTypeName }: ConfigureStagesModalProps) {
-  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
+  const [iframeKey, setIframeKey] = useState(0)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  useEffect(() => {
+    if (isOpen && typeId) {
+      setIsLoading(true)
+      // Force iframe to reload by changing key
+      setIframeKey(prev => prev + 1)
+    } else if (!isOpen) {
+      // Reset loading state when modal closes
+      setIsLoading(true)
+    }
+  }, [isOpen, typeId])
 
   if (!typeId) return null
 
@@ -40,12 +52,31 @@ export function ConfigureStagesModal({ isOpen, onClose, typeId, projectTypeName 
             </Button>
           </div>
         </DialogHeader>
-        <div className="flex-1 overflow-hidden">
-          <iframe
-            src={`/form-builder/projects/configure/${typeId}?modal=true`}
-            className="w-full h-full border-0"
-            title="Configure Project Stages"
-          />
+        <div className="flex-1 overflow-hidden relative">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Loading configure stages...</p>
+              </div>
+            </div>
+          )}
+          {typeId && isOpen && (
+            <iframe
+              key={`configure-${typeId}-${iframeKey}`}
+              ref={iframeRef}
+              src={`/form-builder/projects/configure/${typeId}?modal=true`}
+              className="w-full h-full border-0"
+              title="Configure Project Stages"
+              onLoad={() => {
+                setIsLoading(false)
+              }}
+              onError={() => {
+                setIsLoading(false)
+                console.error('Error loading configure stages iframe')
+              }}
+            />
+          )}
         </div>
       </DialogContent>
     </Dialog>
