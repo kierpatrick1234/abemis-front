@@ -2,6 +2,7 @@
 
 import { useRouter, useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/lib/contexts/auth-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -89,9 +90,11 @@ export default function ConfigureProjectTypePage() {
   const router = useRouter()
   const params = useParams()
   const typeId = params.typeId as string
+  const { user, loading: authLoading } = useAuth()
 
   // Prevent any redirects - this page should always be accessible
-  // No authentication/role checks that would cause redirects to dashboard
+  // Wait for auth to load to prevent layout redirects in Vercel
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   const [projectType, setProjectType] = useState<ProjectType | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -130,6 +133,15 @@ export default function ConfigureProjectTypePage() {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [isReordering, setIsReordering] = useState(false)
   const [previousOrder, setPreviousOrder] = useState<{ [key: string]: number }>({})
+
+  // Handle initial load and prevent redirects during auth loading
+  useEffect(() => {
+    // Wait for auth to finish loading before allowing page to render
+    // This prevents the protected layout from redirecting in Vercel
+    if (!authLoading) {
+      setIsInitialLoad(false)
+    }
+  }, [authLoading])
 
   // Load project types from localStorage or use default
   useEffect(() => {
@@ -292,12 +304,14 @@ export default function ConfigureProjectTypePage() {
     setToastCountdown(10)
   }
 
-  if (!projectType) {
+  // Show loading state while auth is loading or project type is loading
+  // This prevents premature redirects in Vercel
+  if (authLoading || isInitialLoad || !projectType) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading project type...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     )

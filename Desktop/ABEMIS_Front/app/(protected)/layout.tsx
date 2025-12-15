@@ -20,10 +20,14 @@ export default function ProtectedLayout({
   const [showAnnouncement, setShowAnnouncement] = useState(false)
 
   useEffect(() => {
-    if (!loading && !user) {
+    // Allow configure routes to load even during auth initialization
+    // This prevents redirects in Vercel where auth might load slower
+    const isConfigureRoute = pathname?.includes('/form-builder/projects/configure')
+    
+    if (!loading && !user && !isConfigureRoute) {
       router.push('/login')
     }
-  }, [user, loading, router])
+  }, [user, loading, router, pathname])
 
   // Redirect VIEWER users away from dashboard to summary
   useEffect(() => {
@@ -67,6 +71,9 @@ export default function ProtectedLayout({
     // Don't store the "seen" status - we want it to show every login
   }
 
+  // Allow configure routes to render during auth loading to prevent redirects in Vercel
+  const isConfigureRoute = pathname?.includes('/form-builder/projects/configure')
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -75,8 +82,30 @@ export default function ProtectedLayout({
     )
   }
 
-  if (!user) {
+  // Allow configure routes to render even if user is not loaded yet
+  // This prevents redirects in Vercel where auth might initialize slower
+  if (!user && !isConfigureRoute) {
     return null
+  }
+
+  // For configure routes, render the page even without user (it will handle its own loading)
+  if (isConfigureRoute && !user) {
+    return (
+      <EvaluationProvider>
+        <div className="flex h-screen bg-background">
+          <AppSidebar 
+            isCollapsed={isSidebarCollapsed} 
+            onToggle={toggleSidebar}
+          />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <Topbar />
+            <main className="flex-1 overflow-auto p-6">
+              {children}
+            </main>
+          </div>
+        </div>
+      </EvaluationProvider>
+    )
   }
 
   return (
