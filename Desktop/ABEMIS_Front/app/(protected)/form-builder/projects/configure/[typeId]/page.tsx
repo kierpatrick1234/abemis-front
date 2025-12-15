@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -89,8 +89,10 @@ const getDefaultStages = (typeName: string): ProjectStage[] => {
 export default function ConfigureProjectTypePage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const typeId = params.typeId as string
   const { user, loading: authLoading } = useAuth()
+  const isModal = searchParams.get('modal') === 'true'
 
   // Prevent any redirects - this page should always be accessible
   // Wait for auth to load to prevent layout redirects in Vercel
@@ -689,23 +691,25 @@ export default function ConfigureProjectTypePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push('/form-builder')}
-          className="gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Configure Project Stages</h1>
-          <p className="text-muted-foreground">
-            Manage project stages for <strong>{projectType.name}</strong>
-          </p>
+      {!isModal && (
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/form-builder')}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Configure Project Stages</h1>
+            <p className="text-muted-foreground">
+              Manage project stages for <strong>{projectType.name}</strong>
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       <Card>
         <CardHeader>

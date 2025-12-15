@@ -18,6 +18,7 @@ export default function ProtectedLayout({
   const pathname = usePathname()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [showAnnouncement, setShowAnnouncement] = useState(false)
+  const [isInIframe, setIsInIframe] = useState(false)
 
   useEffect(() => {
     // Allow configure routes to load even during auth initialization
@@ -55,6 +56,9 @@ export default function ProtectedLayout({
       const parsedState = JSON.parse(savedState)
       setIsSidebarCollapsed(parsedState)
     }
+    
+    // Check if page is in an iframe (modal mode)
+    setIsInIframe(window.self !== window.top)
   }, [])
 
   const toggleSidebar = useCallback(() => {
@@ -93,13 +97,15 @@ export default function ProtectedLayout({
     return (
       <EvaluationProvider>
         <div className="flex h-screen bg-background">
-          <AppSidebar 
-            isCollapsed={isSidebarCollapsed} 
-            onToggle={toggleSidebar}
-          />
+          {!isInIframe && (
+            <AppSidebar 
+              isCollapsed={isSidebarCollapsed} 
+              onToggle={toggleSidebar}
+            />
+          )}
           <div className="flex-1 flex flex-col overflow-hidden">
-            <Topbar />
-            <main className="flex-1 overflow-auto p-6">
+            {!isInIframe && <Topbar />}
+            <main className={`flex-1 overflow-auto ${isInIframe ? 'p-0' : 'p-6'}`}>
               {children}
             </main>
           </div>
@@ -111,13 +117,15 @@ export default function ProtectedLayout({
   return (
     <EvaluationProvider>
       <div className="flex h-screen bg-background">
-        <AppSidebar 
-          isCollapsed={isSidebarCollapsed} 
-          onToggle={toggleSidebar}
-        />
+        {!isInIframe && (
+          <AppSidebar 
+            isCollapsed={isSidebarCollapsed} 
+            onToggle={toggleSidebar}
+          />
+        )}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Topbar />
-          <main className="flex-1 overflow-auto p-6">
+          {!isInIframe && <Topbar />}
+          <main className={`flex-1 overflow-auto ${isInIframe ? 'p-0' : 'p-6'}`}>
             {children}
           </main>
         </div>

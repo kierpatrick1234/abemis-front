@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { SuccessToast } from '@/components/success-toast'
+import { ConfigureStagesModal } from '@/components/configure-stages-modal'
 
 interface ProjectStage {
   id: string
@@ -81,6 +82,7 @@ export default function SystemConfigurationPage() {
   const [projectTypeToDelete, setProjectTypeToDelete] = useState<string | null>(null)
   const [showConfigureDialog, setShowConfigureDialog] = useState(false)
   const [selectedTypeForConfigure, setSelectedTypeForConfigure] = useState<string | null>(null)
+  const [showConfigureStagesModal, setShowConfigureStagesModal] = useState(false)
 
   // Show loading while auth is being checked
   if (loading) {
@@ -486,7 +488,7 @@ export default function SystemConfigurationPage() {
           setSelectedTypeForConfigure(null)
         }
       }}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings2 className="h-5 w-5" />
@@ -496,13 +498,13 @@ export default function SystemConfigurationPage() {
               Choose what you want to configure for this project type
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+          <div className="grid grid-cols-1 gap-4 py-4">
             <Button
               variant="outline"
-              className="h-auto p-6 hover:bg-primary/5 hover:border-primary transition-colors justify-start"
+              className="h-auto p-6 hover:bg-primary/5 hover:border-primary transition-colors justify-start w-full"
               onClick={() => {
                 if (selectedTypeForConfigure) {
-                  router.push(`/form-builder/projects/configure/${selectedTypeForConfigure}`)
+                  setShowConfigureStagesModal(true)
                 }
                 setShowConfigureDialog(false)
               }}
@@ -511,9 +513,9 @@ export default function SystemConfigurationPage() {
                 <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
                   <ListOrdered className="h-6 w-6 text-primary" />
                 </div>
-                <div className="flex-1 text-left min-w-0">
-                  <div className="font-semibold text-base leading-tight mb-1.5">Project Stages Configuration</div>
-                  <div className="text-sm text-muted-foreground leading-relaxed">
+                <div className="flex-1 text-left min-w-0 overflow-hidden">
+                  <div className="font-semibold text-base leading-tight mb-1.5 break-words">Project Stages Configuration</div>
+                  <div className="text-sm text-muted-foreground leading-relaxed break-words">
                     Configure project stages and their form fields
                   </div>
                 </div>
@@ -521,7 +523,7 @@ export default function SystemConfigurationPage() {
             </Button>
             <Button
               variant="outline"
-              className="h-auto p-6 hover:bg-primary/5 hover:border-primary transition-colors justify-start"
+              className="h-auto p-6 hover:bg-primary/5 hover:border-primary transition-colors justify-start w-full"
               onClick={() => {
                 if (selectedTypeForConfigure) {
                   router.push(`/form-builder/projects/registration/${selectedTypeForConfigure}`)
@@ -533,9 +535,9 @@ export default function SystemConfigurationPage() {
                 <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
                   <FileText className="h-6 w-6 text-primary" />
                 </div>
-                <div className="flex-1 text-left min-w-0">
-                  <div className="font-semibold text-base leading-tight mb-1.5">Project Registration Form Configuration</div>
-                  <div className="text-sm text-muted-foreground leading-relaxed">
+                <div className="flex-1 text-left min-w-0 overflow-hidden">
+                  <div className="font-semibold text-base leading-tight mb-1.5 break-words">Project Registration Form Configuration</div>
+                  <div className="text-sm text-muted-foreground leading-relaxed break-words">
                     Configure the initial project registration form
                   </div>
                 </div>
@@ -622,6 +624,14 @@ export default function SystemConfigurationPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Configure Stages Modal */}
+      <ConfigureStagesModal
+        isOpen={showConfigureStagesModal}
+        onClose={() => setShowConfigureStagesModal(false)}
+        typeId={selectedTypeForConfigure}
+        projectTypeName={projectTypes.find(t => t.id === selectedTypeForConfigure)?.name}
+      />
 
       <SuccessToast
         isVisible={showSuccessToast}
