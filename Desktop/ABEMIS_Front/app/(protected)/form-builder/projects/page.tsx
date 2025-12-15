@@ -390,7 +390,7 @@ export default function ProjectsPage() {
                             asChild
                             className="gap-1.5"
                           >
-                            <Link href={`/form-builder/configure/${type.id}`} prefetch={false}>
+                            <Link href={`/form-builder/projects/configure/${type.id}`} prefetch={false}>
                               <Settings2 className="h-3.5 w-3.5" />
                               Configure
                             </Link>

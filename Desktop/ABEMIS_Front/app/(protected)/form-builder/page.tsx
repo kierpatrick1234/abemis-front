@@ -3,9 +3,10 @@
 import { useAuth } from '@/lib/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { mockCredentials } from '@/lib/mock/auth'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FolderOpen, Plus, Edit2, Trash2, Save, X, Settings2, Building2, Wrench, Package, Navigation } from 'lucide-react'
+import { FolderOpen, Plus, Edit2, Trash2, Save, X, Settings2, Building2, Wrench, Package, Navigation, Lock, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -74,6 +75,11 @@ export default function SystemConfigurationPage() {
   const [toastCountdown, setToastCountdown] = useState(10)
   const [toastMessage, setToastMessage] = useState('Project Type Added Successfully!')
   const [highlightedTypeId, setHighlightedTypeId] = useState<string | null>(null)
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false)
+  const [passwordToDelete, setPasswordToDelete] = useState<string>('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState<string>('')
+  const [projectTypeToDelete, setProjectTypeToDelete] = useState<string | null>(null)
 
   // Show loading while auth is being checked
   if (loading) {
@@ -181,11 +187,60 @@ export default function SystemConfigurationPage() {
   }
 
   const handleDeleteProjectType = (id: string) => {
-    if (confirm('Are you sure you want to delete this project type?')) {
-      const updatedTypes = projectTypes.filter(type => type.id !== id)
-      setProjectTypes(updatedTypes)
-      localStorage.setItem('projectTypes', JSON.stringify(updatedTypes))
+    setProjectTypeToDelete(id)
+    setPasswordToDelete('')
+    setPasswordError('')
+    setShowPassword(false)
+    setShowPasswordDialog(true)
+  }
+
+  const verifyPasswordAndDelete = () => {
+    if (!user || !projectTypeToDelete) return
+
+    setPasswordError('')
+
+    // Verify password
+    const credentials = mockCredentials[user.email as keyof typeof mockCredentials]
+    if (!credentials || credentials.password !== passwordToDelete) {
+      setPasswordError('Incorrect password. Please try again.')
+      return
     }
+
+    // Password is correct, proceed with deletion
+    const updatedTypes = projectTypes.filter(type => type.id !== projectTypeToDelete)
+    setProjectTypes(updatedTypes)
+    localStorage.setItem('projectTypes', JSON.stringify(updatedTypes))
+    
+    // Close dialog and reset state
+    setShowPasswordDialog(false)
+    setPasswordToDelete('')
+    setProjectTypeToDelete(null)
+    setPasswordError('')
+    setShowPassword(false)
+    
+    // Show success message
+    setToastMessage('Project Type Deleted Successfully!')
+    setShowSuccessToast(true)
+    setToastCountdown(10)
+    
+    const timer = setInterval(() => {
+      setToastCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          setShowSuccessToast(false)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }
+
+  const handleCancelDelete = () => {
+    setShowPasswordDialog(false)
+    setPasswordToDelete('')
+    setProjectTypeToDelete(null)
+    setPasswordError('')
+    setShowPassword(false)
   }
 
   const getProjectTypeIcon = (typeName: string) => {
@@ -390,7 +445,7 @@ export default function SystemConfigurationPage() {
                             asChild
                             className="gap-1.5"
                           >
-                            <Link href={`/form-builder/configure/${type.id}`} prefetch={false}>
+                            <Link href={`/form-builder/projects/configure/${type.id}`} prefetch={false}>
                               <Settings2 className="h-3.5 w-3.5" />
                               Configure
                             </Link>
@@ -421,6 +476,78 @@ export default function SystemConfigurationPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Password Confirmation Dialog for Deletion */}
+      <Dialog open={showPasswordDialog} onOpenChange={handleCancelDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5 text-destructive" />
+              Confirm Deletion
+            </DialogTitle>
+            <DialogDescription>
+              To prevent accidental deletion, please enter your password to confirm this action.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="delete-password">Enter Your Password *</Label>
+              <div className="relative">
+                <Input
+                  id="delete-password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={passwordToDelete}
+                  onChange={(e) => {
+                    setPasswordToDelete(e.target.value)
+                    setPasswordError('')
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && passwordToDelete.trim()) {
+                      verifyPasswordAndDelete()
+                    }
+                  }}
+                  className={passwordError ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}
+                  autoFocus
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
+              {passwordError && (
+                <p className="text-sm text-destructive">{passwordError}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                This action cannot be undone. All stages and configurations for this project type will be permanently deleted.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelDelete}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={verifyPasswordAndDelete}
+              disabled={!passwordToDelete.trim()}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Project Type
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <SuccessToast
         isVisible={showSuccessToast}
