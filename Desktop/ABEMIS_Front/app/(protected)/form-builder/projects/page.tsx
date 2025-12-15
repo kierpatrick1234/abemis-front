@@ -370,11 +370,14 @@ export default function ProjectsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
                               setSelectedTypeForConfigure(type.id)
                               setShowConfigureDialog(true)
                             }}
                             className="gap-1.5"
+                            type="button"
                           >
                             <Settings2 className="h-3.5 w-3.5" />
                             Configure
@@ -427,12 +430,15 @@ export default function ProjectsPage() {
             <Button
               variant="outline"
               className="h-auto p-6 hover:bg-primary/5 hover:border-primary transition-colors justify-start w-full"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
                 if (selectedTypeForConfigure) {
                   setShowConfigureStagesModal(true)
                 }
                 setShowConfigureDialog(false)
               }}
+              type="button"
             >
               <div className="flex items-start gap-4 w-full">
                 <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">

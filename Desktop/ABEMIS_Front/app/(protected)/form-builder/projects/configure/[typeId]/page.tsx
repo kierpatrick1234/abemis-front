@@ -139,13 +139,16 @@ export default function ConfigureProjectTypePage() {
   const [selectedPreviewStage, setSelectedPreviewStage] = useState<string | null>(null)
 
   // Handle initial load and prevent redirects during auth loading
+  // In modal mode, don't wait for auth - allow immediate rendering
   useEffect(() => {
-    // Wait for auth to finish loading before allowing page to render
-    // This prevents the protected layout from redirecting in Vercel
-    if (!authLoading) {
+    if (isModal) {
+      // In modal mode, render immediately without waiting for auth
+      setIsInitialLoad(false)
+    } else if (!authLoading) {
+      // In normal mode, wait for auth to finish loading
       setIsInitialLoad(false)
     }
-  }, [authLoading])
+  }, [authLoading, isModal])
 
   // Load project types from localStorage or use default
   useEffect(() => {
@@ -307,17 +310,33 @@ export default function ConfigureProjectTypePage() {
     setToastCountdown(10)
   }
 
-  // Show loading state while auth is loading or project type is loading
-  // This prevents premature redirects in Vercel
-  if (authLoading || isInitialLoad || !projectType) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+  // Show loading state only if not in modal mode and auth is still loading
+  // In modal mode, render immediately to prevent redirects
+  // Only wait for projectType to load, not auth
+  if (isModal) {
+    // In modal mode, only wait for projectType, not auth
+    if (!projectType) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
         </div>
-      </div>
-    )
+      )
+    }
+  } else {
+    // In normal mode, wait for both auth and projectType
+    if (authLoading || isInitialLoad || !projectType) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      )
+    }
   }
 
   const handleAddStage = () => {
