@@ -130,8 +130,6 @@ export default function ConfigureProjectTypePage() {
 
   // Load project types from localStorage or use default
   useEffect(() => {
-    //if (loading) return
-
     // In a real app, this would come from an API
     // For now, we'll use localStorage or default data
     const storedTypes = localStorage.getItem('projectTypes')
@@ -153,16 +151,27 @@ export default function ConfigureProjectTypePage() {
         { id: '3', name: 'Machinery', description: 'Machinery and Equipment', stages: getDefaultStages('Machinery'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
         { id: '4', name: 'Project Package', description: 'Project Package', stages: getDefaultStages('Project Package'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       ]
+      // Save defaults to localStorage for future use
+      localStorage.setItem('projectTypes', JSON.stringify(types))
     }
 
     const foundType = types.find(t => t.id === typeId)
     if (foundType) {
       setProjectType(foundType)
     } else {
-      // Type not found, redirect back to projects page
-      router.push('/form-builder/projects')
+      // Type not found, create a default type to prevent redirect
+      // This allows the page to remain accessible without redirecting to dashboard
+      const defaultType: ProjectType = {
+        id: typeId,
+        name: `Project Type ${typeId}`,
+        description: 'Default project type',
+        stages: getDefaultStages('Default'),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      setProjectType(defaultType)
     }
-  }, [typeId, router])
+  }, [typeId])
 
   // Save project types to localStorage
   const saveProjectTypes = (updatedType: ProjectType) => {
@@ -666,7 +675,7 @@ export default function ConfigureProjectTypePage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push('/form-builder/projects')}
+          onClick={() => router.push('/form-builder')}
           className="gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
