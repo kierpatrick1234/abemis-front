@@ -176,3 +176,39 @@ export interface FormConfig {
   description: string
   fields: FormField[]
 }
+
+export type DeliveryMethod = 'sms' | 'email' | 'in-app'
+export type TargetAudience = 'all-operating-units' | 'specific-operating-unit' | 'all-raed' | 'specific-raed' | 'evaluator'
+export type Frequency = 'none' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually'
+
+export interface Announcement {
+  id: string
+  title: string
+  message: string
+  deliveryMethods: DeliveryMethod[]
+  targetAudience: TargetAudience
+  specificOperatingUnit?: string
+  specificRAED?: string
+  scheduledDate?: string
+  scheduledTime?: string
+  isScheduled: boolean
+  frequency: Frequency
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  createdBy: string
+  sentAt?: string
+  recipientsCount?: number
+}
+
+export interface OperatingUnit {
+  id: string
+  name: string
+  responsibility: string
+  scope: string
+  roles?: Role[]
+  permissions?: string[]
+  createdAt: string
+  updatedAt: string
+  createdBy: string
+}

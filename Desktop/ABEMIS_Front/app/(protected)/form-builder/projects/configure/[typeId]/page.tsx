@@ -21,6 +21,7 @@ interface ProjectStage {
   name: string
   order: number
   formFields?: FormField[]
+  operatingUnit?: string // SEPD, PPMD, SRED, RAED
 }
 
 interface FormField {
@@ -102,7 +103,7 @@ export default function ConfigureProjectTypePage() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [isStageDialogOpen, setIsStageDialogOpen] = useState(false)
   const [editingStage, setEditingStage] = useState<ProjectStage | null>(null)
-  const [stageFormData, setStageFormData] = useState({ name: '' })
+  const [stageFormData, setStageFormData] = useState({ name: '', operatingUnit: '' })
   const [isConfigureDialogOpen, setIsConfigureDialogOpen] = useState(false)
   const [configuringStage, setConfiguringStage] = useState<ProjectStage | null>(null)
   const [selectedField, setSelectedField] = useState<FormField | null>(null)
@@ -342,14 +343,14 @@ export default function ConfigureProjectTypePage() {
   const handleAddStage = () => {
     if (!isEditMode) return
     setEditingStage(null)
-    setStageFormData({ name: '' })
+    setStageFormData({ name: '', operatingUnit: '' })
     setIsStageDialogOpen(true)
   }
 
   const handleEditStage = (stage: ProjectStage) => {
     if (!isEditMode) return
     setEditingStage(stage)
-    setStageFormData({ name: stage.name })
+    setStageFormData({ name: stage.name, operatingUnit: stage.operatingUnit || '' })
     setIsStageDialogOpen(true)
   }
 
@@ -549,7 +550,7 @@ export default function ConfigureProjectTypePage() {
       // Update existing stage
       const updatedStages = projectType.stages.map(s =>
         s.id === editingStage.id
-          ? { ...s, name: stageFormData.name.trim() }
+          ? { ...s, name: stageFormData.name.trim(), operatingUnit: stageFormData.operatingUnit || undefined }
           : s
       )
       updatedType = { ...projectType, stages: updatedStages, updatedAt: new Date().toISOString() }
@@ -560,7 +561,8 @@ export default function ConfigureProjectTypePage() {
       const newStage: ProjectStage = {
         id: Date.now().toString(),
         name: stageFormData.name.trim(),
-        order: projectType.stages.length + 1
+        order: projectType.stages.length + 1,
+        operatingUnit: stageFormData.operatingUnit || undefined
       }
       updatedType = { ...projectType, stages: [...projectType.stages, newStage], updatedAt: new Date().toISOString() }
       savedStageId = newStage.id
@@ -570,7 +572,7 @@ export default function ConfigureProjectTypePage() {
     saveProjectTypes(updatedType)
 
     setIsStageDialogOpen(false)
-    setStageFormData({ name: '' })
+    setStageFormData({ name: '', operatingUnit: '' })
     setEditingStage(null)
 
     // Show success toast
@@ -937,7 +939,19 @@ export default function ConfigureProjectTypePage() {
                           {stage.order}
                         </Badge>
                         <div className="flex-1 min-w-0">
-                          <p className="text-base font-medium">{stage.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-base font-medium">{stage.name}</p>
+                            {stage.operatingUnit && (
+                              <Badge variant="secondary" className="text-xs">
+                                {stage.operatingUnit}
+                              </Badge>
+                            )}
+                          </div>
+                          {stage.operatingUnit && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Responsible for evaluation and approval
+                            </p>
+                          )}
                         </div>
                         <div className="flex items-center gap-1">
                           <Button
@@ -1020,14 +1034,34 @@ export default function ConfigureProjectTypePage() {
                 id="stage-name"
                 placeholder="e.g., Draft, Proposal, Implementation"
                 value={stageFormData.name}
-                onChange={(e) => setStageFormData({ name: e.target.value })}
+                onChange={(e) => setStageFormData({ ...stageFormData, name: e.target.value })}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="operating-unit">Responsible Operating Unit</Label>
+              <Select
+                value={stageFormData.operatingUnit}
+                onValueChange={(value) => setStageFormData({ ...stageFormData, operatingUnit: value })}
+              >
+                <SelectTrigger id="operating-unit">
+                  <SelectValue placeholder="Select operating unit (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SEPD">SEPD</SelectItem>
+                  <SelectItem value="PPMD">PPMD</SelectItem>
+                  <SelectItem value="SRED">SRED</SelectItem>
+                  <SelectItem value="RAED">RAED</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Select the operating unit responsible for evaluating and approving this stage
+              </p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => {
               setIsStageDialogOpen(false)
-              setStageFormData({ name: '' })
+              setStageFormData({ name: '', operatingUnit: '' })
               setEditingStage(null)
             }}>
               <X className="h-4 w-4 mr-2" />
@@ -1047,11 +1081,21 @@ export default function ConfigureProjectTypePage() {
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-center justify-between">
               <div>
-                <DialogTitle className="text-2xl">
+                <DialogTitle className="text-2xl flex items-center gap-2">
                   {projectType?.name} &gt; Configure Stage &gt; {configuringStage?.name}
+                  {configuringStage?.operatingUnit && (
+                    <Badge variant="secondary" className="text-sm">
+                      {configuringStage.operatingUnit}
+                    </Badge>
+                  )}
                 </DialogTitle>
                 <DialogDescription className="mt-1">
                   Build the form for this stage by dragging form elements from the right panel.
+                  {configuringStage?.operatingUnit && (
+                    <span className="block mt-1 text-xs text-muted-foreground">
+                      This stage is assigned to <span className="font-medium text-foreground">{configuringStage.operatingUnit}</span> for evaluation and approval
+                    </span>
+                  )}
                 </DialogDescription>
               </div>
               <div className="flex items-center gap-2">
