@@ -133,6 +133,8 @@ export default function ConfigureProjectTypePage() {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [isReordering, setIsReordering] = useState(false)
   const [previousOrder, setPreviousOrder] = useState<{ [key: string]: number }>({})
+  const [showOverallPreview, setShowOverallPreview] = useState(false)
+  const [selectedPreviewStage, setSelectedPreviewStage] = useState<string | null>(null)
 
   // Handle initial load and prevent redirects during auth loading
   useEffect(() => {
@@ -718,6 +720,25 @@ export default function ConfigureProjectTypePage() {
               )}
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowOverallPreview(true)
+                  // Auto-select first stage with fields
+                  const firstStageWithFields = projectType.stages
+                    .sort((a, b) => a.order - b.order)
+                    .find(s => s.formFields && s.formFields.length > 0)
+                  if (firstStageWithFields) {
+                    setSelectedPreviewStage(firstStageWithFields.id)
+                  } else if (projectType.stages.length > 0) {
+                    setSelectedPreviewStage(projectType.stages.sort((a, b) => a.order - b.order)[0].id)
+                  }
+                }}
+                className="gap-2"
+              >
+                <Eye className="h-4 w-4" />
+                Preview All Stages
+              </Button>
               {!isEditMode ? (
                 <Button
                   onClick={() => setIsEditMode(true)}
@@ -1333,6 +1354,11 @@ export default function ConfigureProjectTypePage() {
                 setShowSuccessToast(true)
                 setToastCountdown(10)
                 
+                // Auto-select the updated stage in preview modal if it's open
+                if (showOverallPreview) {
+                  setSelectedPreviewStage(configuringStage.id)
+                }
+                
                 // Highlight the updated stage after toast
                 setTimeout(() => {
                   setHighlightedStageId(configuringStage.id)
@@ -1614,6 +1640,295 @@ export default function ConfigureProjectTypePage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowVersionsModal(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Overall Preview Modal - All Stages with Stepper */}
+      <Dialog open={showOverallPreview} onOpenChange={setShowOverallPreview}>
+        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Overall Form Preview - All Stages</DialogTitle>
+            <DialogDescription>
+              Click on any stage in the stepper to preview its form fields
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Stepper */}
+            <div className="border-b pb-6 mb-6">
+              <div className="flex items-center justify-between px-8 relative" style={{ minHeight: '140px' }}>
+                {projectType.stages
+                  .sort((a, b) => a.order - b.order)
+                  .map((stage, index) => {
+                    const StageIcon = getStageIcon(stage.name)
+                    const isSelected = selectedPreviewStage === stage.id
+                    const hasFields = stage.formFields && stage.formFields.length > 0
+                    const totalSteps = projectType.stages.length
+                    
+                    // Better spacing: distribute evenly with padding on sides
+                    // Each step takes equal space, centered in its area
+                    const stepAreaWidth = 100 / totalSteps
+                    const stepCenter = (index + 0.5) * stepAreaWidth
+                    
+                    return (
+                      <div 
+                        key={stage.id} 
+                        className="absolute flex flex-col items-center cursor-pointer group"
+                        style={{
+                          left: `${stepCenter}%`,
+                          transform: 'translateX(-50%)',
+                          width: `${stepAreaWidth}%`,
+                          minWidth: '120px',
+                        }}
+                        onClick={() => setSelectedPreviewStage(stage.id)}
+                      >
+                        {/* Step Circle with Icon */}
+                        <div 
+                          className={cn(
+                            "relative z-10 flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200",
+                            {
+                              "border-primary bg-primary text-primary-foreground shadow-lg scale-110 ring-4 ring-primary/20": isSelected,
+                              "border-primary/30 bg-primary/10 text-primary hover:border-primary/50 hover:bg-primary/20": !isSelected && hasFields,
+                              "border-muted bg-muted text-muted-foreground": !isSelected && !hasFields,
+                            }
+                          )}
+                        >
+                          <StageIcon className="h-7 w-7" />
+                        </div>
+                        {/* Step Label */}
+                        <div className="mt-3 w-full px-2 text-center space-y-1.5">
+                          <p className={cn(
+                            "text-sm font-medium truncate transition-colors",
+                            {
+                              "font-bold text-primary": isSelected,
+                              "text-foreground group-hover:text-primary": !isSelected && hasFields,
+                              "text-muted-foreground": !isSelected && !hasFields,
+                            }
+                          )}>
+                            {stage.name}
+                          </p>
+                          {hasFields && (
+                            <Badge 
+                              variant="outline" 
+                              className={cn(
+                                "text-xs transition-colors",
+                                {
+                                  "border-primary text-primary": isSelected,
+                                  "group-hover:border-primary/50": !isSelected,
+                                }
+                              )}
+                            >
+                              {stage.formFields?.length || 0} field{(stage.formFields?.length || 0) !== 1 ? 's' : ''}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                {/* Connector Lines */}
+                <div className="absolute inset-0 pointer-events-none" style={{ top: '64px', height: '2px' }}>
+                  {projectType.stages
+                    .sort((a, b) => a.order - b.order)
+                    .slice(0, -1)
+                    .map((stage, index) => {
+                      const totalSteps = projectType.stages.length
+                      const stepAreaWidth = 100 / totalSteps
+                      const currentStepCenter = (index + 0.5) * stepAreaWidth
+                      const nextStepCenter = (index + 1.5) * stepAreaWidth
+                      const connectorStart = currentStepCenter + (stepAreaWidth * 0.15) // Start 15% into current step area
+                      const connectorEnd = nextStepCenter - (stepAreaWidth * 0.15) // End 15% before next step area
+                      const connectorWidth = connectorEnd - connectorStart
+                      const connectorLeft = connectorStart
+                      
+                      return (
+                        <div
+                          key={`connector-${stage.id}`}
+                          className="absolute h-0.5 bg-primary/30"
+                          style={{
+                            left: `${connectorLeft}%`,
+                            width: `${connectorWidth}%`,
+                            top: '0',
+                          }}
+                        />
+                      )
+                    })}
+                </div>
+              </div>
+            </div>
+
+            {/* Selected Stage Form Preview */}
+            <div className="flex-1 overflow-y-auto">
+              {selectedPreviewStage ? (() => {
+                const selectedStage = projectType.stages.find(s => s.id === selectedPreviewStage)
+                if (!selectedStage) return null
+                
+                const hasFields = selectedStage.formFields && selectedStage.formFields.length > 0
+                
+                return (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        {selectedStage.name}
+                        <Badge variant="outline">
+                          Stage {selectedStage.order} of {projectType.stages.length}
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription>
+                        {hasFields 
+                          ? `Preview of ${selectedStage.formFields?.length || 0} form field${(selectedStage.formFields?.length || 0) !== 1 ? 's' : ''}`
+                          : 'No form fields configured for this stage'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {!hasFields ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg">
+                          <FileText className="h-12 w-12 mb-4 opacity-50" />
+                          <p className="text-lg font-medium mb-2">No form fields configured</p>
+                          <p className="text-sm">Click "Configure" to add form fields to this stage</p>
+                        </div>
+                      ) : (
+                        selectedStage.formFields?.map((field) => {
+                          const FieldIcon = fieldTypes.find(ft => ft.id === field.type)?.icon || Type
+                          return (
+                            <div key={field.id} className="space-y-2">
+                              {field.type !== 'label' && (
+                                <Label htmlFor={`overall-preview-${field.id}`} className="flex items-center gap-2">
+                                  <FieldIcon className="h-4 w-4 text-muted-foreground" />
+                                  {field.label}
+                                  {field.required && (
+                                    <span className="text-destructive">*</span>
+                                  )}
+                                </Label>
+                              )}
+                              {field.type === 'text' && (
+                                <Input
+                                  id={`overall-preview-${field.id}`}
+                                  placeholder={field.placeholder}
+                                  disabled
+                                  className="bg-background"
+                                />
+                              )}
+                              {field.type === 'email' && (
+                                <Input
+                                  id={`overall-preview-${field.id}`}
+                                  type="email"
+                                  placeholder={field.placeholder}
+                                  disabled
+                                  className="bg-background"
+                                />
+                              )}
+                              {field.type === 'number' && (
+                                <Input
+                                  id={`overall-preview-${field.id}`}
+                                  type="number"
+                                  placeholder={field.placeholder}
+                                  disabled
+                                  className="bg-background"
+                                />
+                              )}
+                              {field.type === 'date' && (
+                                <Input
+                                  id={`overall-preview-${field.id}`}
+                                  type="date"
+                                  disabled
+                                  className="bg-background"
+                                />
+                              )}
+                              {field.type === 'textarea' && (
+                                <textarea
+                                  id={`overall-preview-${field.id}`}
+                                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                                  placeholder={field.placeholder}
+                                  disabled
+                                />
+                              )}
+                              {field.type === 'select' && (
+                                <Select disabled>
+                                  <SelectTrigger id={`overall-preview-${field.id}`} className="bg-background">
+                                    <SelectValue placeholder={field.placeholder || 'Select an option'} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {field.options?.map((option, index) => (
+                                      <SelectItem key={index} value={option}>
+                                        {option}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                              {field.type === 'radio' && (
+                                <div className="space-y-2">
+                                  {field.options?.map((option, index) => (
+                                    <div key={index} className="flex items-center space-x-2">
+                                      <input
+                                        type="radio"
+                                        id={`overall-preview-${field.id}-${index}`}
+                                        name={`overall-preview-${field.id}`}
+                                        disabled
+                                        className="h-4 w-4 text-primary"
+                                      />
+                                      <Label htmlFor={`overall-preview-${field.id}-${index}`} className="font-normal cursor-pointer">
+                                        {option}
+                                      </Label>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              {field.type === 'checkbox' && (
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`overall-preview-${field.id}`}
+                                    disabled
+                                  />
+                                  <Label htmlFor={`overall-preview-${field.id}`} className="font-normal cursor-pointer">
+                                    {field.placeholder || 'Check this option'}
+                                  </Label>
+                                </div>
+                              )}
+                              {field.type === 'file' && (
+                                <div className="space-y-2">
+                                  <Input
+                                    id={`overall-preview-${field.id}`}
+                                    type="file"
+                                    disabled
+                                    className="bg-background"
+                                  />
+                                </div>
+                              )}
+                              {field.type === 'label' && (
+                                <div className="py-2">
+                                  <p className="text-base font-medium text-foreground">{field.label}</p>
+                                </div>
+                              )}
+                              {field.type === 'button' && (
+                                <Button 
+                                  disabled
+                                  className="w-full"
+                                  variant="outline"
+                                >
+                                  {field.label || 'Submit'}
+                                </Button>
+                              )}
+                            </div>
+                          )
+                        })
+                      )}
+                    </CardContent>
+                  </Card>
+                )
+              })() : (
+                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                  <FileText className="h-12 w-12 mb-4 opacity-50" />
+                  <p className="text-lg font-medium mb-2">Select a stage to preview</p>
+                  <p className="text-sm">Click on any stage in the stepper above to see its form fields</p>
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowOverallPreview(false)}>
               Close
             </Button>
           </DialogFooter>
