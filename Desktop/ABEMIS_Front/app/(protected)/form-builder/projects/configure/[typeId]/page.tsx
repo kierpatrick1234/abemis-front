@@ -155,15 +155,16 @@ export default function ConfigureProjectTypePage() {
   useEffect(() => {
     // In a real app, this would come from an API
     // For now, we'll use localStorage or default data
-    const storedTypes = localStorage.getItem('projectTypes')
     let types: ProjectType[] = []
 
-    if (storedTypes) {
-      try {
+    try {
+      const storedTypes = localStorage.getItem('projectTypes')
+      if (storedTypes) {
         types = JSON.parse(storedTypes)
-      } catch (e) {
-        console.error('Error parsing project types:', e)
       }
+    } catch (e) {
+      console.error('Error loading project types from localStorage:', e)
+      // Continue with empty array, will use defaults
     }
 
     // If no stored types, use defaults
@@ -173,8 +174,12 @@ export default function ConfigureProjectTypePage() {
         { id: '2', name: 'Infrastructure', description: 'Infrastructure Projects', stages: getDefaultStages('Infrastructure'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
         { id: '3', name: 'Machinery', description: 'Machinery and Equipment', stages: getDefaultStages('Machinery'), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       ]
-      // Save defaults to localStorage for future use
-      localStorage.setItem('projectTypes', JSON.stringify(types))
+      // Try to save defaults to localStorage (may fail in some environments)
+      try {
+        localStorage.setItem('projectTypes', JSON.stringify(types))
+      } catch (e) {
+        console.warn('Could not save default project types to localStorage:', e)
+      }
     }
 
     const foundType = types.find(t => t.id === typeId)

@@ -212,3 +212,41 @@ export interface OperatingUnit {
   updatedAt: string
   createdBy: string
 }
+
+export interface AuditLog {
+  id: string
+  action: string
+  category: 'authentication' | 'user_management' | 'project' | 'document' | 'system_config' | 'permission' | 'other'
+  userId: string
+  userName: string
+  userEmail: string
+  userRole: Role
+  ipAddress?: string
+  userAgent?: string
+  details?: string
+  resourceType?: string
+  resourceId?: string
+  status: 'success' | 'failure' | 'warning'
+  timestamp: string
+}
+
+export interface PasswordPolicy {
+  minLength: number
+  requireUppercase: boolean
+  requireLowercase: boolean
+  requireNumbers: boolean
+  requireSpecialChars: boolean
+  maxAge: number // days
+  preventReuse: number // number of previous passwords to prevent reuse
+  lockoutAttempts: number
+  lockoutDuration: number // minutes
+  requireChangeOnFirstLogin: boolean
+}
+
+export interface SessionPolicy {
+  sessionTimeout: number // minutes
+  maxConcurrentSessions: number
+  requireReauthForSensitiveActions: boolean
+  idleTimeout: number // minutes
+  rememberMeDuration: number // days
+}

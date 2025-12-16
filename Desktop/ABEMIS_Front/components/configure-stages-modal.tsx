@@ -16,15 +16,35 @@ export function ConfigureStagesModal({ isOpen, onClose, typeId, projectTypeName 
   const [isLoading, setIsLoading] = useState(true)
   const [iframeKey, setIframeKey] = useState(0)
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (isOpen && typeId) {
       setIsLoading(true)
       // Force iframe to reload by changing key
       setIframeKey(prev => prev + 1)
+      
+      // Set a timeout to hide loading after 10 seconds (fallback in case onLoad doesn't fire)
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current)
+      }
+      loadingTimeoutRef.current = setTimeout(() => {
+        setIsLoading(false)
+        console.warn('Loading timeout reached - hiding loading indicator')
+      }, 10000)
     } else if (!isOpen) {
       // Reset loading state when modal closes
       setIsLoading(true)
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current)
+        loadingTimeoutRef.current = null
+      }
+    }
+    
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current)
+      }
     }
   }, [isOpen, typeId])
 
@@ -57,7 +77,7 @@ export function ConfigureStagesModal({ isOpen, onClose, typeId, projectTypeName 
             <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Loading configure stages...</p>
+                <p className="text-sm text-muted-foreground">Loading configure projects...</p>
               </div>
             </div>
           )}
@@ -70,6 +90,11 @@ export function ConfigureStagesModal({ isOpen, onClose, typeId, projectTypeName 
               title="Configure Project Stages"
               sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
               onLoad={() => {
+                // Clear the timeout since the iframe loaded
+                if (loadingTimeoutRef.current) {
+                  clearTimeout(loadingTimeoutRef.current)
+                  loadingTimeoutRef.current = null
+                }
                 setIsLoading(false)
                 // Check if iframe loaded the correct page (not redirected to dashboard)
                 try {
@@ -86,6 +111,11 @@ export function ConfigureStagesModal({ isOpen, onClose, typeId, projectTypeName 
                 }
               }}
               onError={() => {
+                // Clear the timeout on error
+                if (loadingTimeoutRef.current) {
+                  clearTimeout(loadingTimeoutRef.current)
+                  loadingTimeoutRef.current = null
+                }
                 setIsLoading(false)
                 console.error('Error loading configure stages iframe')
               }}
