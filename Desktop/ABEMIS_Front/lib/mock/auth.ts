@@ -13,6 +13,8 @@ export const mockUsers: User[] = [
     status: 'active',
     lastLogin: '2025-08-15T10:30:00Z',
     createdAt: '2024-01-01T00:00:00Z',
+    // Explicitly ensure no region assignment for admin
+    regionAssigned: undefined,
   },
   {
     id: '2',
@@ -347,6 +349,19 @@ export function getSession(): Session | null {
       return null
     }
     
+    // Fix admin account if session has wrong role or region assignment
+    if (session.user.email === 'admin@abemis.com') {
+      if (session.user.role !== 'admin' || session.user.regionAssigned) {
+        session.user = {
+          ...session.user,
+          role: 'admin',
+          regionAssigned: undefined,
+        }
+        // Save the corrected session
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+      }
+    }
+    
     return session
   } catch {
     return null
@@ -390,10 +405,19 @@ export function signIn(email: string, password: string): { success: boolean; use
   console.log('✅ Password matches!')
   
   // Find user by email instead of role to get the specific user
-  const user = mockUsers.find(u => u.email === email)
+  let user = mockUsers.find(u => u.email === email)
   
   if (!user) {
     return { success: false, error: 'User not found' }
+  }
+  
+  // Ensure admin@abemis.com is always set to admin role with no region assignment
+  if (email === 'admin@abemis.com') {
+    user = {
+      ...user,
+      role: 'admin',
+      regionAssigned: undefined,
+    }
   }
   
   // Check if user is approved (not pending)

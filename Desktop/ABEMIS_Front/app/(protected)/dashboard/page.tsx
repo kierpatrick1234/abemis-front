@@ -55,13 +55,17 @@ export default function DashboardPage() {
     return null
   }
 
-  // Get user's assigned region
-  const userRegion = user?.regionAssigned || 'Region 1' // Default to Region 1 if not set
+  // Admin users see all projects, other users see only their assigned region
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin'
+  const userRegion = user?.regionAssigned || (isAdmin ? undefined : 'Region 1')
 
-  // Filter projects to only show the user's assigned region
+  // Filter projects: admin sees all, others see only their region
   const regionProjects = useMemo(() => {
+    if (isAdmin) {
+      return raedSpecificProjects // Admin sees all projects
+    }
     return raedSpecificProjects.filter(project => project.region === userRegion)
-  }, [userRegion])
+  }, [userRegion, isAdmin])
 
   // Calculate meaningful statistics from region projects
   const totalProjects = regionProjects.length
@@ -161,15 +165,21 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">
           {user?.role === 'EPDSD' 
             ? 'EPDSD Dashboard' 
-            : user?.role === 'admin'
-            ? `RAED Dashboard-${userRegion}`
-            : `RAED Dashboard - ${userRegion}`
+            : user?.role === 'admin' || user?.role === 'superadmin'
+            ? 'Admin Dashboard'
+            : user?.role === 'RAED'
+            ? `RAED Dashboard - ${userRegion}`
+            : 'Dashboard'
           }
         </h1>
         <p className="text-muted-foreground">
           {user?.role === 'EPDSD' 
             ? 'Overview of Infrastructure and Machinery projects for evaluation'
-            : `Overview of agricultural engineering projects in ${userRegion}`
+            : user?.role === 'admin' || user?.role === 'superadmin'
+            ? 'Complete overview of all agricultural engineering projects across all regions'
+            : user?.role === 'RAED'
+            ? `Overview of agricultural engineering projects in ${userRegion}`
+            : 'Overview of projects and activities'
           }
         </p>
       </div>
