@@ -176,90 +176,143 @@ export default function RegistrationFormPage() {
 
   // Load project type from localStorage
   useEffect(() => {
-    setIsInitializing(true)
-    const storedTypes = localStorage.getItem('projectTypes')
-    let types: ProjectType[] = []
-
-    if (storedTypes) {
+    // Ensure we always complete initialization, even if there's an error
+    const initializeProjectType = () => {
       try {
-        types = JSON.parse(storedTypes)
-      } catch (e) {
-        console.error('Error parsing project types:', e)
-      }
-    }
-
-    // If no stored types, use defaults
-    if (types.length === 0) {
-      types = [
-        { id: '1', name: 'FMR', description: 'Farm-to-Market Road', stages: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: '2', name: 'Infrastructure', description: 'Infrastructure Projects', stages: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: '3', name: 'Machinery', description: 'Machinery and Equipment', stages: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-      ]
-      localStorage.setItem('projectTypes', JSON.stringify(types))
-    }
-
-    const foundType = types.find(t => t.id === typeId)
-    if (foundType) {
-      // Always check if registration steps need initialization
-      const needsInitialization = !foundType.registrationSteps || 
-                                  foundType.registrationSteps.length === 0 ||
-                                  !Array.isArray(foundType.registrationSteps)
-      
-      if (needsInitialization) {
-        const defaultSteps = getDefaultRegistrationSteps()
-        // Flatten steps to formFields for backward compatibility
-        const allFields = defaultSteps.flatMap(step => step.fields)
-        // Save the default steps to the project type
-        const updatedType = {
-          ...foundType,
-          registrationSteps: defaultSteps,
-          registrationForm: allFields, // Keep for backward compatibility
-          updatedAt: new Date().toISOString()
+        setIsInitializing(true)
+        
+        // Check if localStorage is available (important for SSR/Vercel)
+        if (typeof window === 'undefined') {
+          // SSR: Create default type immediately
+          const defaultSteps = getDefaultRegistrationSteps()
+          const allFields = defaultSteps.flatMap(step => step.fields)
+          const defaultType: ProjectType = {
+            id: typeId,
+            name: `Project Type ${typeId}`,
+            description: 'Default project type',
+            stages: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            registrationSteps: defaultSteps,
+            registrationForm: allFields
+          }
+          setProjectType(defaultType)
+          setRegistrationSteps(defaultSteps)
+          setFormFields(allFields)
+          setIsInitializing(false)
+          return
         }
-        // Save directly to localStorage first
-        const updatedTypes = types.map(t => t.id === updatedType.id ? updatedType : t)
-        localStorage.setItem('projectTypes', JSON.stringify(updatedTypes))
-        // Then set state
-        setProjectType(updatedType)
+
+        const storedTypes = localStorage.getItem('projectTypes')
+        let types: ProjectType[] = []
+
+        if (storedTypes) {
+          try {
+            types = JSON.parse(storedTypes)
+          } catch (e) {
+            console.error('Error parsing project types:', e)
+            types = []
+          }
+        }
+
+        // If no stored types, use defaults
+        if (types.length === 0) {
+          types = [
+            { id: '1', name: 'FMR', description: 'Farm-to-Market Road', stages: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { id: '2', name: 'Infrastructure', description: 'Infrastructure Projects', stages: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { id: '3', name: 'Machinery', description: 'Machinery and Equipment', stages: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+          ]
+          try {
+            localStorage.setItem('projectTypes', JSON.stringify(types))
+          } catch (e) {
+            console.warn('Could not save to localStorage:', e)
+          }
+        }
+
+        const foundType = types.find(t => t.id === typeId)
+        if (foundType) {
+          // Always check if registration steps need initialization
+          const needsInitialization = !foundType.registrationSteps || 
+                                      foundType.registrationSteps.length === 0 ||
+                                      !Array.isArray(foundType.registrationSteps)
+          
+          if (needsInitialization) {
+            const defaultSteps = getDefaultRegistrationSteps()
+            const allFields = defaultSteps.flatMap(step => step.fields)
+            const updatedType = {
+              ...foundType,
+              registrationSteps: defaultSteps,
+              registrationForm: allFields,
+              updatedAt: new Date().toISOString()
+            }
+            try {
+              const updatedTypes = types.map(t => t.id === updatedType.id ? updatedType : t)
+              localStorage.setItem('projectTypes', JSON.stringify(updatedTypes))
+            } catch (e) {
+              console.warn('Could not save to localStorage:', e)
+            }
+            setProjectType(updatedType)
+            setRegistrationSteps(defaultSteps)
+            setFormFields(allFields)
+          } else {
+            const normalizedSteps = (foundType.registrationSteps || []).map(step => ({
+              ...step,
+              fields: step.fields || []
+            }))
+            setProjectType(foundType)
+            setRegistrationSteps(normalizedSteps)
+            const allFields = normalizedSteps.flatMap(step => step.fields || [])
+            setFormFields(allFields)
+          }
+        } else {
+          // Type not found, create a default type with default registration steps
+          const defaultSteps = getDefaultRegistrationSteps()
+          const allFields = defaultSteps.flatMap(step => step.fields)
+          const defaultType: ProjectType = {
+            id: typeId,
+            name: `Project Type ${typeId}`,
+            description: 'Default project type',
+            stages: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            registrationSteps: defaultSteps,
+            registrationForm: allFields
+          }
+          setProjectType(defaultType)
+          setRegistrationSteps(defaultSteps)
+          setFormFields(allFields)
+          try {
+            types.push(defaultType)
+            localStorage.setItem('projectTypes', JSON.stringify(types))
+          } catch (e) {
+            console.warn('Could not save to localStorage:', e)
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing project type:', error)
+        // Fallback: Create a minimal default type to prevent infinite loading
+        const defaultSteps = getDefaultRegistrationSteps()
+        const allFields = defaultSteps.flatMap(step => step.fields)
+        const defaultType: ProjectType = {
+          id: typeId,
+          name: `Project Type ${typeId}`,
+          description: 'Default project type',
+          stages: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          registrationSteps: defaultSteps,
+          registrationForm: allFields
+        }
+        setProjectType(defaultType)
         setRegistrationSteps(defaultSteps)
         setFormFields(allFields)
-        console.log('Initialized default registration steps:', defaultSteps)
-      } else {
-        // Normalize steps to ensure they always have a fields array
-        const normalizedSteps = (foundType.registrationSteps || []).map(step => ({
-          ...step,
-          fields: step.fields || []
-        }))
-        setProjectType(foundType)
-        setRegistrationSteps(normalizedSteps)
-        // Flatten steps to formFields for backward compatibility
-        const allFields = normalizedSteps.flatMap(step => step.fields || [])
-        setFormFields(allFields)
-        console.log('Loaded existing registration steps:', normalizedSteps)
+      } finally {
+        // Always set initializing to false, even if there was an error
+        setIsInitializing(false)
       }
-    } else {
-      // Type not found, create a default type with default registration steps
-      const defaultSteps = getDefaultRegistrationSteps()
-      const allFields = defaultSteps.flatMap(step => step.fields)
-      const defaultType: ProjectType = {
-        id: typeId,
-        name: `Project Type ${typeId}`,
-        description: 'Default project type',
-        stages: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        registrationSteps: defaultSteps,
-        registrationForm: allFields // Keep for backward compatibility
-      }
-      setProjectType(defaultType)
-      setRegistrationSteps(defaultSteps)
-      setFormFields(allFields)
-      // Save to localStorage
-      types.push(defaultType)
-      localStorage.setItem('projectTypes', JSON.stringify(types))
-      console.log('Created new project type with default steps:', defaultSteps)
     }
-    setIsInitializing(false)
+
+    initializeProjectType()
   }, [typeId])
 
   // Save project type to localStorage
@@ -946,10 +999,61 @@ export default function RegistrationFormPage() {
     return fieldTypeObj?.icon || Type
   }
 
+  // Timeout fallback to prevent infinite loading - ensures page always renders
+  useEffect(() => {
+    if (!isInitializing || projectType) return
+
+    const timeout = setTimeout(() => {
+      if (isInitializing && !projectType) {
+        console.warn('Initialization timeout - creating default project type')
+        const defaultSteps = getDefaultRegistrationSteps()
+        const allFields = defaultSteps.flatMap(step => step.fields)
+        const defaultType: ProjectType = {
+          id: typeId,
+          name: `Project Type ${typeId}`,
+          description: 'Default project type',
+          stages: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          registrationSteps: defaultSteps,
+          registrationForm: allFields
+        }
+        setProjectType(defaultType)
+        setRegistrationSteps(defaultSteps)
+        setFormFields(allFields)
+        setIsInitializing(false)
+      }
+    }, 2000) // 2 second timeout - faster fallback
+
+    return () => clearTimeout(timeout)
+  }, [isInitializing, projectType, typeId])
+
+  // Fallback useEffect: If projectType is still null after initialization completes, create default
+  useEffect(() => {
+    if (!isInitializing && !projectType) {
+      console.warn('Project type is null after initialization - creating default')
+      const defaultSteps = getDefaultRegistrationSteps()
+      const allFields = defaultSteps.flatMap(step => step.fields)
+      const defaultType: ProjectType = {
+        id: typeId,
+        name: `Project Type ${typeId}`,
+        description: 'Default project type',
+        stages: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        registrationSteps: defaultSteps,
+        registrationForm: allFields
+      }
+      setProjectType(defaultType)
+      setRegistrationSteps(defaultSteps)
+      setFormFields(allFields)
+    }
+  }, [isInitializing, projectType, typeId])
+
   // NEVER wait for auth - only wait for projectType to load
   // This prevents any redirects in Vercel where auth loading can cause issues
   // The layout already handles allowing this route, so we don't need to check auth here
-  if (!projectType || isInitializing) {
+  if (isInitializing || !projectType) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -959,6 +1063,10 @@ export default function RegistrationFormPage() {
       </div>
     )
   }
+
+  // At this point, projectType is guaranteed to be non-null due to the check above
+  // and the fallback useEffect that ensures it's always set
+  const currentProjectType = projectType
 
   return (
     <div className="space-y-6">
@@ -975,7 +1083,7 @@ export default function RegistrationFormPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Registration Form Configuration</h1>
           <p className="text-muted-foreground">
-            Configure the initial registration form for <strong>{projectType.name}</strong>
+            Configure the initial registration form for <strong>{currentProjectType.name}</strong>
           </p>
         </div>
       </div>
@@ -984,10 +1092,10 @@ export default function RegistrationFormPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{projectType.name} - Registration Form</CardTitle>
-              {projectType.description && (
+              <CardTitle>{currentProjectType.name} - Registration Form</CardTitle>
+              {currentProjectType.description && (
                 <CardDescription className="mt-1">
-                  {projectType.description}
+                  {currentProjectType.description}
                 </CardDescription>
               )}
             </div>
@@ -1040,12 +1148,12 @@ export default function RegistrationFormPage() {
                       onClick={() => {
                         setIsEditMode(false)
                         // Reset to saved steps
-                        if (projectType.registrationSteps) {
-                          setRegistrationSteps(projectType.registrationSteps)
-                          const allFields = projectType.registrationSteps.flatMap(step => step.fields)
+                        if (currentProjectType.registrationSteps) {
+                          setRegistrationSteps(currentProjectType.registrationSteps)
+                          const allFields = currentProjectType.registrationSteps.flatMap(step => step.fields)
                           setFormFields(allFields)
                         } else {
-                          setFormFields(projectType.registrationForm || [])
+                          setFormFields(currentProjectType.registrationForm || [])
                         }
                         setSelectedField(null)
                         setSelectedStep(null)
