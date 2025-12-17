@@ -455,12 +455,21 @@ export default function ProjectsPage() {
             <Button
               variant="outline"
               className="h-auto p-6 hover:bg-primary/5 hover:border-primary transition-colors justify-start w-full"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
                 if (selectedTypeForConfigure) {
-                  router.push(`/form-builder/projects/registration/${selectedTypeForConfigure}`)
+                  // Close dialog first, then navigate to prevent any redirect issues
+                  setShowConfigureDialog(false)
+                  // Use setTimeout to ensure dialog closes before navigation
+                  setTimeout(() => {
+                    router.push(`/form-builder/projects/registration/${selectedTypeForConfigure}`)
+                  }, 100)
+                } else {
+                  setShowConfigureDialog(false)
                 }
-                setShowConfigureDialog(false)
               }}
+              type="button"
             >
               <div className="flex items-start gap-4 w-full">
                 <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">

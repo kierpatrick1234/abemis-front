@@ -28,8 +28,16 @@ export default function ProtectedLayout({
     const isAllowedRoute = isConfigureRoute || isRegistrationRoute
     
     // Never redirect for configure or registration routes - they handle their own auth
+    // Also prevent redirects during navigation transitions
     if (!loading && !user && !isAllowedRoute) {
-      router.push('/login')
+      // Only redirect if we're not in the middle of navigating to an allowed route
+      const currentPath = window.location.pathname
+      const isNavigatingToAllowedRoute = currentPath.includes('/form-builder/projects/configure') || 
+                                         currentPath.includes('/form-builder/projects/registration')
+      
+      if (!isNavigatingToAllowedRoute) {
+        router.push('/login')
+      }
     }
     // Explicitly prevent any redirects for allowed routes
   }, [user, loading, router, pathname])
@@ -84,22 +92,9 @@ export default function ProtectedLayout({
   const isRegistrationRoute = pathname?.includes('/form-builder/projects/registration')
   const isAllowedRoute = isConfigureRoute || isRegistrationRoute
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-
-  // Allow configure and registration routes to render even if user is not loaded yet
-  // This prevents redirects in Vercel where auth might initialize slower
-  if (!user && !isAllowedRoute) {
-    return null
-  }
-
-  // For configure and registration routes, render the page even without user (it will handle its own loading)
-  if (isAllowedRoute && !user) {
+  // For allowed routes, always render immediately - don't wait for auth
+  // This prevents any redirects from happening
+  if (isAllowedRoute) {
     return (
       <EvaluationProvider>
         <div className="flex h-screen bg-background">
@@ -118,6 +113,19 @@ export default function ProtectedLayout({
         </div>
       </EvaluationProvider>
     )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  // For non-allowed routes, check auth
+  if (!user) {
+    return null
   }
 
   return (

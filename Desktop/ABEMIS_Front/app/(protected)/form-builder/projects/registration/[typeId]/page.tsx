@@ -946,6 +946,8 @@ export default function RegistrationFormPage() {
     return fieldTypeObj?.icon || Type
   }
 
+  // Never redirect - always show loading state while initializing
+  // This prevents any redirects to dashboard
   if (authLoading || !projectType || isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
