@@ -317,6 +317,12 @@ export const navigationItems: NavItem[] = [
     roles: ['admin'],
   },
   {
+    title: 'System Logs',
+    href: '/form-builder/system-logs',
+    icon: 'FileText',
+    roles: ['admin'],
+  },
+  {
     title: 'Settings',
     href: '/profile',
     icon: 'Settings',

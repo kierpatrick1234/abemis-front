@@ -324,13 +324,6 @@ export default function SystemPage() {
     isActive: true,
   })
 
-  // Audit Logs state
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
-  const [isAuditLogsInitialized, setIsAuditLogsInitialized] = useState(false)
-  const [auditLogsSearch, setAuditLogsSearch] = useState('')
-  const [auditLogsFilter, setAuditLogsFilter] = useState<'all' | AuditLog['category']>('all')
-  const [auditLogsStatusFilter, setAuditLogsStatusFilter] = useState<'all' | AuditLog['status']>('all')
-  
   // Password Policy state
   const [passwordPolicy, setPasswordPolicy] = useState<PasswordPolicy>({
     minLength: 8,
@@ -427,643 +420,6 @@ export default function SystemPage() {
     localStorage.setItem('abemis-operating-units', JSON.stringify(newOperatingUnits))
     setOperatingUnits(newOperatingUnits)
   }
-
-  // Load audit logs from localStorage
-  useEffect(() => {
-    if (loading || isAuditLogsInitialized) return
-    
-    const stored = localStorage.getItem('abemis-audit-logs')
-    let loadedLogs: AuditLog[] = []
-    
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          loadedLogs = parsed
-        }
-      } catch (error) {
-        console.error('Error loading audit logs:', error)
-      }
-    }
-    
-    // If no logs, create comprehensive sample logs for each category
-    if (loadedLogs.length === 0) {
-      const now = new Date()
-      loadedLogs = [
-        // Authentication Category (5+ examples)
-        {
-          id: 'audit-auth-1',
-          action: 'User Login',
-          category: 'authentication',
-          userId: 'user-001',
-          userName: 'John Engineer',
-          userEmail: 'john.engineer@abemis.gov.ph',
-          userRole: 'engineer',
-          ipAddress: '192.168.1.100',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-          status: 'success',
-          timestamp: new Date(now.getTime() - 3600000).toISOString(), // 1 hour ago
-        },
-        {
-          id: 'audit-auth-2',
-          action: 'Password Changed',
-          category: 'authentication',
-          userId: 'user-002',
-          userName: 'Jane Manager',
-          userEmail: 'jane.manager@abemis.gov.ph',
-          userRole: 'manager',
-          ipAddress: '192.168.1.105',
-          status: 'success',
-          details: 'Password successfully updated',
-          timestamp: new Date(now.getTime() - 7200000).toISOString(), // 2 hours ago
-        },
-        {
-          id: 'audit-auth-3',
-          action: 'Failed Login Attempt',
-          category: 'authentication',
-          userId: 'unknown',
-          userName: 'Unknown User',
-          userEmail: 'attacker@example.com',
-          userRole: 'admin',
-          ipAddress: '203.0.113.45',
-          status: 'failure',
-          details: 'Invalid credentials provided',
-          timestamp: new Date(now.getTime() - 10800000).toISOString(), // 3 hours ago
-        },
-        {
-          id: 'audit-auth-4',
-          action: 'Session Expired',
-          category: 'authentication',
-          userId: 'user-003',
-          userName: 'Mike Supervisor',
-          userEmail: 'mike.supervisor@abemis.gov.ph',
-          userRole: 'supervisor',
-          ipAddress: '192.168.1.110',
-          status: 'warning',
-          details: 'Session expired due to inactivity',
-          timestamp: new Date(now.getTime() - 14400000).toISOString(), // 4 hours ago
-        },
-        {
-          id: 'audit-auth-5',
-          action: 'Account Locked',
-          category: 'authentication',
-          userId: 'user-004',
-          userName: 'Sarah Engineer',
-          userEmail: 'sarah.engineer@abemis.gov.ph',
-          userRole: 'engineer',
-          ipAddress: '192.168.1.115',
-          status: 'warning',
-          details: 'Account locked after 5 failed login attempts',
-          timestamp: new Date(now.getTime() - 18000000).toISOString(), // 5 hours ago
-        },
-        {
-          id: 'audit-auth-6',
-          action: 'Password Reset Request',
-          category: 'authentication',
-          userId: 'user-005',
-          userName: 'David RAED',
-          userEmail: 'david.raed@abemis.gov.ph',
-          userRole: 'RAED',
-          ipAddress: '192.168.1.120',
-          status: 'success',
-          details: 'Password reset email sent',
-          timestamp: new Date(now.getTime() - 21600000).toISOString(), // 6 hours ago
-        },
-        
-        // User Management Category (5+ examples)
-        {
-          id: 'audit-user-1',
-          action: 'User Created',
-          category: 'user_management',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'user',
-          resourceId: 'user-010',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'New user created: alice.engineer@abemis.gov.ph with role engineer',
-          timestamp: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
-        },
-        {
-          id: 'audit-user-2',
-          action: 'User Updated',
-          category: 'user_management',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'user',
-          resourceId: 'user-011',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'User role changed from engineer to manager',
-          timestamp: new Date(now.getTime() - 172800000).toISOString(), // 2 days ago
-        },
-        {
-          id: 'audit-user-3',
-          action: 'User Deactivated',
-          category: 'user_management',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'user',
-          resourceId: 'user-012',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'User account deactivated',
-          timestamp: new Date(now.getTime() - 259200000).toISOString(), // 3 days ago
-        },
-        {
-          id: 'audit-user-4',
-          action: 'User Invited',
-          category: 'user_management',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'user',
-          resourceId: 'invite-001',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'Invitation sent to new.user@abemis.gov.ph',
-          timestamp: new Date(now.getTime() - 345600000).toISOString(), // 4 days ago
-        },
-        {
-          id: 'audit-user-5',
-          action: 'Bulk User Import',
-          category: 'user_management',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: '15 users imported from CSV file',
-          timestamp: new Date(now.getTime() - 432000000).toISOString(), // 5 days ago
-        },
-        {
-          id: 'audit-user-6',
-          action: 'User Role Changed',
-          category: 'user_management',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'user',
-          resourceId: 'user-013',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'User role updated from stakeholder to engineer',
-          timestamp: new Date(now.getTime() - 518400000).toISOString(), // 6 days ago
-        },
-        
-        // Project Category (5+ examples)
-        {
-          id: 'audit-project-1',
-          action: 'Project Created',
-          category: 'project',
-          userId: 'user-020',
-          userName: 'Robert Engineer',
-          userEmail: 'robert.engineer@abemis.gov.ph',
-          userRole: 'engineer',
-          resourceType: 'project',
-          resourceId: 'PRJ-001',
-          ipAddress: '192.168.1.130',
-          status: 'success',
-          details: 'New FMR project created: Farm-to-Market Road - Northern Province',
-          timestamp: new Date(now.getTime() - 3600000).toISOString(), // 1 hour ago
-        },
-        {
-          id: 'audit-project-2',
-          action: 'Project Status Updated',
-          category: 'project',
-          userId: 'user-021',
-          userName: 'Lisa Manager',
-          userEmail: 'lisa.manager@abemis.gov.ph',
-          userRole: 'manager',
-          resourceType: 'project',
-          resourceId: 'PRJ-002',
-          ipAddress: '192.168.1.135',
-          status: 'success',
-          details: 'Project status changed from Proposal to Procurement',
-          timestamp: new Date(now.getTime() - 7200000).toISOString(), // 2 hours ago
-        },
-        {
-          id: 'audit-project-3',
-          action: 'Project Deleted',
-          category: 'project',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'project',
-          resourceId: 'PRJ-003',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'Project deleted: Cancelled Infrastructure Project',
-          timestamp: new Date(now.getTime() - 172800000).toISOString(), // 2 days ago
-        },
-        {
-          id: 'audit-project-4',
-          action: 'Project Budget Updated',
-          category: 'project',
-          userId: 'user-022',
-          userName: 'Tom Supervisor',
-          userEmail: 'tom.supervisor@abemis.gov.ph',
-          userRole: 'supervisor',
-          resourceType: 'project',
-          resourceId: 'PRJ-004',
-          ipAddress: '192.168.1.140',
-          status: 'success',
-          details: 'Budget updated from ₱5,000,000 to ₱5,500,000',
-          timestamp: new Date(now.getTime() - 259200000).toISOString(), // 3 days ago
-        },
-        {
-          id: 'audit-project-5',
-          action: 'Project Assigned',
-          category: 'project',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'project',
-          resourceId: 'PRJ-005',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'Project assigned to John Engineer',
-          timestamp: new Date(now.getTime() - 345600000).toISOString(), // 4 days ago
-        },
-        {
-          id: 'audit-project-6',
-          action: 'Project Evaluation Submitted',
-          category: 'project',
-          userId: 'user-023',
-          userName: 'Emma EPDSD',
-          userEmail: 'emma.epdsd@abemis.gov.ph',
-          userRole: 'EPDSD',
-          resourceType: 'project',
-          resourceId: 'PRJ-006',
-          ipAddress: '192.168.1.145',
-          status: 'success',
-          details: 'Project evaluation completed and submitted',
-          timestamp: new Date(now.getTime() - 432000000).toISOString(), // 5 days ago
-        },
-        
-        // Document Category (5+ examples)
-        {
-          id: 'audit-doc-1',
-          action: 'Document Uploaded',
-          category: 'document',
-          userId: 'user-030',
-          userName: 'Paul Engineer',
-          userEmail: 'paul.engineer@abemis.gov.ph',
-          userRole: 'engineer',
-          resourceType: 'document',
-          resourceId: 'DOC-001',
-          ipAddress: '192.168.1.150',
-          status: 'success',
-          details: 'Document uploaded: Environmental Impact Assessment.pdf (2.4 MB)',
-          timestamp: new Date(now.getTime() - 10800000).toISOString(), // 3 hours ago
-        },
-        {
-          id: 'audit-doc-2',
-          action: 'Document Validated',
-          category: 'document',
-          userId: 'user-031',
-          userName: 'Nancy EPDSD',
-          userEmail: 'nancy.epdsd@abemis.gov.ph',
-          userRole: 'EPDSD',
-          resourceType: 'document',
-          resourceId: 'DOC-002',
-          ipAddress: '192.168.1.155',
-          status: 'success',
-          details: 'Document validated: Feasibility Study.pdf',
-          timestamp: new Date(now.getTime() - 14400000).toISOString(), // 4 hours ago
-        },
-        {
-          id: 'audit-doc-3',
-          action: 'Document Deleted',
-          category: 'document',
-          userId: 'user-032',
-          userName: 'Oliver Manager',
-          userEmail: 'oliver.manager@abemis.gov.ph',
-          userRole: 'manager',
-          resourceType: 'document',
-          resourceId: 'DOC-003',
-          ipAddress: '192.168.1.160',
-          status: 'success',
-          details: 'Document deleted: Outdated Report.pdf',
-          timestamp: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
-        },
-        {
-          id: 'audit-doc-4',
-          action: 'Document Download',
-          category: 'document',
-          userId: 'user-033',
-          userName: 'Patricia RAED',
-          userEmail: 'patricia.raed@abemis.gov.ph',
-          userRole: 'RAED',
-          resourceType: 'document',
-          resourceId: 'DOC-004',
-          ipAddress: '192.168.1.165',
-          status: 'success',
-          details: 'Document downloaded: Project Proposal.pdf',
-          timestamp: new Date(now.getTime() - 172800000).toISOString(), // 2 days ago
-        },
-        {
-          id: 'audit-doc-5',
-          action: 'Document Rejected',
-          category: 'document',
-          userId: 'user-034',
-          userName: 'Quinn SEPD',
-          userEmail: 'quinn.sepd@abemis.gov.ph',
-          userRole: 'SEPD',
-          resourceType: 'document',
-          resourceId: 'DOC-005',
-          ipAddress: '192.168.1.170',
-          status: 'warning',
-          details: 'Document rejected: Missing required information',
-          timestamp: new Date(now.getTime() - 259200000).toISOString(), // 3 days ago
-        },
-        {
-          id: 'audit-doc-6',
-          action: 'Bulk Document Upload',
-          category: 'document',
-          userId: 'user-035',
-          userName: 'Ryan Engineer',
-          userEmail: 'ryan.engineer@abemis.gov.ph',
-          userRole: 'engineer',
-          resourceType: 'document',
-          resourceId: 'DOC-BULK-001',
-          ipAddress: '192.168.1.175',
-          status: 'success',
-          details: '8 documents uploaded in bulk',
-          timestamp: new Date(now.getTime() - 345600000).toISOString(), // 4 days ago
-        },
-        
-        // System Config Category (5+ examples)
-        {
-          id: 'audit-config-1',
-          action: 'Password Policy Updated',
-          category: 'system_config',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'Password policy updated: Minimum length changed to 10',
-          timestamp: new Date(now.getTime() - 18000000).toISOString(), // 5 hours ago
-        },
-        {
-          id: 'audit-config-2',
-          action: 'Session Policy Updated',
-          category: 'system_config',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'Session timeout updated to 480 minutes',
-          timestamp: new Date(now.getTime() - 21600000).toISOString(), // 6 hours ago
-        },
-        {
-          id: 'audit-config-3',
-          action: 'System Announcement Created',
-          category: 'system_config',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'announcement',
-          resourceId: 'ANN-001',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'New system announcement created and published',
-          timestamp: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
-        },
-        {
-          id: 'audit-config-4',
-          action: 'Operating Unit Created',
-          category: 'system_config',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'operating_unit',
-          resourceId: 'OU-005',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'New operating unit created: Regional Office',
-          timestamp: new Date(now.getTime() - 172800000).toISOString(), // 2 days ago
-        },
-        {
-          id: 'audit-config-5',
-          action: 'System Settings Backup',
-          category: 'system_config',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'System configuration backup created',
-          timestamp: new Date(now.getTime() - 259200000).toISOString(), // 3 days ago
-        },
-        {
-          id: 'audit-config-6',
-          action: 'System Maintenance Mode Enabled',
-          category: 'system_config',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          ipAddress: '192.168.1.100',
-          status: 'warning',
-          details: 'System maintenance mode activated',
-          timestamp: new Date(now.getTime() - 345600000).toISOString(), // 4 days ago
-        },
-        
-        // Permission Category (5+ examples)
-        {
-          id: 'audit-perm-1',
-          action: 'Role Permissions Updated',
-          category: 'permission',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'role',
-          resourceId: 'role-engineer',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'Engineer role permissions updated: Added "Approve Projects" permission',
-          timestamp: new Date(now.getTime() - 25200000).toISOString(), // 7 hours ago
-        },
-        {
-          id: 'audit-perm-2',
-          action: 'User Permission Granted',
-          category: 'permission',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'user',
-          resourceId: 'user-040',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'Special permission granted: Access to confidential projects',
-          timestamp: new Date(now.getTime() - 28800000).toISOString(), // 8 hours ago
-        },
-        {
-          id: 'audit-perm-3',
-          action: 'Permission Denied',
-          category: 'permission',
-          userId: 'user-041',
-          userName: 'Sam Stakeholder',
-          userEmail: 'sam.stakeholder@abemis.gov.ph',
-          userRole: 'stakeholder',
-          resourceType: 'project',
-          resourceId: 'PRJ-010',
-          ipAddress: '192.168.1.180',
-          status: 'failure',
-          details: 'Access denied: Insufficient permissions to view project',
-          timestamp: new Date(now.getTime() - 32400000).toISOString(), // 9 hours ago
-        },
-        {
-          id: 'audit-perm-4',
-          action: 'Role Created',
-          category: 'permission',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'role',
-          resourceId: 'role-custom',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'New custom role created: Project Coordinator',
-          timestamp: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
-        },
-        {
-          id: 'audit-perm-5',
-          action: 'Bulk Permission Update',
-          category: 'permission',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'Permissions updated for 12 users in bulk operation',
-          timestamp: new Date(now.getTime() - 172800000).toISOString(), // 2 days ago
-        },
-        {
-          id: 'audit-perm-6',
-          action: 'Permission Revoked',
-          category: 'permission',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          resourceType: 'user',
-          resourceId: 'user-042',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'Admin permissions revoked from user',
-          timestamp: new Date(now.getTime() - 259200000).toISOString(), // 3 days ago
-        },
-        
-        // Other Category (5+ examples)
-        {
-          id: 'audit-other-1',
-          action: 'Data Export',
-          category: 'other',
-          userId: 'user-050',
-          userName: 'Tina Manager',
-          userEmail: 'tina.manager@abemis.gov.ph',
-          userRole: 'manager',
-          ipAddress: '192.168.1.185',
-          status: 'success',
-          details: 'Project data exported to Excel format',
-          timestamp: new Date(now.getTime() - 3600000).toISOString(), // 1 hour ago
-        },
-        {
-          id: 'audit-other-2',
-          action: 'Report Generated',
-          category: 'other',
-          userId: 'user-051',
-          userName: 'Victor Supervisor',
-          userEmail: 'victor.supervisor@abemis.gov.ph',
-          userRole: 'supervisor',
-          ipAddress: '192.168.1.190',
-          status: 'success',
-          details: 'Monthly project report generated',
-          timestamp: new Date(now.getTime() - 7200000).toISOString(), // 2 hours ago
-        },
-        {
-          id: 'audit-other-3',
-          action: 'API Access',
-          category: 'other',
-          userId: 'user-052',
-          userName: 'Wendy Engineer',
-          userEmail: 'wendy.engineer@abemis.gov.ph',
-          userRole: 'engineer',
-          ipAddress: '192.168.1.195',
-          status: 'success',
-          details: 'External API accessed: PSGC Location Service',
-          timestamp: new Date(now.getTime() - 10800000).toISOString(), // 3 hours ago
-        },
-        {
-          id: 'audit-other-4',
-          action: 'System Error',
-          category: 'other',
-          userId: 'system',
-          userName: 'System',
-          userEmail: 'system@abemis.gov.ph',
-          userRole: 'admin',
-          ipAddress: '127.0.0.1',
-          status: 'warning',
-          details: 'Database connection timeout occurred',
-          timestamp: new Date(now.getTime() - 14400000).toISOString(), // 4 hours ago
-        },
-        {
-          id: 'audit-other-5',
-          action: 'Bulk Operation',
-          category: 'other',
-          userId: user?.id || 'admin',
-          userName: user?.name || 'Admin User',
-          userEmail: user?.email || 'admin@abemis.gov.ph',
-          userRole: user?.role || 'admin',
-          ipAddress: '192.168.1.100',
-          status: 'success',
-          details: 'Bulk project status update: 25 projects updated',
-          timestamp: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
-        },
-        {
-          id: 'audit-other-6',
-          action: 'System Health Check',
-          category: 'other',
-          userId: 'system',
-          userName: 'System',
-          userEmail: 'system@abemis.gov.ph',
-          userRole: 'admin',
-          ipAddress: '127.0.0.1',
-          status: 'success',
-          details: 'Automated system health check completed',
-          timestamp: new Date(now.getTime() - 172800000).toISOString(), // 2 days ago
-        },
-      ]
-      localStorage.setItem('abemis-audit-logs', JSON.stringify(loadedLogs))
-    }
-    
-    setAuditLogs(loadedLogs)
-    setIsAuditLogsInitialized(true)
-  }, [user?.id, loading, isAuditLogsInitialized])
 
   // Load password policy from localStorage
   useEffect(() => {
@@ -1577,12 +933,12 @@ export default function SystemPage() {
             System Announcements
           </TabsTrigger>
           <TabsTrigger value="operating-units" className="gap-2">
-            <Settings className="h-4 w-4" />
-            Operating Units
+            <Shield className="h-4 w-4" />
+            Roles and Permission
           </TabsTrigger>
-          <TabsTrigger value="audit-logs" className="gap-2">
-            <FileText className="h-4 w-4" />
-            Audit Logs
+          <TabsTrigger value="user-access-policy" className="gap-2">
+            <Shield className="h-4 w-4" />
+            User Access and Policy
           </TabsTrigger>
         </TabsList>
 
@@ -1748,151 +1104,159 @@ export default function SystemPage() {
           </Card>
         </TabsContent>
 
-        {/* Operating Units Tab */}
+        {/* Roles and Permission Tab */}
         <TabsContent value="operating-units" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-semibold">Operating Units</h2>
-              <p className="text-muted-foreground">
-                Manage operating units, their responsibilities, and scope of work
+              <h2 className="text-3xl font-bold tracking-tight">Roles and Permission</h2>
+              <p className="text-muted-foreground mt-1">
+                Manage roles, permissions, and access controls for your organization
               </p>
             </div>
-            <Button onClick={() => handleOpenOperatingUnitModal()} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Operating Unit
+            <Button onClick={() => handleOpenOperatingUnitModal()} className="gap-2" size="lg">
+              <Plus className="h-5 w-5" />
+              Create New Role
             </Button>
           </div>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Settings className="h-5 w-5 text-blue-600" />
-                <CardTitle>Operating Units Management</CardTitle>
-              </div>
-              <CardDescription>
-                Define and manage operating units with their responsibilities and scope
-              </CardDescription>
-            </CardHeader>
-        <CardContent>
           {operatingUnits.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Settings className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium text-muted-foreground">No operating units yet</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Create your first operating unit to get started
-              </p>
-            </div>
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="rounded-full bg-blue-100 p-4 mb-4">
+                  <Shield className="h-10 w-10 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">No roles configured</h3>
+                <p className="text-muted-foreground mb-6 max-w-md">
+                  Get started by creating your first role with custom permissions and access controls
+                </p>
+                <Button onClick={() => handleOpenOperatingUnitModal()} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create Your First Role
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Responsibility</TableHead>
-                    <TableHead>Scope</TableHead>
-                    <TableHead>Roles</TableHead>
-                    <TableHead>Permissions</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Updated</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {operatingUnits.map((operatingUnit) => (
-                    <TableRow key={operatingUnit.id}>
-                      <TableCell className="font-medium">{operatingUnit.name}</TableCell>
-                      <TableCell className="max-w-md">
-                        <p className="text-sm text-gray-700 line-clamp-2">
-                          {operatingUnit.responsibility}
-                        </p>
-                      </TableCell>
-                      <TableCell className="max-w-md">
-                        <p className="text-sm text-gray-700 line-clamp-2">
-                          {operatingUnit.scope}
-                        </p>
-                      </TableCell>
-                      <TableCell>
-                        {operatingUnit.roles && operatingUnit.roles.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {operatingUnit.roles.map((role) => (
-                              <Badge key={role} variant="secondary" className="text-xs capitalize">
-                                {role}
-                              </Badge>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">No roles</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {operatingUnit.permissions && operatingUnit.permissions.length > 0 ? (
-                          <div className="flex flex-wrap gap-1 max-w-xs">
-                            {operatingUnit.permissions.slice(0, 3).map((permission) => (
-                              <Badge key={permission} variant="outline" className="text-xs">
-                                {permission}
-                              </Badge>
-                            ))}
-                            {operatingUnit.permissions.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{operatingUnit.permissions.length - 3} more
-                              </Badge>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">No permissions</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatDate(operatingUnit.createdAt)}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatDate(operatingUnit.updatedAt)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenOperatingUnitModal(operatingUnit)}
-                            title="Edit operating unit"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteOperatingUnitClick(operatingUnit)}
-                            className="text-red-600 hover:text-red-700"
-                            title="Delete operating unit"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {operatingUnits.map((operatingUnit) => (
+                <Card key={operatingUnit.id} className="hover:shadow-lg transition-shadow duration-200">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2.5 shadow-sm">
+                          <Shield className="h-5 w-5 text-white" />
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg font-bold mb-1">{operatingUnit.name}</CardTitle>
+                          <CardDescription className="text-xs line-clamp-2 mt-1">
+                            {operatingUnit.responsibility}
+                          </CardDescription>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenOperatingUnitModal(operatingUnit)}
+                          className="h-8 w-8 p-0"
+                          title="Edit role"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteOperatingUnitClick(operatingUnit)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          title="Delete role"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Scope */}
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1.5">Scope</p>
+                      <p className="text-sm text-gray-700 line-clamp-2 leading-relaxed">
+                        {operatingUnit.scope}
+                      </p>
+                    </div>
+
+                    {/* Roles */}
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Associated Roles</p>
+                      {operatingUnit.roles && operatingUnit.roles.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {operatingUnit.roles.slice(0, 4).map((role) => (
+                            <Badge 
+                              key={role} 
+                              variant="secondary" 
+                              className="text-xs font-medium px-2 py-0.5 capitalize bg-blue-50 text-blue-700 border-blue-200"
+                            >
+                              {role}
+                            </Badge>
+                          ))}
+                          {operatingUnit.roles.length > 4 && (
+                            <Badge variant="outline" className="text-xs px-2 py-0.5">
+                              +{operatingUnit.roles.length - 4} more
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic">No roles assigned</p>
+                      )}
+                    </div>
+
+                    {/* Permissions */}
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">
+                        Permissions ({operatingUnit.permissions?.length || 0})
+                      </p>
+                      {operatingUnit.permissions && operatingUnit.permissions.length > 0 ? (
+                        <div className="space-y-1.5">
+                          {operatingUnit.permissions.slice(0, 3).map((permission) => (
+                            <div key={permission} className="flex items-center gap-2">
+                              <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+                              <span className="text-xs text-gray-700 truncate">{permission}</span>
+                            </div>
+                          ))}
+                          {operatingUnit.permissions.length > 3 && (
+                            <p className="text-xs text-muted-foreground font-medium pt-1">
+                              +{operatingUnit.permissions.length - 3} more permissions
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic">No permissions assigned</p>
+                      )}
+                    </div>
+
+                    {/* Footer Info */}
+                    <div className="pt-3 border-t flex items-center justify-between text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        <span>Updated {formatDate(operatingUnit.updatedAt)}</span>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        Active
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
-        </CardContent>
-          </Card>
         </TabsContent>
 
-        {/* Audit Logs Tab */}
-        <TabsContent value="audit-logs" className="space-y-6">
+        {/* User Access and Policy Tab */}
+        <TabsContent value="user-access-policy" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-semibold">Audit Logs</h2>
+              <h2 className="text-2xl font-semibold">User Access and Policy</h2>
               <p className="text-muted-foreground">
-                Track all system actions and configure security policies
+                Configure security policies and access controls
               </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                Export Logs
-              </Button>
             </div>
           </div>
 
@@ -2191,303 +1555,223 @@ export default function SystemPage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Audit Logs Table */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-blue-600" />
-                <CardTitle>System Actions Log</CardTitle>
-              </div>
-              <CardDescription>
-                View and filter all system actions and user activities
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search actions, users, or details..."
-                    value={auditLogsSearch}
-                    onChange={(e) => setAuditLogsSearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <Select value={auditLogsFilter} onValueChange={(value) => setAuditLogsFilter(value as typeof auditLogsFilter)}>
-                  <SelectTrigger className="w-[180px]">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Filter by category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="authentication">Authentication</SelectItem>
-                    <SelectItem value="user_management">User Management</SelectItem>
-                    <SelectItem value="project">Project</SelectItem>
-                    <SelectItem value="document">Document</SelectItem>
-                    <SelectItem value="system_config">System Config</SelectItem>
-                    <SelectItem value="permission">Permission</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={auditLogsStatusFilter} onValueChange={(value) => setAuditLogsStatusFilter(value as typeof auditLogsStatusFilter)}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="success">Success</SelectItem>
-                    <SelectItem value="failure">Failure</SelectItem>
-                    <SelectItem value="warning">Warning</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Filtered Logs */}
-              {(() => {
-                const filteredLogs = auditLogs.filter(log => {
-                  const matchesSearch = !auditLogsSearch || 
-                    log.action.toLowerCase().includes(auditLogsSearch.toLowerCase()) ||
-                    log.userName.toLowerCase().includes(auditLogsSearch.toLowerCase()) ||
-                    log.userEmail.toLowerCase().includes(auditLogsSearch.toLowerCase()) ||
-                    (log.details && log.details.toLowerCase().includes(auditLogsSearch.toLowerCase()))
-                  const matchesCategory = auditLogsFilter === 'all' || log.category === auditLogsFilter
-                  const matchesStatus = auditLogsStatusFilter === 'all' || log.status === auditLogsStatusFilter
-                  return matchesSearch && matchesCategory && matchesStatus
-                })
-
-                return filteredLogs.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                    <p className="text-lg font-medium text-muted-foreground">No audit logs found</p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {auditLogsSearch || auditLogsFilter !== 'all' || auditLogsStatusFilter !== 'all'
-                        ? 'Try adjusting your filters'
-                        : 'System actions will appear here'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Timestamp</TableHead>
-                          <TableHead>Action</TableHead>
-                          <TableHead>Category</TableHead>
-                          <TableHead>User</TableHead>
-                          <TableHead>Role</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>IP Address</TableHead>
-                          <TableHead>Details</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredLogs.map((log) => (
-                          <TableRow key={log.id}>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {new Date(log.timestamp).toLocaleString()}
-                            </TableCell>
-                            <TableCell className="font-medium">{log.action}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="capitalize">
-                                {log.category.replace('_', ' ')}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium text-sm">{log.userName}</p>
-                                <p className="text-xs text-muted-foreground">{log.userEmail}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="secondary" className="capitalize">
-                                {log.userRole}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {log.status === 'success' && (
-                                <Badge variant="default" className="bg-green-600">
-                                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                                  Success
-                                </Badge>
-                              )}
-                              {log.status === 'failure' && (
-                                <Badge variant="destructive">
-                                  <XCircle className="h-3 w-3 mr-1" />
-                                  Failure
-                                </Badge>
-                              )}
-                              {log.status === 'warning' && (
-                                <Badge variant="outline" className="border-yellow-500 text-yellow-700">
-                                  <AlertTriangle className="h-3 w-3 mr-1" />
-                                  Warning
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {log.ipAddress || 'N/A'}
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
-                              {log.details || log.resourceType ? (
-                                <span title={log.details || `${log.resourceType}: ${log.resourceId}`}>
-                                  {log.details || `${log.resourceType}: ${log.resourceId}`}
-                                </span>
-                              ) : (
-                                '—'
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )
-              })()}
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Create/Edit Operating Unit Modal */}
+      {/* Create/Edit Role Modal */}
       <Dialog open={isOperatingUnitModalOpen} onOpenChange={setIsOperatingUnitModalOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingOperatingUnit ? 'Edit Operating Unit' : 'Create New Operating Unit'}
-            </DialogTitle>
-            <DialogDescription>
-              Define the operating unit's name, responsibility, and scope of work
-            </DialogDescription>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2">
+                <Shield className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl">
+                  {editingOperatingUnit ? 'Edit Role' : 'Create New Role'}
+                </DialogTitle>
+                <DialogDescription className="mt-1">
+                  Configure role details, assign permissions, and define access controls
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            {/* Name */}
-            <div className="space-y-2">
-              <Label htmlFor="ou-name">Operating Unit Name *</Label>
-              <Input
-                id="ou-name"
-                placeholder="e.g., EPDSD, PPMD, SEPD, RAED"
-                value={operatingUnitFormData.name}
-                onChange={(e) => setOperatingUnitFormData({ ...operatingUnitFormData, name: e.target.value })}
-              />
-            </div>
+          <div className="space-y-6 py-6">
+            {/* Basic Information Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <Settings className="h-4 w-4 text-blue-600" />
+                <h3 className="font-semibold text-base">Basic Information</h3>
+              </div>
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Name */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="ou-name" className="text-sm font-semibold">Role Name *</Label>
+                  <Input
+                    id="ou-name"
+                    placeholder="e.g., Project Manager, System Administrator, Data Analyst"
+                    value={operatingUnitFormData.name}
+                    onChange={(e) => setOperatingUnitFormData({ ...operatingUnitFormData, name: e.target.value })}
+                    className="h-10"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter a clear, descriptive name for this role
+                  </p>
+                </div>
 
-            {/* Responsibility */}
-            <div className="space-y-2">
-              <Label htmlFor="ou-responsibility">Responsibility *</Label>
-              <Textarea
-                id="ou-responsibility"
-                placeholder="Describe the main responsibilities of this operating unit..."
-                value={operatingUnitFormData.responsibility}
-                onChange={(e) => setOperatingUnitFormData({ ...operatingUnitFormData, responsibility: e.target.value })}
-                rows={4}
-                className="resize-none"
-              />
-              <p className="text-xs text-muted-foreground">
-                Explain what this operating unit is responsible for
-              </p>
-            </div>
+                {/* Responsibility */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="ou-responsibility" className="text-sm font-semibold">Responsibility *</Label>
+                  <Textarea
+                    id="ou-responsibility"
+                    placeholder="Describe the main responsibilities and duties of this role..."
+                    value={operatingUnitFormData.responsibility}
+                    onChange={(e) => setOperatingUnitFormData({ ...operatingUnitFormData, responsibility: e.target.value })}
+                    rows={3}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Explain what this role is responsible for within the organization
+                  </p>
+                </div>
 
-            {/* Scope */}
-            <div className="space-y-2">
-              <Label htmlFor="ou-scope">Scope *</Label>
-              <Textarea
-                id="ou-scope"
-                placeholder="Describe the scope of work and coverage of this operating unit..."
-                value={operatingUnitFormData.scope}
-                onChange={(e) => setOperatingUnitFormData({ ...operatingUnitFormData, scope: e.target.value })}
-                rows={4}
-                className="resize-none"
-              />
-              <p className="text-xs text-muted-foreground">
-                Define the scope of work, coverage, and areas of operation
-              </p>
-            </div>
-
-            {/* Roles */}
-            <div className="space-y-3">
-              <Label>Roles</Label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Select the roles associated with this operating unit
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto border rounded-lg p-3">
-                {AVAILABLE_ROLES.map((role) => (
-                  <div
-                    key={role}
-                    className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 cursor-pointer"
-                    onClick={() => handleRoleToggle(role)}
-                  >
-                    <Checkbox
-                      checked={operatingUnitFormData.roles.includes(role)}
-                      onCheckedChange={() => handleRoleToggle(role)}
-                    />
-                    <Label className="text-sm font-normal cursor-pointer capitalize">
-                      {role}
-                    </Label>
-                  </div>
-                ))}
+                {/* Scope */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="ou-scope" className="text-sm font-semibold">Scope *</Label>
+                  <Textarea
+                    id="ou-scope"
+                    placeholder="Define the scope of work, coverage areas, and operational boundaries..."
+                    value={operatingUnitFormData.scope}
+                    onChange={(e) => setOperatingUnitFormData({ ...operatingUnitFormData, scope: e.target.value })}
+                    rows={3}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Specify the scope of work, coverage, and areas of operation
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Permissions */}
-            <div className="space-y-3">
-              <Label>Permissions</Label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Select the permissions granted to this operating unit
+            {/* Roles Assignment Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <UserCheck className="h-4 w-4 text-blue-600" />
+                <h3 className="font-semibold text-base">Role Assignment</h3>
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {operatingUnitFormData.roles.length} selected
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-2">
+                Select the system roles that will be associated with this permission set
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-64 overflow-y-auto border rounded-lg p-3">
-                {AVAILABLE_PERMISSIONS.map((permission) => (
-                  <div
-                    key={permission}
-                    className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 cursor-pointer"
-                    onClick={() => handlePermissionToggle(permission)}
-                  >
-                    <Checkbox
-                      checked={operatingUnitFormData.permissions.includes(permission)}
-                      onCheckedChange={() => handlePermissionToggle(permission)}
-                    />
-                    <Label className="text-sm font-normal cursor-pointer">
-                      {permission}
-                    </Label>
-                  </div>
-                ))}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-56 overflow-y-auto border rounded-lg p-4 bg-gray-50/50">
+                {AVAILABLE_ROLES.map((role) => {
+                  const isSelected = operatingUnitFormData.roles.includes(role)
+                  return (
+                    <div
+                      key={role}
+                      className={`flex items-center space-x-2 p-3 rounded-lg border cursor-pointer transition-all ${
+                        isSelected
+                          ? 'bg-blue-50 border-blue-300 shadow-sm'
+                          : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                      onClick={() => handleRoleToggle(role)}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => handleRoleToggle(role)}
+                      />
+                      <Label className="text-sm font-medium cursor-pointer capitalize flex-1">
+                        {role}
+                      </Label>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Permissions Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <Lock className="h-4 w-4 text-blue-600" />
+                <h3 className="font-semibold text-base">Permissions</h3>
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {operatingUnitFormData.permissions.length} selected
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-2">
+                Grant specific permissions to control what actions this role can perform
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-72 overflow-y-auto border rounded-lg p-4 bg-gray-50/50">
+                {AVAILABLE_PERMISSIONS.map((permission) => {
+                  const isSelected = operatingUnitFormData.permissions.includes(permission)
+                  return (
+                    <div
+                      key={permission}
+                      className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                        isSelected
+                          ? 'bg-green-50 border-green-300 shadow-sm'
+                          : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                      onClick={() => handlePermissionToggle(permission)}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => handlePermissionToggle(permission)}
+                      />
+                      <Label className="text-sm font-medium cursor-pointer flex-1">
+                        {permission}
+                      </Label>
+                      {isSelected && (
+                        <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCloseOperatingUnitModal}>
+          <DialogFooter className="border-t pt-4 gap-2">
+            <Button variant="outline" onClick={handleCloseOperatingUnitModal} className="gap-2">
+              <X className="h-4 w-4" />
               Cancel
             </Button>
-            <Button onClick={handleSubmitOperatingUnit} className="gap-2">
-              <Send className="h-4 w-4" />
-              {editingOperatingUnit ? 'Update Operating Unit' : 'Create Operating Unit'}
+            <Button onClick={handleSubmitOperatingUnit} className="gap-2" size="lg">
+              <Save className="h-4 w-4" />
+              {editingOperatingUnit ? 'Update Role' : 'Create Role'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Operating Unit Confirmation Dialog */}
+      {/* Delete Role Confirmation Dialog */}
       <Dialog open={isOperatingUnitDeleteDialogOpen} onOpenChange={setIsOperatingUnitDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Operating Unit</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this operating unit? This action cannot be undone.
+            <div className="flex items-center gap-3 mb-2">
+              <div className="rounded-full bg-red-100 p-2">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <DialogTitle className="text-xl">Delete Role</DialogTitle>
+            </div>
+            <DialogDescription className="text-base">
+              This action cannot be undone. The role and all its associated permissions will be permanently removed.
             </DialogDescription>
           </DialogHeader>
           {operatingUnitToDelete && (
             <div className="py-4">
-              <div className="bg-gray-50 rounded-lg p-4 border">
-                <p className="font-medium text-sm text-gray-500 mb-1">Operating Unit</p>
-                <p className="text-base font-semibold">{operatingUnitToDelete.name}</p>
-                <p className="text-sm text-gray-600 mt-2">{operatingUnitToDelete.responsibility}</p>
-              </div>
+              <Card className="border-red-200 bg-red-50/50">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2 flex-shrink-0">
+                      <Shield className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base mb-1">{operatingUnitToDelete.name}</p>
+                      <p className="text-sm text-gray-600 line-clamp-2">{operatingUnitToDelete.responsibility}</p>
+                      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-red-200">
+                        <div className="text-xs">
+                          <span className="text-muted-foreground">Roles: </span>
+                          <span className="font-medium">{operatingUnitToDelete.roles?.length || 0}</span>
+                        </div>
+                        <div className="text-xs">
+                          <span className="text-muted-foreground">Permissions: </span>
+                          <span className="font-medium">{operatingUnitToDelete.permissions?.length || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsOperatingUnitDeleteDialogOpen(false)}>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsOperatingUnitDeleteDialogOpen(false)} className="gap-2">
+              <X className="h-4 w-4" />
               Cancel
             </Button>
             <Button 
@@ -2496,7 +1780,7 @@ export default function SystemPage() {
               className="gap-2"
             >
               <Trash2 className="h-4 w-4" />
-              Delete
+              Delete Role
             </Button>
           </DialogFooter>
         </DialogContent>

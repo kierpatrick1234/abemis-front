@@ -20,21 +20,19 @@ export function ConfigureStagesModal({ isOpen, onClose, typeId, projectTypeName 
 
   useEffect(() => {
     if (isOpen && typeId) {
-      setIsLoading(true)
+      // Don't show loading state - let iframe load in background
+      setIsLoading(false)
       // Force iframe to reload by changing key
       setIframeKey(prev => prev + 1)
       
-      // Set a timeout to hide loading after 10 seconds (fallback in case onLoad doesn't fire)
+      // Clear any existing timeout
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current)
+        loadingTimeoutRef.current = null
       }
-      loadingTimeoutRef.current = setTimeout(() => {
-        setIsLoading(false)
-        console.warn('Loading timeout reached - hiding loading indicator')
-      }, 10000)
     } else if (!isOpen) {
-      // Reset loading state when modal closes
-      setIsLoading(true)
+      // Reset when modal closes
+      setIsLoading(false)
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current)
         loadingTimeoutRef.current = null
@@ -77,7 +75,6 @@ export function ConfigureStagesModal({ isOpen, onClose, typeId, projectTypeName 
             <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Loading configure projects...</p>
               </div>
             </div>
           )}
@@ -90,33 +87,20 @@ export function ConfigureStagesModal({ isOpen, onClose, typeId, projectTypeName 
               title="Configure Project Stages"
               sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
               onLoad={() => {
-                // Clear the timeout since the iframe loaded
+                // Ensure loading is hidden when iframe loads
+                setIsLoading(false)
                 if (loadingTimeoutRef.current) {
                   clearTimeout(loadingTimeoutRef.current)
                   loadingTimeoutRef.current = null
-                }
-                setIsLoading(false)
-                // Check if iframe loaded the correct page (not redirected to dashboard)
-                try {
-                  const iframe = iframeRef.current
-                  if (iframe && iframe.contentWindow) {
-                    // Check if the iframe's location matches what we expect
-                    // Note: Due to cross-origin restrictions, we may not be able to access contentWindow.location
-                    // But the onLoad event firing means it loaded something
-                    console.log('Configure stages iframe loaded successfully')
-                  }
-                } catch (e) {
-                  // Cross-origin restrictions may prevent access, which is expected
-                  console.log('Iframe loaded (cross-origin check not possible)')
                 }
               }}
               onError={() => {
-                // Clear the timeout on error
+                // Hide loading on error
+                setIsLoading(false)
                 if (loadingTimeoutRef.current) {
                   clearTimeout(loadingTimeoutRef.current)
                   loadingTimeoutRef.current = null
                 }
-                setIsLoading(false)
                 console.error('Error loading configure stages iframe')
               }}
             />
