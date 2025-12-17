@@ -141,6 +141,7 @@ export default function ConfigureProjectTypePage() {
 
   // Handle initial load and prevent redirects during auth loading
   // In modal mode, don't wait for auth - allow immediate rendering
+  // Never redirect - this page should always be accessible
   useEffect(() => {
     if (isModal) {
       // In modal mode, render immediately without waiting for auth
@@ -149,6 +150,7 @@ export default function ConfigureProjectTypePage() {
       // In normal mode, wait for auth to finish loading
       setIsInitialLoad(false)
     }
+    // Explicitly prevent any redirects - this page should always render
   }, [authLoading, isModal])
 
   // Load project types from localStorage or use default

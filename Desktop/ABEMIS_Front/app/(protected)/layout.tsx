@@ -21,13 +21,17 @@ export default function ProtectedLayout({
   const [isInIframe, setIsInIframe] = useState(false)
 
   useEffect(() => {
-    // Allow configure routes to load even during auth initialization
+    // Allow configure and registration routes to load even during auth initialization
     // This prevents redirects in Vercel where auth might load slower
     const isConfigureRoute = pathname?.includes('/form-builder/projects/configure')
+    const isRegistrationRoute = pathname?.includes('/form-builder/projects/registration')
+    const isAllowedRoute = isConfigureRoute || isRegistrationRoute
     
-    if (!loading && !user && !isConfigureRoute) {
+    // Never redirect for configure or registration routes - they handle their own auth
+    if (!loading && !user && !isAllowedRoute) {
       router.push('/login')
     }
+    // Explicitly prevent any redirects for allowed routes
   }, [user, loading, router, pathname])
 
   // Redirect VIEWER users away from dashboard to summary
@@ -75,8 +79,10 @@ export default function ProtectedLayout({
     // Don't store the "seen" status - we want it to show every login
   }
 
-  // Allow configure routes to render during auth loading to prevent redirects in Vercel
+  // Allow configure and registration routes to render during auth loading to prevent redirects in Vercel
   const isConfigureRoute = pathname?.includes('/form-builder/projects/configure')
+  const isRegistrationRoute = pathname?.includes('/form-builder/projects/registration')
+  const isAllowedRoute = isConfigureRoute || isRegistrationRoute
 
   if (loading) {
     return (
@@ -86,14 +92,14 @@ export default function ProtectedLayout({
     )
   }
 
-  // Allow configure routes to render even if user is not loaded yet
+  // Allow configure and registration routes to render even if user is not loaded yet
   // This prevents redirects in Vercel where auth might initialize slower
-  if (!user && !isConfigureRoute) {
+  if (!user && !isAllowedRoute) {
     return null
   }
 
-  // For configure routes, render the page even without user (it will handle its own loading)
-  if (isConfigureRoute && !user) {
+  // For configure and registration routes, render the page even without user (it will handle its own loading)
+  if (isAllowedRoute && !user) {
     return (
       <EvaluationProvider>
         <div className="flex h-screen bg-background">
