@@ -946,14 +946,15 @@ export default function RegistrationFormPage() {
     return fieldTypeObj?.icon || Type
   }
 
-  // Never redirect - always show loading state while initializing
-  // This prevents any redirects to dashboard
-  if (authLoading || !projectType || isInitializing) {
+  // NEVER wait for auth - only wait for projectType to load
+  // This prevents any redirects in Vercel where auth loading can cause issues
+  // The layout already handles allowing this route, so we don't need to check auth here
+  if (!projectType || isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Loading registration form configuration...</p>
         </div>
       </div>
     )

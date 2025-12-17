@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { SuccessToast } from '@/components/success-toast'
-import { ConfigureStagesModal } from '@/components/configure-stages-modal'
 
 interface ProjectStage {
   id: string
@@ -74,9 +73,8 @@ export default function ProjectsPage() {
   const [toastCountdown, setToastCountdown] = useState(10)
   const [toastMessage, setToastMessage] = useState('Project Type Added Successfully!')
   const [highlightedTypeId, setHighlightedTypeId] = useState<string | null>(null)
-  const [showConfigureDialog, setShowConfigureDialog] = useState(false)
-  const [selectedTypeForConfigure, setSelectedTypeForConfigure] = useState<string | null>(null)
-  const [showConfigureStagesModal, setShowConfigureStagesModal] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [typeToDelete, setTypeToDelete] = useState<{ id: string; name: string } | null>(null)
 
   // Show loading while auth is being checked
   if (loading) {
@@ -163,11 +161,32 @@ export default function ProjectsPage() {
     }, 1000)
   }
 
-  const handleDeleteProjectType = (id: string) => {
-    if (confirm('Are you sure you want to delete this project type?')) {
-      const updatedTypes = projectTypes.filter(type => type.id !== id)
+  const handleDeleteClick = (id: string, name: string) => {
+    setTypeToDelete({ id, name })
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteProjectType = () => {
+    if (typeToDelete) {
+      const updatedTypes = projectTypes.filter(type => type.id !== typeToDelete.id)
       setProjectTypes(updatedTypes)
       localStorage.setItem('projectTypes', JSON.stringify(updatedTypes))
+      setDeleteDialogOpen(false)
+      setTypeToDelete(null)
+      setToastMessage('Project Type Deleted Successfully!')
+      setShowSuccessToast(true)
+      setToastCountdown(10)
+      
+      const timer = setInterval(() => {
+        setToastCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            setShowSuccessToast(false)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
     }
   }
 
@@ -309,42 +328,69 @@ export default function ProjectsPage() {
                   <Card 
                     key={type.id} 
                     id={`project-type-${type.id}`}
-                    className={`relative hover:shadow-md transition-all duration-300 ${
+                    className={`relative hover:shadow-lg transition-shadow duration-200 ${
                       highlightedTypeId === type.id
-                        ? 'ring-4 ring-green-500 ring-offset-2 shadow-lg scale-105 bg-green-50 border-green-500'
-                        : 'transition-shadow'
+                        ? 'ring-2 ring-green-500 shadow-lg bg-green-50/50'
+                        : ''
                     }`}
                   >
                     <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3 flex-1">
-                          <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <div className="flex-shrink-0 p-2.5 rounded-lg bg-primary/10">
                             <TypeIcon className="h-6 w-6 text-primary" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-lg">{type.name}</CardTitle>
+                            <CardTitle className="text-lg font-semibold mb-1 truncate">
+                              {type.name}
+                            </CardTitle>
                             {type.description && (
-                              <CardDescription className="mt-1">
+                              <CardDescription className="text-sm line-clamp-2">
                                 {type.description}
                               </CardDescription>
                             )}
                           </div>
                         </div>
-                        <Badge variant="secondary" className="ml-2 flex-shrink-0">
-                          Active
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-sm font-medium">Project Stages</Label>
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <Badge variant="secondary" className="text-xs">
                             {type.stages.length} {type.stages.length === 1 ? 'stage' : 'stages'}
                           </Badge>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleEditProjectType(type)
+                              }}
+                              className="h-8 w-8 p-0"
+                              title="Edit"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleDeleteClick(type.id, type.name)
+                              }}
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              title="Delete"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                        {type.stages.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 pt-1">
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {type.stages.length > 0 && (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-muted-foreground">Stages</Label>
+                          <div className="flex flex-wrap gap-1.5">
                             {type.stages
                               .sort((a, b) => a.order - b.order)
                               .slice(0, 3)
@@ -355,50 +401,42 @@ export default function ProjectsPage() {
                               ))}
                             {type.stages.length > 3 && (
                               <Badge variant="outline" className="text-xs">
-                                +{type.stages.length - 3} more
+                                +{type.stages.length - 3}
                               </Badge>
                             )}
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        <div className="text-xs text-muted-foreground">
-                          Updated: {new Date(type.updatedAt).toLocaleDateString()}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              setSelectedTypeForConfigure(type.id)
-                              setShowConfigureDialog(true)
-                            }}
-                            className="gap-1.5"
-                            type="button"
-                          >
-                            <Settings2 className="h-3.5 w-3.5" />
-                            Configure
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditProjectType(type)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteProjectType(type.id)}
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                      <div className="space-y-2 pt-3 border-t">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            router.push(`/form-builder/projects/configure/${type.id}`)
+                          }}
+                          className="gap-2 w-full justify-start"
+                          type="button"
+                        >
+                          <Settings2 className="h-4 w-4" />
+                          Configure Stages
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            router.push(`/form-builder/projects/registration/${type.id}`)
+                          }}
+                          className="gap-2 w-full justify-start"
+                          type="button"
+                        >
+                          <FileText className="h-4 w-4" />
+                          Registration Form
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -409,97 +447,36 @@ export default function ProjectsPage() {
         </CardContent>
       </Card>
 
-      {/* Configure Options Dialog */}
-      <Dialog open={showConfigureDialog} onOpenChange={(open) => {
-        setShowConfigureDialog(open)
-        if (!open) {
-          setSelectedTypeForConfigure(null)
-        }
-      }}>
-        <DialogContent className="sm:max-w-[600px]">
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings2 className="h-5 w-5" />
-              Configure Project Type
-            </DialogTitle>
+            <DialogTitle>Delete Project Type</DialogTitle>
             <DialogDescription>
-              Choose what you want to configure for this project type
+              Are you sure you want to delete <strong>{typeToDelete?.name}</strong>? This action cannot be undone and will remove all associated stages and configurations.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 gap-4 py-4">
-            <Button
-              variant="outline"
-              className="h-auto p-6 hover:bg-primary/5 hover:border-primary transition-colors justify-start w-full"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                if (selectedTypeForConfigure) {
-                  setShowConfigureStagesModal(true)
-                }
-                setShowConfigureDialog(false)
-              }}
-              type="button"
-            >
-              <div className="flex items-start gap-4 w-full">
-                <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
-                  <ListOrdered className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1 text-left min-w-0 overflow-hidden">
-                  <div className="font-semibold text-base leading-tight mb-1.5 break-words">Project Stages Configuration</div>
-                  <div className="text-sm text-muted-foreground leading-relaxed break-words">
-                    Configure project stages and their form fields
-                  </div>
-                </div>
-              </div>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-auto p-6 hover:bg-primary/5 hover:border-primary transition-colors justify-start w-full"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                if (selectedTypeForConfigure) {
-                  // Close dialog first, then navigate to prevent any redirect issues
-                  setShowConfigureDialog(false)
-                  // Use setTimeout to ensure dialog closes before navigation
-                  setTimeout(() => {
-                    router.push(`/form-builder/projects/registration/${selectedTypeForConfigure}`)
-                  }, 100)
-                } else {
-                  setShowConfigureDialog(false)
-                }
-              }}
-              type="button"
-            >
-              <div className="flex items-start gap-4 w-full">
-                <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
-                  <FileText className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1 text-left min-w-0 overflow-hidden">
-                  <div className="font-semibold text-base leading-tight mb-1.5 break-words">Project Registration Form Configuration</div>
-                  <div className="text-sm text-muted-foreground leading-relaxed break-words">
-                    Configure the initial project registration form
-                  </div>
-                </div>
-              </div>
-            </Button>
-          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfigureDialog(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setDeleteDialogOpen(false)
+                setTypeToDelete(null)
+              }}
+            >
               <X className="h-4 w-4 mr-2" />
               Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteProjectType}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Configure Stages Modal */}
-      <ConfigureStagesModal
-        isOpen={showConfigureStagesModal}
-        onClose={() => setShowConfigureStagesModal(false)}
-        typeId={selectedTypeForConfigure}
-        projectTypeName={projectTypes.find(t => t.id === selectedTypeForConfigure)?.name}
-      />
 
       <SuccessToast
         isVisible={showSuccessToast}

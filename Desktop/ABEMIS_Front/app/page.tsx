@@ -9,6 +9,16 @@ export default function HomePage() {
   const router = useRouter()
 
   useEffect(() => {
+    // Check if we're on an allowed route - never redirect from these routes
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+    const isAllowedRoute = currentPath.includes('/form-builder/projects/configure') || 
+                          currentPath.includes('/form-builder/projects/registration')
+    
+    // Never redirect if we're on an allowed route
+    if (isAllowedRoute) {
+      return
+    }
+    
     // Add a small delay to ensure the auth context is properly initialized
     const timer = setTimeout(() => {
       if (!loading) {

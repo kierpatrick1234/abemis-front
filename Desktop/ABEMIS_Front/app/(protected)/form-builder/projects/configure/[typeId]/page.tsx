@@ -140,18 +140,14 @@ export default function ConfigureProjectTypePage() {
   const [selectedPreviewStage, setSelectedPreviewStage] = useState<string | null>(null)
 
   // Handle initial load and prevent redirects during auth loading
-  // In modal mode, don't wait for auth - allow immediate rendering
-  // Never redirect - this page should always be accessible
+  // NEVER wait for auth - this page must always be accessible immediately
+  // This is critical for Vercel where auth loading can cause redirects
   useEffect(() => {
-    if (isModal) {
-      // In modal mode, render immediately without waiting for auth
-      setIsInitialLoad(false)
-    } else if (!authLoading) {
-      // In normal mode, wait for auth to finish loading
-      setIsInitialLoad(false)
-    }
+    // Always set initial load to false immediately - don't wait for auth
+    // This page handles its own loading state based on projectType only
+    setIsInitialLoad(false)
     // Explicitly prevent any redirects - this page should always render
-  }, [authLoading, isModal])
+  }, [])
 
   // Load project types from localStorage or use default
   useEffect(() => {
@@ -318,33 +314,18 @@ export default function ConfigureProjectTypePage() {
     setToastCountdown(10)
   }
 
-  // Show loading state only if not in modal mode and auth is still loading
-  // In modal mode, render immediately to prevent redirects
-  // Only wait for projectType to load, not auth
-  if (isModal) {
-    // In modal mode, only wait for projectType, not auth
-    if (!projectType) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
+  // NEVER wait for auth - only wait for projectType to load
+  // This prevents any redirects in Vercel where auth loading can cause issues
+  // The layout already handles allowing this route, so we don't need to check auth here
+  if (!projectType || isInitialLoad) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading project configuration...</p>
         </div>
-      )
-    }
-  } else {
-    // In normal mode, wait for both auth and projectType
-    if (authLoading || isInitialLoad || !projectType) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
-        </div>
-      )
-    }
+      </div>
+    )
   }
 
   const handleAddStage = () => {
@@ -724,11 +705,11 @@ export default function ConfigureProjectTypePage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push('/form-builder')}
+            onClick={() => router.push('/form-builder/projects')}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            Back to Projects
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Configure Project Stages</h1>
